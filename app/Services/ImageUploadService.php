@@ -31,9 +31,6 @@ class ImageUploadService
         try {
             $file->move($path, $filename);
 
-            // Opcional: optimizar imagen si tienes Intervention Image instalado
-            // $this->optimizeImage($path . '/' . $filename, $directory);
-
             Log::info("Image uploaded successfully: {$directory}/{$filename}");
 
             return $filename;
@@ -41,6 +38,43 @@ class ImageUploadService
             Log::error("Error uploading image: " . $e->getMessage());
             throw $e;
         }
+    }
+
+    /**
+     * Subir imagen con redimensionamiento
+     */
+    public function uploadWithResize(
+        UploadedFile $file,
+        string $folder = 'images',
+        int $maxWidth = 1200,
+        int $maxHeight = 1200
+    ): string {
+        $filename = $this->generateFilename($file);
+        $path = public_path("images/{$folder}");
+
+        $this->ensureDirectoryExists($folder);
+
+        // Si tienes Intervention Image instalado, usa este bloque
+        // Descomentar si tienes el paquete: composer require intervention/image
+        /*
+        try {
+            $image = \Intervention\Image\Facades\Image::make($file);
+
+            $image->resize($maxWidth, $maxHeight, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
+
+            $image->save($path . '/' . $filename, 85);
+        } catch (\Exception $e) {
+            $file->move($path, $filename);
+        }
+        */
+
+        // Sin Intervention Image, usa el método simple
+        $file->move($path, $filename);
+
+        return $filename;
     }
 
     /**
@@ -74,7 +108,6 @@ class ImageUploadService
             return false;
         }
 
-        // Intentar diferentes rutas posibles
         $possiblePaths = [
             public_path("{$type}/" . $path),
             public_path($path),
@@ -93,6 +126,22 @@ class ImageUploadService
         }
 
         return false;
+    }
+
+    /**
+     * Subir múltiples imágenes
+     */
+    public function uploadMultiple(array $files, string $folder = 'images'): array
+    {
+        $uploadedFiles = [];
+
+        foreach ($files as $file) {
+            if ($file instanceof UploadedFile) {
+                $uploadedFiles[] = $this->upload($file, $folder);
+            }
+        }
+
+        return $uploadedFiles;
     }
 
     /**

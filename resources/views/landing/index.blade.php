@@ -24,6 +24,9 @@
         @include('landing.sections.about')
     @endif
 
+    {{-- Shop Section --}}
+    @include('landing.sections.shop')
+
     {{-- Projects Section --}}
     @if($settings->products_enabled)
         @include('landing.sections.projects')

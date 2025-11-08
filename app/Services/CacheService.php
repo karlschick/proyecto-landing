@@ -54,6 +54,29 @@ class CacheService
     }
 
     /**
+     * Obtener productos activos con caché
+     */
+    public static function products()
+    {
+        return Cache::remember('active_products', self::TTL, function() {
+            return \App\Models\Product::where('is_active', true)
+                ->orderBy('order')
+                ->take(12)
+                ->get();
+        });
+    }
+
+    /**
+     * Limpiar caché de productos
+     */
+    public static function clearProducts(): void
+    {
+        Cache::forget('active_products');
+    }
+
+
+
+    /**
      * Obtener testimonios destacados con caché
      */
     public static function testimonials()
@@ -127,6 +150,7 @@ class CacheService
         Cache::forget(self::PROJECTS_KEY);
         Cache::forget(self::TESTIMONIALS_KEY);
         Cache::forget(self::GALLERY_KEY);
+        Cache::forget('active_products');
 
         \Log::info('All site cache cleared');
     }

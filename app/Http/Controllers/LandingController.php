@@ -9,9 +9,15 @@ class LandingController extends Controller
 {
     public function index()
     {
-        // Usar caché para settings
         $settings = CacheService::settings();
+        $services = CacheService::services();
+        $projects = CacheService::projects();
+        $testimonials = CacheService::testimonials();
+        $gallery = CacheService::gallery();
+        $products = CacheService::products(); // 👈 añadimos esto
 
-        return view('landing.index', compact('settings'));
+        return view('landing.index', compact(
+            'settings', 'services', 'projects', 'testimonials', 'gallery', 'products'
+        ));
     }
 }

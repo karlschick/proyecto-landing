@@ -4,6 +4,60 @@
     <!-- Hero Section -->
     @include('admin.settings.partials.hero-section')
 
+    <hr class="my-6 border-gray-300">
+
+<h4 class="text-lg font-semibold text-gray-800 mb-3">Personalización del Hero</h4>
+
+<div class="grid md:grid-cols-3 gap-6">
+    <!-- Color del título -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Color del título</label>
+        <input type="color"
+               name="hero_title_color"
+               value="{{ old('hero_title_color', $settings->hero_title_color ?? '#ffffff') }}"
+               class="form-control form-control-color w-16 h-10 rounded cursor-pointer border-gray-300">
+        <p class="text-xs text-gray-500 mt-1">Selecciona el color del texto principal del Hero.</p>
+    </div>
+
+    <!-- Fuente del título -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Fuente del título</label>
+        <select name="hero_title_font" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            @php
+                $fonts = [
+                    'default' => 'Predeterminada',
+                    'montserrat' => 'Montserrat',
+                    'poppins' => 'Poppins',
+                    'roboto' => 'Roboto',
+                    'playfair' => 'Playfair Display',
+                    'oswald' => 'Oswald',
+                    'raleway' => 'Raleway',
+                ];
+            @endphp
+            @foreach($fonts as $key => $label)
+                <option value="{{ $key }}" {{ ($settings->hero_title_font ?? 'default') === $key ? 'selected' : '' }}>
+                    {{ $label }}
+                </option>
+            @endforeach
+        </select>
+        <p class="text-xs text-gray-500 mt-1">Selecciona la fuente del título del Hero.</p>
+    </div>
+
+    <!-- Mostrar logo o texto -->
+<!-- Campo oculto para enviar 0 si el checkbox no está marcado -->
+<input type="hidden" name="hero_show_logo_instead" value="0">
+
+<input type="checkbox" id="hero_show_logo_instead" name="hero_show_logo_instead" value="1"
+       class="form-check-input h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
+       {{ $settings->hero_show_logo_instead ? 'checked' : '' }}>
+
+        <label for="hero_show_logo_instead" class="ml-2 text-sm font-medium text-gray-700">
+            Mostrar logo en lugar del texto
+        </label>
+    </div>
+</div>
+
+
     <!-- About Section -->
     @include('admin.settings.partials.about-section')
 

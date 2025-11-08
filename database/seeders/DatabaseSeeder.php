@@ -12,7 +12,12 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             SettingSeeder::class,
             ServiceSeeder::class,
-            // Agrega los demás seeders cuando los crees
+            ProjectSeeder::class,
+            TestimonialSeeder::class,
+
+            // E-commerce seeders
+            ProductCategorySeeder::class,
+            ProductSeeder::class,
         ]);
     }
 }

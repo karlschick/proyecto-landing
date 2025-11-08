@@ -21,11 +21,30 @@ class Setting extends Model
         'secondary_color',
         'accent_color',
 
+        // Colores
+        'primary_color',
+        'secondary_color',
+        'accent_color',
+
+        // Navbar
+        'navbar_bg_color',
+        'navbar_text_color',
+        'navbar_show_logo',
+        'navbar_show_title',
+        'navbar_show_slogan',
+        'navbar_menu_labels',
+
+
         // Hero Background
         'hero_background_type',
         'hero_background_image',
         'hero_background_video',
         'hero_overlay_opacity',
+
+        // Hero — nuevas opciones de personalización
+        'hero_title_color',
+        'hero_title_font',
+        'hero_show_logo_instead',
 
         // Redes sociales
         'facebook_enabled',
@@ -50,11 +69,15 @@ class Setting extends Model
         'google_maps_url',
 
         // Secciones
+        // Secciones
         'hero_enabled',
         'hero_title',
         'hero_subtitle',
         'hero_button_text',
         'hero_button_url',
+        'hero_title_color',
+        'hero_title_font',
+        'hero_show_logo_instead',
         'about_enabled',
         'about_title',
         'about_description',
@@ -107,6 +130,12 @@ class Setting extends Model
         'contact_enabled' => 'boolean',
         'show_social_footer' => 'boolean',
         'show_whatsapp_button' => 'boolean',
+                // Navbar
+        'navbar_show_logo' => 'boolean',
+        'navbar_show_title' => 'boolean',
+        'navbar_show_slogan' => 'boolean',
+        'navbar_menu_labels' => 'array',
+        'hero_show_logo_instead' => 'boolean',
     ];
 
     /**
@@ -120,6 +149,9 @@ class Setting extends Model
         ], [
             'site_name' => config('app.name'),
             'contact_email' => 'contacto@ejemplo.com',
+            'hero_title_color' => '#ffffff',
+            'hero_title_font' => 'default',
+            'hero_show_logo_instead' => false,
         ]);
     }
 
@@ -171,66 +203,69 @@ public function getHeroBackgroundVideoUrl()
     /**
      * Métodos helper para obtener valores específicos
      */
-public function getFaviconUrl()
-{
-    if ($this->favicon) {
-        // Verificar en public/images/
-        $imagePath = public_path('images/' . $this->favicon);
-        if (file_exists($imagePath)) {
-            return asset('images/' . $this->favicon);
+    public function getFaviconUrl()
+    {
+        if ($this->favicon) {
+            if (file_exists(public_path('images/settings/' . $this->favicon))) {
+                return asset('images/settings/' . $this->favicon);
+            }
+
+            if (file_exists(public_path('images/' . $this->favicon))) {
+                return asset('images/' . $this->favicon);
+            }
+
+            if (file_exists(public_path($this->favicon))) {
+                return asset($this->favicon);
+            }
+
+            \Log::warning('Favicon no encontrado: ' . $this->favicon);
         }
 
-        // Verificar en public/ directamente
-        $publicPath = public_path($this->favicon);
-        if (file_exists($publicPath)) {
-            return asset($this->favicon);
-        }
-
-        // Log si no encuentra el archivo
-        \Log::warning('Favicon no encontrado: ' . $this->favicon);
+        return asset('favicon.ico');
     }
 
-    // Fallback al favicon por defecto
-    return asset('favicon.ico');
-}
+    public function getLogoUrl()
+    {
+        if ($this->logo) {
+            // 1️⃣ Ruta donde el servicio realmente guarda los logos
+            if (file_exists(public_path('images/settings/' . $this->logo))) {
+                return asset('images/settings/' . $this->logo);
+            }
 
-public function getLogoUrl()
-{
-    if ($this->logo) {
-        $imagePath = public_path('images/' . $this->logo);
-        if (file_exists($imagePath)) {
-            return asset('images/' . $this->logo);
+            // 2️⃣ Otras ubicaciones posibles (compatibilidad con versiones anteriores)
+            if (file_exists(public_path('images/' . $this->logo))) {
+                return asset('images/' . $this->logo);
+            }
+
+            if (file_exists(public_path($this->logo))) {
+                return asset($this->logo);
+            }
+
+            \Log::warning('Logo no encontrado: ' . $this->logo);
         }
 
-        $publicPath = public_path($this->logo);
-        if (file_exists($publicPath)) {
-            return asset($this->logo);
-        }
-
-        \Log::warning('Logo no encontrado: ' . $this->logo);
+        // 3️⃣ Logo por defecto
+        return asset('images/logo.png');
     }
 
-    return asset('images/logo.png');
-}
+    public function getAboutImageUrl()
+    {
+        if ($this->about_image) {
+            $imagePath = public_path('images/' . $this->about_image);
+            if (file_exists($imagePath)) {
+                return asset('images/' . $this->about_image);
+            }
 
-public function getAboutImageUrl()
-{
-    if ($this->about_image) {
-        $imagePath = public_path('images/' . $this->about_image);
-        if (file_exists($imagePath)) {
-            return asset('images/' . $this->about_image);
+            $publicPath = public_path($this->about_image);
+            if (file_exists($publicPath)) {
+                return asset($this->about_image);
+            }
+
+            \Log::warning('Imagen About no encontrada: ' . $this->about_image);
         }
 
-        $publicPath = public_path($this->about_image);
-        if (file_exists($publicPath)) {
-            return asset($this->about_image);
-        }
-
-        \Log::warning('Imagen About no encontrada: ' . $this->about_image);
+        return asset('images/about-image.jpg');
     }
-
-    return asset('images/about-image.jpg');
-}
 
     /**
      * Obtener redes sociales habilitadas

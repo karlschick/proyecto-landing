@@ -22,6 +22,9 @@
         <!-- Tab Content: Secciones -->
         @include('admin.settings.partials.sections')
 
+        <!-- Tab Content: Navbar -->
+        @include('admin.settings.partials.navbar')
+
         <!-- Tab Content: Redes Sociales -->
         @include('admin.settings.partials.social')
 

@@ -39,6 +39,15 @@ class SettingController extends Controller
             'secondary_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
 
+            // === 🟦 NUEVOS CAMPOS NAVBAR ===
+            'navbar_bg_color' => 'nullable|string|max:7',
+            'navbar_text_color' => 'nullable|string|max:7',
+            'navbar_show_logo' => 'nullable',
+            'navbar_show_title' => 'nullable',
+            'navbar_show_slogan' => 'nullable',
+
+            'navbar_menu_labels' => 'nullable|array',
+
             // Redes Sociales
             'facebook_url' => 'nullable|url',
             'instagram_url' => 'nullable|url',
@@ -66,6 +75,9 @@ class SettingController extends Controller
             'hero_background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'hero_background_video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:51200',
             'hero_overlay_opacity' => 'nullable|numeric|min:0|max:1',
+            'hero_title_color' => 'nullable|string|max:7',
+            'hero_title_font' => 'nullable|string|max:50',
+            'hero_show_logo_instead' => 'boolean',
 
             // About
             'about_title' => 'nullable|string|max:255',
@@ -88,11 +100,19 @@ class SettingController extends Controller
             'whatsapp_enabled', 'show_email', 'show_phone', 'show_address', 'show_map',
             'hero_enabled', 'about_enabled', 'services_enabled', 'products_enabled',
             'testimonials_enabled', 'gallery_enabled', 'contact_enabled',
-            'show_social_footer', 'show_whatsapp_button'
+            'show_social_footer', 'show_whatsapp_button',
+            // 🟦 Nuevos booleanos del navbar
+            'navbar_show_logo', 'navbar_show_title', 'navbar_show_slogan',
+            'hero_show_logo_instead',
         ];
 
         foreach ($checkboxFields as $field) {
-            $validated[$field] = $request->has($field);
+            $validated[$field] = filter_var($request->input($field), FILTER_VALIDATE_BOOLEAN);
+        }
+
+        // Manejar JSON del menú del navbar
+        if ($request->has('navbar_menu_labels')) {
+            $validated['navbar_menu_labels'] = json_encode($request->navbar_menu_labels);
         }
 
         try {
@@ -136,12 +156,21 @@ class SettingController extends Controller
                 $validated['hero_background_video'] = $this->imageService->uploadVideo($request->file('hero_background_video'), 'hero');
             }
 
-            // Actualizar configuración
+            // 🧩 Guardar cambios
             $settings->update($validated);
 
-            // Limpiar caché
-            CacheService::clearSettings();
+            // ✅ Refrescar instancia desde la base de datos
+            $settings->refresh();
 
+            // ✅ Limpiar caché específica (si existe)
+            if (method_exists(CacheService::class, 'clearSettings')) {
+                CacheService::clearSettings();
+            }
+
+            // (Opcional: si hay otros servicios que usen cache()->rememberForever)
+            // \Artisan::call('cache:clear');
+
+            // Registrar log
             \Log::info('Settings actualizados correctamente', $validated);
 
             return redirect()

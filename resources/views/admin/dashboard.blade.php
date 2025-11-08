@@ -150,6 +150,14 @@
     @endif
 </div>
 
+<div class="bg-white shadow rounded-lg p-6 text-center hover:shadow-lg transition">
+    <h3 class="text-gray-700 font-semibold text-lg mb-2">Productos</h3>
+    <p class="text-3xl font-bold text-blue-600">{{ \App\Models\Product::count() }}</p>
+    <a href="{{ route('admin.products.index') }}" class="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        Gestionar
+    </a>
+</div>
+
     <!-- Quick Actions & Info -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
