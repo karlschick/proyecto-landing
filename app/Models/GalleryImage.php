@@ -45,29 +45,30 @@ class GalleryImage extends Model
     }
 
     /**
-     * Helper para obtener URL de imagen (con caché)
+     * Helper para obtener URL de imagen
      */
     public function getImageUrl(): string
     {
-        return Cache::remember("gallery_image_{$this->id}", 3600, function() {
-            if (!$this->image) {
-                return asset('images/gallery/default.jpg');
-            }
-
-            $paths = [
-                public_path('images/gallery/' . $this->image),
-                public_path($this->image)
-            ];
-
-            foreach ($paths as $path) {
-                if (file_exists($path)) {
-                    return asset(str_replace(public_path(), '', $path));
-                }
-            }
-
-            \Log::warning("Image not found for gallery {$this->id}: {$this->image}");
+        // Si no hay imagen, retornar imagen por defecto
+        if (!$this->image) {
             return asset('images/gallery/default.jpg');
-        });
+        }
+
+        // Construir la ruta completa del archivo
+        $imagePath = public_path('images/gallery/' . $this->image);
+
+        // Verificar si el archivo existe
+        if (file_exists($imagePath)) {
+            return asset('images/gallery/' . $this->image);
+        }
+
+        // Si no existe, registrar warning y retornar imagen por defecto
+        \Log::warning("Image not found for gallery {$this->id}: {$this->image}", [
+            'expected_path' => $imagePath,
+            'image_field' => $this->image
+        ]);
+
+        return asset('images/gallery/default.jpg');
     }
 
     /**
@@ -91,12 +92,10 @@ class GalleryImage extends Model
     protected static function booted()
     {
         static::updated(function ($image) {
-            Cache::forget("gallery_image_{$image->id}");
             Cache::forget('gallery_categories');
         });
 
         static::deleted(function ($image) {
-            Cache::forget("gallery_image_{$image->id}");
             Cache::forget('gallery_categories');
         });
 

@@ -5,27 +5,17 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\ProjectCategory;
 use App\Models\Project;
+use Illuminate\Support\Str;
 
 class ProjectSeeder extends Seeder
 {
     public function run(): void
     {
-        // Crear categorías
-        $categories = [
-            ['name' => 'Desarrollo Web', 'description' => 'Proyectos de desarrollo web'],
-            ['name' => 'Aplicaciones Móviles', 'description' => 'Apps móviles iOS y Android'],
-            ['name' => 'Diseño UX/UI', 'description' => 'Proyectos de diseño de interfaces'],
-            ['name' => 'E-commerce', 'description' => 'Tiendas online y plataformas de venta'],
-        ];
+        $categories = ProjectCategory::all()->keyBy('name');
 
-        foreach ($categories as $categoryData) {
-            ProjectCategory::create($categoryData);
-        }
-
-        // Crear proyectos
         $projects = [
             [
-                'category_id' => 1,
+                'category' => 'Desarrollo Web',
                 'title' => 'Portal Corporativo ABC',
                 'short_description' => 'Desarrollo de portal web corporativo con panel de administración',
                 'description' => 'Desarrollamos un portal web corporativo completo con sistema de gestión de contenidos, integración con redes sociales y panel de administración personalizado. El proyecto incluyó diseño responsive y optimización SEO.',
@@ -35,9 +25,10 @@ class ProjectSeeder extends Seeder
                 'is_featured' => true,
                 'is_active' => true,
                 'order' => 1,
+                'image' => 'images/settings/default-project-1.png', // imagen personalizada
             ],
             [
-                'category_id' => 2,
+                'category' => 'Aplicaciones Móviles',
                 'title' => 'App de Delivery FoodNow',
                 'short_description' => 'Aplicación móvil para pedidos de comida a domicilio',
                 'description' => 'Creamos una aplicación móvil completa para iOS y Android que permite a los usuarios ordenar comida de restaurantes locales. Incluye sistema de pagos, tracking en tiempo real y notificaciones push.',
@@ -46,9 +37,10 @@ class ProjectSeeder extends Seeder
                 'is_featured' => true,
                 'is_active' => true,
                 'order' => 2,
+                'image' => 'images/settings/default-project-2.png', // imagen personalizada
             ],
             [
-                'category_id' => 4,
+                'category' => 'E-commerce',
                 'title' => 'Tienda Online Fashion Store',
                 'short_description' => 'E-commerce completo para tienda de moda',
                 'description' => 'Desarrollamos una tienda online completa con carrito de compras, sistema de pagos integrado, gestión de inventario y panel de administración. Incluye diseño moderno y responsivo.',
@@ -57,9 +49,10 @@ class ProjectSeeder extends Seeder
                 'is_featured' => false,
                 'is_active' => true,
                 'order' => 3,
+                'image' => 'images/settings/default-project-3.png', // imagen personalizada
             ],
             [
-                'category_id' => 3,
+                'category' => 'Diseño UX/UI',
                 'title' => 'Rediseño UX de Banking App',
                 'short_description' => 'Rediseño completo de interfaz para app bancaria',
                 'description' => 'Realizamos un rediseño completo de la experiencia de usuario y la interfaz de una aplicación bancaria, mejorando la usabilidad y haciendo los procesos más intuitivos para los usuarios.',
@@ -68,11 +61,28 @@ class ProjectSeeder extends Seeder
                 'is_featured' => false,
                 'is_active' => true,
                 'order' => 4,
+                'image' => 'images/settings/default-project-4.png', // imagen personalizada
             ],
         ];
 
-        foreach ($projects as $project) {
-            Project::create($project);
+        foreach ($projects as $projectData) {
+            $category = $categories[$projectData['category']] ?? null;
+            if ($category) {
+                Project::create([
+                    'category_id' => $category->id,
+                    'title' => $projectData['title'],
+                    'slug' => Str::slug($projectData['title']),
+                    'short_description' => $projectData['short_description'],
+                    'description' => $projectData['description'],
+                    'client' => $projectData['client'],
+                    'project_date' => $projectData['project_date'],
+                    'url' => $projectData['url'] ?? null,
+                    'is_featured' => $projectData['is_featured'],
+                    'is_active' => $projectData['is_active'],
+                    'order' => $projectData['order'],
+                    'image' => $projectData['image'],
+                ]);
+            }
         }
     }
 }

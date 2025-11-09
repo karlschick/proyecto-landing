@@ -1,7 +1,8 @@
-<section class="py-20 bg-gradient-to-r from-primary via-secondary to-accent text-white relative overflow-hidden">
+
+<section class="py-20 bg-gradient-to-r from-primary via-secondary to-accent bg-gray-400 relative overflow-hidden">
     {{-- Efectos de fondo --}}
     <div class="absolute inset-0 bg-black opacity-10"></div>
-    <div class="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-5 rounded-full"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-gray-800 opacity-5 rounded-full"></div>
     <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-white opacity-5 rounded-full"></div>
 
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -30,3 +31,4 @@
         </div>
     </div>
 </section>
+

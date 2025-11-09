@@ -1,6 +1,9 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
 
 /* Animaciones personalizadas */
 @keyframes fadeIn {

@@ -12,8 +12,10 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             SettingSeeder::class,
             ServiceSeeder::class,
+            ProjectCategorySeeder::class,
             ProjectSeeder::class,
             TestimonialSeeder::class,
+            GallerySeeder::class,
 
             // E-commerce seeders
             ProductCategorySeeder::class,

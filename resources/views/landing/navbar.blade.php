@@ -67,10 +67,11 @@
                 </a>
 
 
-                @if($settings->products_enabled)
+                {{-- Mostrar Tienda solo si está habilitada Y el navbar lo permite --}}
+                @if($settings->products_enabled && ($settings->navbar_show_shop ?? true))
                     <a href="{{ route('shop.index') }}"
-                       class="hover:text-blue-400 transition"
-                       @if($navbarText) style="color: {{ $navbarText }};" @endif>
+                    class="hover:text-blue-400 transition"
+                    @if($navbarText) style="color: {{ $navbarText }};" @endif>
                         {{ $labels['tienda'] ?? 'Tienda' }}
                     </a>
                 @endif
@@ -210,14 +211,14 @@
             {{ $labels['servicios'] ?? 'Servicios' }}
         </a>
 
-        @if($settings->products_enabled)
-            <a href="{{ route('shop.index') }}"
-               @click="mobileMenuOpen = false"
-               class="block py-2 px-4 rounded hover:bg-gray-700 transition"
-               @if($navbarText) style="color: {{ $navbarText }};" @endif>
-                {{ $labels['tienda'] ?? 'Tienda' }}
-            </a>
-        @endif
+            @if($settings->products_enabled && ($settings->navbar_show_shop ?? true))
+                <a href="{{ route('shop.index') }}"
+                @click="mobileMenuOpen = false"
+                class="block py-2 px-4 rounded hover:bg-gray-700 transition"
+                @if($navbarText) style="color: {{ $navbarText }};" @endif>
+                    {{ $labels['tienda'] ?? 'Tienda' }}
+                </a>
+            @endif
 
         <a href="{{ route('home') }}#contacto"
            @click="mobileMenuOpen = false"

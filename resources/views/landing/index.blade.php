@@ -9,19 +9,24 @@
         @include('landing.sections.hero')
     @endif
 
-    {{-- Features/Stats combinados --}}
-    @if($settings->services_enabled || $settings->about_enabled)
+    {{-- Stats Section --}}
+    @if($settings->stats_enabled ?? true)
+        @include('landing.sections.stats')
+    @endif
+
+    {{-- About Section --}}
+    @if($settings->about_enabled)
+        @include('landing.sections.about')
+    @endif
+
+    {{-- Features Section --}}
+    @if($settings->features_enabled ?? true)
         @include('landing.sections.features')
     @endif
 
     {{-- Services Section --}}
     @if($settings->services_enabled)
         @include('landing.sections.services')
-    @endif
-
-    {{-- About Section --}}
-    @if($settings->about_enabled)
-        @include('landing.sections.about')
     @endif
 
     {{-- Shop Section --}}
@@ -37,16 +42,15 @@
         @include('landing.sections.testimonials')
     @endif
 
-    {{-- Stats Section --}}
-    @include('landing.sections.stats')
-
     {{-- Gallery Section --}}
     @if($settings->gallery_enabled)
         @include('landing.sections.gallery')
     @endif
 
     {{-- CTA Section --}}
-    @include('landing.sections.cta')
+    @if($settings->cta_enabled ?? true)
+        @include('landing.sections.cta')
+    @endif
 
     {{-- Contact Section --}}
     @if($settings->contact_enabled)

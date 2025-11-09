@@ -1,6 +1,6 @@
 {{-- Hero Section --}}
 <section class="relative text-white overflow-hidden flex items-end"
-         style="height: 90vh;"> {{-- Más alto (antes era py-20/md:py-32) --}}
+         style="height: 60vh;"> {{-- Más alto (antes era py-20/md:py-32) --}}
 
     <!-- Background dinámico -->
     @if($settings->hero_background_type === 'video' && $settings->hero_background_video)

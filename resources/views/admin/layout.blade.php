@@ -48,6 +48,20 @@
                     Dashboard
                 </a>
 
+                <!-- Gestión -->
+                <div class="mt-6">
+                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Gestión</h3>
+
+                    <a href="{{ route('admin.settings.index') }}"
+                       class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition mb-1 {{ request()->routeIs('admin.settings.*') ? 'bg-gray-800 text-white' : '' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Configuración
+                    </a>
+                </div>
+
                 <!-- Secciones -->
                 <div class="mt-6">
                     <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Contenido</h3>
@@ -150,19 +164,7 @@
                     </a>
                 </div>
 
-                <!-- Gestión -->
-                <div class="mt-6">
-                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Gestión</h3>
 
-                    <a href="{{ route('admin.settings.index') }}"
-                       class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition mb-1 {{ request()->routeIs('admin.settings.*') ? 'bg-gray-800 text-white' : '' }}">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        Configuración
-                    </a>
-                </div>
             </nav>
 
             <!-- User Info -->
@@ -183,21 +185,21 @@
         <div class="flex-1 flex flex-col overflow-hidden">
 
             <!-- Top Navbar -->
-            <header class="bg-white shadow-sm z-10">
+            <header class="bg-gray-900 shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 py-4">
 
-                    <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-500 hover:text-gray-200 focus:outline-none">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
                     </button>
 
-                    <h2 class="text-xl font-semibold text-gray-800">
+                    <h2 class="text-xl font-semibold text-gray-200">
                         @yield('page-title', 'Dashboard')
                     </h2>
 
                     <div class="flex items-center space-x-4">
-                        <a href="{{ route('home') }}" target="_blank" class="text-gray-600 hover:text-gray-900 flex items-center">
+                        <a href="{{ route('home') }}" target="_blank" class="text-gray-200 hover:text-gray-400 flex items-center">
                             <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                             </svg>
@@ -206,7 +208,7 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="text-gray-600 hover:text-gray-900 flex items-center">
+                            <button type="submit" class="text-gray-200 hover:text-gray-400 flex items-center">
                                 <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                 </svg>

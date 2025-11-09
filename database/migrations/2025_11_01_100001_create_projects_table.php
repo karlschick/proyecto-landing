@@ -10,18 +10,21 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->nullable()->constrained('project_categories')->nullOnDelete();
+            $table->foreignId('category_id')->constrained('project_categories')->onDelete('cascade');
             $table->string('title');
             $table->string('slug')->unique();
-            $table->text('description');
             $table->text('short_description')->nullable();
+            $table->longText('description')->nullable();
             $table->string('client')->nullable();
             $table->date('project_date')->nullable();
             $table->string('url')->nullable();
-            $table->string('featured_image')->nullable();
             $table->boolean('is_featured')->default(false);
             $table->boolean('is_active')->default(true);
             $table->integer('order')->default(0);
+
+            // **Agregamos la columna image**
+            $table->string('image')->nullable();
+
             $table->timestamps();
         });
     }

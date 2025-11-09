@@ -33,6 +33,12 @@
             <input type="checkbox" name="navbar_show_slogan" class="rounded" {{ $settings->navbar_show_slogan ? 'checked' : '' }}>
             <span class="text-gray-700">Mostrar eslogan</span>
         </label>
+
+            <!-- NUEVO: Mostrar enlace Tienda -->
+        <label class="flex items-center space-x-2">
+            <input type="checkbox" name="navbar_show_shop" class="rounded" {{ $settings->navbar_show_shop ?? true ? 'checked' : '' }}>
+            <span class="text-gray-700">Mostrar enlace "Tienda" en el menú</span>
+        </label>
     </div>
 
     @php

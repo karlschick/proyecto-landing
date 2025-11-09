@@ -21,19 +21,14 @@ class Setting extends Model
         'secondary_color',
         'accent_color',
 
-        // Colores
-        'primary_color',
-        'secondary_color',
-        'accent_color',
-
         // Navbar
         'navbar_bg_color',
         'navbar_text_color',
         'navbar_show_logo',
         'navbar_show_title',
         'navbar_show_slogan',
+        'navbar_show_shop', // ✅ AGREGADO
         'navbar_menu_labels',
-
 
         // Hero Background
         'hero_background_type',
@@ -68,25 +63,27 @@ class Setting extends Model
         'show_map',
         'google_maps_url',
 
-        // Secciones
-        // Secciones
+        // Secciones - Visibilidad
         'hero_enabled',
+        'cta_enabled',
+        'about_enabled',
+        'features_enabled',
+        'stats_enabled',
+        'services_enabled',
+        'products_enabled',
+        'shop_enabled', // ✅ Agregado para completitud
+        'testimonials_enabled',
+        'gallery_enabled',
+        'contact_enabled',
+
+        // Secciones - Contenido
         'hero_title',
         'hero_subtitle',
         'hero_button_text',
         'hero_button_url',
-        'hero_title_color',
-        'hero_title_font',
-        'hero_show_logo_instead',
-        'about_enabled',
         'about_title',
         'about_description',
         'about_image',
-        'services_enabled',
-        'products_enabled',
-        'testimonials_enabled',
-        'gallery_enabled',
-        'contact_enabled',
 
         // Footer
         'show_social_footer',
@@ -110,32 +107,46 @@ class Setting extends Model
     ];
 
     protected $casts = [
-        // Booleanos
+        // Booleanos - Redes sociales
         'facebook_enabled' => 'boolean',
         'instagram_enabled' => 'boolean',
         'twitter_enabled' => 'boolean',
         'linkedin_enabled' => 'boolean',
         'whatsapp_enabled' => 'boolean',
+
+        // Booleanos - Contacto
         'show_email' => 'boolean',
         'show_phone' => 'boolean',
         'show_address' => 'boolean',
         'show_map' => 'boolean',
+
+        // Booleanos - Secciones
         'hero_enabled' => 'boolean',
-        'hero_overlay_opacity' => 'float',
+        'cta_enabled' => 'boolean',
         'about_enabled' => 'boolean',
+        'features_enabled' => 'boolean',
+        'stats_enabled' => 'boolean',
         'services_enabled' => 'boolean',
         'products_enabled' => 'boolean',
+        'shop_enabled' => 'boolean', // ✅ Agregado
         'testimonials_enabled' => 'boolean',
         'gallery_enabled' => 'boolean',
         'contact_enabled' => 'boolean',
+
+        // Booleanos - Footer y otros
         'show_social_footer' => 'boolean',
         'show_whatsapp_button' => 'boolean',
-                // Navbar
+
+        // Booleanos - Navbar
         'navbar_show_logo' => 'boolean',
         'navbar_show_title' => 'boolean',
         'navbar_show_slogan' => 'boolean',
-        'navbar_menu_labels' => 'array',
+        'navbar_show_shop' => 'boolean', // ✅ AGREGADO
         'hero_show_logo_instead' => 'boolean',
+
+        // Otros tipos
+        'hero_overlay_opacity' => 'float',
+        'navbar_menu_labels' => 'array',
     ];
 
     /**
@@ -152,53 +163,58 @@ class Setting extends Model
             'hero_title_color' => '#ffffff',
             'hero_title_font' => 'default',
             'hero_show_logo_instead' => false,
+            // Valores por defecto para las nuevas secciones
+            'cta_enabled' => true,
+            'about_enabled' => true,
+            'features_enabled' => true,
+            'stats_enabled' => true,
+            'navbar_show_shop' => true, // ✅ AGREGADO - Por defecto visible
         ]);
     }
 
+    /**
+     * Obtener URL de la imagen de fondo del Hero
+     */
+    public function getHeroBackgroundImageUrl()
+    {
+        if ($this->hero_background_image) {
+            $imagePath = public_path('images/hero/' . $this->hero_background_image);
+            if (file_exists($imagePath)) {
+                return asset('images/hero/' . $this->hero_background_image);
+            }
 
-/**
- * Obtener URL de la imagen de fondo del Hero
- */
-public function getHeroBackgroundImageUrl()
-{
-    if ($this->hero_background_image) {
-        $imagePath = public_path('images/hero/' . $this->hero_background_image);
-        if (file_exists($imagePath)) {
-            return asset('images/hero/' . $this->hero_background_image);
+            $publicPath = public_path($this->hero_background_image);
+            if (file_exists($publicPath)) {
+                return asset($this->hero_background_image);
+            }
+
+            \Log::warning('Hero background image no encontrada: ' . $this->hero_background_image);
         }
 
-        $publicPath = public_path($this->hero_background_image);
-        if (file_exists($publicPath)) {
-            return asset($this->hero_background_image);
-        }
-
-        \Log::warning('Hero background image no encontrada: ' . $this->hero_background_image);
+        return null;
     }
 
-    return null;
-}
+    /**
+     * Obtener URL del video de fondo del Hero
+     */
+    public function getHeroBackgroundVideoUrl()
+    {
+        if ($this->hero_background_video) {
+            $videoPath = public_path('videos/hero/' . $this->hero_background_video);
+            if (file_exists($videoPath)) {
+                return asset('videos/hero/' . $this->hero_background_video);
+            }
 
-/**
- * Obtener URL del video de fondo del Hero
- */
-public function getHeroBackgroundVideoUrl()
-{
-    if ($this->hero_background_video) {
-        $videoPath = public_path('videos/hero/' . $this->hero_background_video);
-        if (file_exists($videoPath)) {
-            return asset('videos/hero/' . $this->hero_background_video);
+            $publicPath = public_path($this->hero_background_video);
+            if (file_exists($publicPath)) {
+                return asset($this->hero_background_video);
+            }
+
+            \Log::warning('Hero background video no encontrado: ' . $this->hero_background_video);
         }
 
-        $publicPath = public_path($this->hero_background_video);
-        if (file_exists($publicPath)) {
-            return asset($this->hero_background_video);
-        }
-
-        \Log::warning('Hero background video no encontrado: ' . $this->hero_background_video);
+        return null;
     }
-
-    return null;
-}
 
     /**
      * Métodos helper para obtener valores específicos
@@ -245,7 +261,7 @@ public function getHeroBackgroundVideoUrl()
         }
 
         // 3️⃣ Logo por defecto
-        return asset('images/logo.png');
+        return asset('images/settings/logo.png');
     }
 
     public function getAboutImageUrl()

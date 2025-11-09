@@ -13,6 +13,7 @@ class GallerySeeder extends Seeder
             [
                 'title' => 'Proyecto Web 1',
                 'description' => 'Captura de pantalla del proyecto web corporativo',
+                'image' => 'default-1.jpg',
                 'category' => 'Desarrollo Web',
                 'is_active' => true,
                 'order' => 1,
@@ -20,6 +21,7 @@ class GallerySeeder extends Seeder
             [
                 'title' => 'Proyecto Web 2',
                 'description' => 'Vista responsive del portal',
+                'image' => 'default-2.jpg',
                 'category' => 'Desarrollo Web',
                 'is_active' => true,
                 'order' => 2,
@@ -27,6 +29,7 @@ class GallerySeeder extends Seeder
             [
                 'title' => 'App Móvil 1',
                 'description' => 'Interfaz principal de la app',
+                'image' => 'default-3.jpg',
                 'category' => 'Apps Móviles',
                 'is_active' => true,
                 'order' => 3,
@@ -34,6 +37,7 @@ class GallerySeeder extends Seeder
             [
                 'title' => 'App Móvil 2',
                 'description' => 'Pantalla de checkout',
+                'image' => 'default-4.jpg',
                 'category' => 'Apps Móviles',
                 'is_active' => true,
                 'order' => 4,
@@ -41,6 +45,7 @@ class GallerySeeder extends Seeder
             [
                 'title' => 'Diseño UX 1',
                 'description' => 'Wireframes del proyecto',
+                'image' => 'default-5.jpg',
                 'category' => 'Diseño',
                 'is_active' => true,
                 'order' => 5,
@@ -48,23 +53,18 @@ class GallerySeeder extends Seeder
             [
                 'title' => 'Diseño UX 2',
                 'description' => 'Prototipos de alta fidelidad',
+                'image' => 'default-6.jpg',
                 'category' => 'Diseño',
                 'is_active' => true,
                 'order' => 6,
             ],
         ];
 
-        // Nota: Como no tenemos imágenes reales, creamos registros sin imagen
-        // En producción, deberás subir imágenes reales
+        // Insertar las imágenes en la base de datos
         foreach ($images as $imageData) {
-            // Puedes descomentar esto cuando tengas imágenes reales
-            // $imageData['image'] = 'placeholder.jpg';
-
-            // Por ahora, solo creamos los registros sin imagen
-            // Las imágenes se pueden agregar después desde el panel admin
+            GalleryImage::create($imageData);
         }
 
-        // Mensaje informativo
-        \Log::info('GallerySeeder: Ejecutado. Agrega imágenes desde el panel de administración.');
+        $this->command->info('✓ ' . count($images) . ' imágenes de galería creadas correctamente');
     }
 }

@@ -1,0 +1,79 @@
+/* ============================
+   Services Section Flip Effect
+   ============================ */
+
+/* Forzamos prioridad con !important donde Tailwind podría interferir */
+.perspective {
+    perspective: 1500px !important;
+}
+
+.service-card {
+    display: block !important;
+    height: 320px !important;
+    cursor: pointer !important;
+    transform-style: preserve-3d !important;
+}
+
+/* Contenedor interior que rota */
+.card-inner {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    transform-style: preserve-3d !important;
+    transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.2s !important;
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Rotación en hover */
+.service-card:hover .card-inner {
+    transform: rotateY(180deg) !important;
+}
+
+/* Caras delantera y trasera */
+.card-front,
+.card-back {
+    position: absolute !important;
+    inset: 0 !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+    padding: 1.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border-radius: 1rem !important;
+}
+
+.card-back {
+    transform: rotateY(180deg) !important;
+}
+
+/* Imagen trasera */
+.card-back img {
+    transition: transform 0.6s ease !important;
+}
+.service-card:hover .card-back img {
+    transform: scale(1.05) !important;
+}
+
+/* Botón */
+.service-cta {
+    padding: 0.5rem 1rem !important;
+    border-radius: 9999px !important;
+    background: linear-gradient(180deg, #0b1220, #1f2937) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: 0.15s ease !important;
+}
+
+.service-cta:hover {
+    transform: translateY(-3px) !important;
+}
+
+/* Sombra más intensa en hover */
+.service-card:hover .card-inner {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
+}

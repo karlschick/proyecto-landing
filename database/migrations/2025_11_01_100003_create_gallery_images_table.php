@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('title')->nullable();
             $table->text('description')->nullable();
-            $table->string('image');
-            $table->string('category')->nullable(); // Para filtrar por categoría
+            $table->string('image')->nullable(); // ← CAMBIADO: Ahora permite NULL
+            $table->string('category')->nullable();
             $table->boolean('is_active')->default(true);
             $table->integer('order')->default(0);
             $table->timestamps();

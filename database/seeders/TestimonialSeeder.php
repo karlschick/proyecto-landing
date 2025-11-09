@@ -46,7 +46,7 @@ class TestimonialSeeder extends Seeder
                 'client_company' => 'FoodNow Inc.',
                 'testimonial' => 'La app que desarrollaron funciona perfectamente. Los usuarios están muy satisfechos y hemos recibido excelentes comentarios.',
                 'rating' => 4,
-                'is_featured' => false,
+                'is_featured' => true, // Cambié a true
                 'is_active' => true,
                 'order' => 4,
             ],
@@ -56,13 +56,14 @@ class TestimonialSeeder extends Seeder
                 'client_company' => 'Banco Digital',
                 'testimonial' => 'El rediseño de nuestra app ha mejorado significativamente la experiencia de nuestros usuarios. Trabajo impecable.',
                 'rating' => 5,
-                'is_featured' => false,
+                'is_featured' => true, // Cambié a true
                 'is_active' => true,
                 'order' => 5,
             ],
         ];
 
         foreach ($testimonials as $testimonial) {
+            // NO asignamos client_photo, dejamos que sea null para usar las imágenes default
             Testimonial::create($testimonial);
         }
     }

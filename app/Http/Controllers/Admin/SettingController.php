@@ -39,13 +39,13 @@ class SettingController extends Controller
             'secondary_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
 
-            // === 🟦 NUEVOS CAMPOS NAVBAR ===
+            // Navbar
             'navbar_bg_color' => 'nullable|string|max:7',
             'navbar_text_color' => 'nullable|string|max:7',
             'navbar_show_logo' => 'nullable',
             'navbar_show_title' => 'nullable',
             'navbar_show_slogan' => 'nullable',
-
+            'navbar_show_shop' => 'nullable', // ✅ AGREGADO
             'navbar_menu_labels' => 'nullable|array',
 
             // Redes Sociales
@@ -94,19 +94,52 @@ class SettingController extends Controller
             'facebook_pixel_id' => 'nullable|string|max:50',
         ]);
 
-        // Manejar checkboxes (booleanos)
+        // 🔥 CRÍTICO: Manejar checkboxes (booleanos)
         $checkboxFields = [
-            'facebook_enabled', 'instagram_enabled', 'twitter_enabled', 'linkedin_enabled',
-            'whatsapp_enabled', 'show_email', 'show_phone', 'show_address', 'show_map',
-            'hero_enabled', 'about_enabled', 'services_enabled', 'products_enabled',
-            'testimonials_enabled', 'gallery_enabled', 'contact_enabled',
-            'show_social_footer', 'show_whatsapp_button',
-            // 🟦 Nuevos booleanos del navbar
-            'navbar_show_logo', 'navbar_show_title', 'navbar_show_slogan',
+            // Redes sociales
+            'facebook_enabled',
+            'instagram_enabled',
+            'twitter_enabled',
+            'linkedin_enabled',
+            'whatsapp_enabled',
+
+            // Contacto
+            'show_email',
+            'show_phone',
+            'show_address',
+            'show_map',
+
+            // Secciones principales
+            'hero_enabled',
+            'about_enabled',
+            'services_enabled',
+            'products_enabled',
+            'testimonials_enabled',
+            'gallery_enabled',
+            'contact_enabled',
+
+            // Controles de secciones
+            'cta_enabled',
+            'features_enabled',
+            'stats_enabled',
+            'shop_enabled',
+
+            // Footer y otros
+            'show_social_footer',
+            'show_whatsapp_button',
+
+            // Navbar
+            'navbar_show_logo',
+            'navbar_show_title',
+            'navbar_show_slogan',
+            'navbar_show_shop', // ✅ AGREGADO AQUÍ
             'hero_show_logo_instead',
         ];
 
         foreach ($checkboxFields as $field) {
+            // 🔥 FIX CRÍTICO: usar input() + filter_var en lugar de has()
+            // has() devuelve true si el campo existe (incluso con valor "0")
+            // input() devuelve el valor real, y filter_var lo convierte correctamente a boolean
             $validated[$field] = filter_var($request->input($field), FILTER_VALIDATE_BOOLEAN);
         }
 
@@ -162,16 +195,18 @@ class SettingController extends Controller
             // ✅ Refrescar instancia desde la base de datos
             $settings->refresh();
 
-            // ✅ Limpiar caché específica (si existe)
-            if (method_exists(CacheService::class, 'clearSettings')) {
-                CacheService::clearSettings();
-            }
-
-            // (Opcional: si hay otros servicios que usen cache()->rememberForever)
-            // \Artisan::call('cache:clear');
+            // 🔥 CRÍTICO: Limpiar caché
+            CacheService::clearSettings();
+            CacheService::clearAll();
 
             // Registrar log
-            \Log::info('Settings actualizados correctamente', $validated);
+            \Log::info('Settings actualizados correctamente', [
+                'cta_enabled' => $validated['cta_enabled'],
+                'features_enabled' => $validated['features_enabled'],
+                'stats_enabled' => $validated['stats_enabled'],
+                'shop_enabled' => $validated['shop_enabled'],
+                'navbar_show_shop' => $validated['navbar_show_shop'], // ✅ AGREGADO AL LOG
+            ]);
 
             return redirect()
                 ->route('admin.settings.index')

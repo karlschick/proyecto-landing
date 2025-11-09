@@ -7,10 +7,10 @@
 <div class="space-y-6">
 
     <!-- Welcome Card -->
-    <div class="bg-gradient-to-r from-primary to-secondary text-white rounded-lg shadow-lg p-6">
+    <div class="bg-gradient-to-r from-primary to-secondary bg-gray-900 rounded-lg shadow-lg p-6">
         <div class="flex items-center justify-between">
             <div>
-                <h3 class="text-2xl font-bold mb-2">
+                <h3 class="text-2xl font-bold mb-2 text-white/90" >
                     ¡Bienvenido, {{ Auth::user()->name }}!
                 </h3>
                 <p class="text-white/90">

@@ -40,10 +40,25 @@ class ProductCategorySeeder extends Seeder
                 'is_active' => true,
                 'order' => 5,
             ],
+            [
+                'name' => 'Servicios',
+                'description' => 'Servicios profesionales y técnicos ofrecidos por la empresa',
+                'is_active' => true,
+                'order' => 6,
+            ],
+            [
+                'name' => 'Instalaciones',
+                'description' => 'Instalaciones técnicas, eléctricas y de redes',
+                'is_active' => true,
+                'order' => 7,
+            ],
         ];
 
         foreach ($categories as $category) {
-            ProductCategory::create($category);
+            ProductCategory::updateOrCreate(
+                ['name' => $category['name']],
+                $category
+            );
         }
     }
 }

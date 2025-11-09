@@ -1,5 +1,5 @@
 {{-- About Section --}}
-<section id="nosotros" class="py-16 bg-gray-50">
+<section id="nosotros" class="py-16 bg-gray-200" style="height: 50vh;" >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -33,7 +33,7 @@
                          alt="{{ $settings->about_title ?? 'Sobre Nosotros' }}"
                          class="rounded-lg shadow-lg w-full h-auto object-cover">
                 @else
-                    <img src="{{ asset('images/about-image.jpg') }}"
+                    <img src="{{ asset('images/settings/about-image.jpg') }}"
                          alt="Sobre Nosotros"
                          class="rounded-lg shadow-lg w-full h-auto object-cover">
                 @endif
