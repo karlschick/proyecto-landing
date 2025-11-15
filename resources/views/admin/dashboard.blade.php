@@ -158,6 +158,39 @@
     </a>
 </div>
 
+div class="bg-white shadow rounded-lg p-6 text-center hover:shadow-lg transition">
+    <h3 class="text-gray-700 font-semibold text-lg mb-2">Órdenes</h3>
+    @php
+        $ordersCount = \App\Models\Order::count();
+        $pendingOrders = \App\Models\Order::where('status', 'pending')->count();
+    @endphp
+    <p class="text-3xl font-bold text-purple-600">{{ $ordersCount }}</p>
+    @if($pendingOrders > 0)
+    <p class="text-sm text-orange-600 font-semibold mt-2">
+        🔔 {{ $pendingOrders }} pendiente{{ $pendingOrders > 1 ? 's' : '' }}
+    </p>
+    @endif
+    <a href="{{ route('admin.orders.index') }}" class="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+        Gestionar
+    </a>
+</div>
+
+<!-- Pagos Pendientes (Daviplata) -->
+<div class="bg-white shadow rounded-lg p-6 text-center hover:shadow-lg transition border-l-4 border-orange-500">
+    <h3 class="text-gray-700 font-semibold text-lg mb-2">Pagos QR Daviplata</h3>
+    @php
+        $qrPending = \App\Models\Payment::where('payment_method', 'qr_payment')
+                                        ->where('status', 'pending')
+                                        ->count();
+    @endphp
+    <p class="text-3xl font-bold text-orange-600">{{ $qrPending }}</p>
+    <p class="text-xs text-gray-500 mt-1">Por verificar</p>
+    <a href="{{ route('admin.payments.pending') }}" class="mt-3 inline-block bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
+        Verificar Pagos
+    </a>
+</div>
+
+
     <!-- Quick Actions & Info -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 

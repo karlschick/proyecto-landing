@@ -47,28 +47,33 @@ class Testimonial extends Model
     }
 
     /**
-     * Helper para obtener URL de foto (con caché)
+     * Helper para obtener URL de foto (MISMA LÓGICA QUE PROJECT/SERVICE)
      */
-    public function getPhotoUrl(): ?string
+    public function getPhotoUrl(): string
     {
         if (!$this->client_photo) {
-            return null;
+            return asset('images/testimonials/default.jpg');
         }
 
-        return Cache::remember("testimonial_photo_{$this->id}", 3600, function() {
-            $paths = [
-                public_path('images/testimonials/' . $this->client_photo),
-                public_path($this->client_photo)
-            ];
+        // Normaliza ruta (quita posibles "/")
+        $path = ltrim($this->client_photo, '/');
 
-            foreach ($paths as $path) {
-                if (file_exists($path)) {
-                    return asset(str_replace(public_path(), '', $path));
-                }
+        // Si la ruta ya incluye "testimonials/" al inicio
+        if (str_starts_with($path, 'testimonials/')) {
+            $fullPath = public_path('images/' . $path); // images/testimonials/archivo.jpg
+            if (file_exists($fullPath)) {
+                return asset('images/' . $path);
             }
+        }
 
-            return null;
-        });
+        // Si solo es el nombre del archivo
+        $fullPath = public_path('images/testimonials/' . $path);
+        if (file_exists($fullPath)) {
+            return asset('images/testimonials/' . $path);
+        }
+
+        \Log::warning("⚠️ Imagen no encontrada para testimonial {$this->id}: {$this->client_photo}");
+        return asset('images/testimonials/default.jpg');
     }
 
     /**

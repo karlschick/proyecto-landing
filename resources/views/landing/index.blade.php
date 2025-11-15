@@ -37,10 +37,6 @@
         @include('landing.sections.projects')
     @endif
 
-    {{-- Testimonials Section --}}
-    @if($settings->testimonials_enabled)
-        @include('landing.sections.testimonials')
-    @endif
 
     {{-- Gallery Section --}}
     @if($settings->gallery_enabled)
@@ -50,6 +46,11 @@
     {{-- CTA Section --}}
     @if($settings->cta_enabled ?? true)
         @include('landing.sections.cta')
+    @endif
+
+        {{-- Testimonials Section --}}
+    @if($settings->testimonials_enabled)
+        @include('landing.sections.testimonials')
     @endif
 
     {{-- Contact Section --}}

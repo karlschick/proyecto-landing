@@ -12,18 +12,19 @@ class Project extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
         'title',
         'slug',
         'description',
+        'featured_image',
+        'is_active',
+        'order',
+        // Campos legacy (opcionales - ya no se usan en formularios)
+        'category_id',
         'short_description',
         'client',
         'project_date',
         'url',
-        'featured_image',
         'is_featured',
-        'is_active',
-        'order',
     ];
 
     protected $casts = [
@@ -42,6 +43,11 @@ class Project extends Model
         static::creating(function ($project) {
             if (empty($project->slug)) {
                 $project->slug = Str::slug($project->title);
+            }
+
+            // Valores por defecto para campos legacy
+            if (is_null($project->is_featured)) {
+                $project->is_featured = false;
             }
         });
 
@@ -83,25 +89,29 @@ class Project extends Model
      */
     public function getImageUrl(): string
     {
-        return Cache::remember("project_image_{$this->id}", 3600, function() {
-            if (!$this->featured_image) {
-                return asset('images/projects/default.jpg');
-            }
-
-            $paths = [
-                public_path('images/projects/' . $this->featured_image),
-                public_path($this->featured_image)
-            ];
-
-            foreach ($paths as $path) {
-                if (file_exists($path)) {
-                    return asset(str_replace(public_path(), '', $path));
-                }
-            }
-
-            \Log::warning("Image not found for project {$this->id}: {$this->featured_image}");
+        if (!$this->featured_image) {
             return asset('images/projects/default.jpg');
-        });
+        }
+
+        // Normaliza ruta (quita posibles "/")
+        $path = ltrim($this->featured_image, '/');
+
+        // Si la ruta ya incluye "projects/" al inicio
+        if (str_starts_with($path, 'projects/')) {
+            $fullPath = public_path('images/' . $path); // images/projects/archivo.jpg
+            if (file_exists($fullPath)) {
+                return asset('images/' . $path);
+            }
+        }
+
+        // Si solo es el nombre del archivo
+        $fullPath = public_path('images/projects/' . $path);
+        if (file_exists($fullPath)) {
+            return asset('images/projects/' . $path);
+        }
+
+        \Log::warning("⚠️ Imagen no encontrada para project {$this->id}: {$this->featured_image}");
+        return asset('images/projects/default.jpg');
     }
 
     /**

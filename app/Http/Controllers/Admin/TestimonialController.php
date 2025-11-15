@@ -5,18 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Testimonial;
 use App\Http\Requests\TestimonialRequest;
-use App\Services\ImageUploadService;
 use App\Services\CacheService;
+use Illuminate\Support\Str;
 
 class TestimonialController extends Controller
 {
-    protected ImageUploadService $imageService;
-
-    public function __construct(ImageUploadService $imageService)
-    {
-        $this->imageService = $imageService;
-    }
-
     public function index()
     {
         $testimonials = Testimonial::ordered()->paginate(10);
@@ -32,19 +25,19 @@ class TestimonialController extends Controller
     {
         $validated = $request->validated();
 
-        // Manejar foto
+        // Manejar foto (MISMA LÓGICA QUE PROJECTS)
         if ($request->hasFile('client_photo')) {
-            try {
-                $validated['client_photo'] = $this->imageService->upload(
-                    $request->file('client_photo'),
-                    'testimonials'
-                );
-            } catch (\Exception $e) {
-                return redirect()
-                    ->back()
-                    ->with('error', 'Error al subir la foto: ' . $e->getMessage())
-                    ->withInput();
+            $image = $request->file('client_photo');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            // Guardar en public/images/testimonials/
+            $destinationPath = public_path('images/testimonials');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
             }
+            $image->move($destinationPath, $filename);
+
+            $validated['client_photo'] = 'testimonials/' . $filename;
         }
 
         Testimonial::create($validated);
@@ -66,25 +59,27 @@ class TestimonialController extends Controller
     {
         $validated = $request->validated();
 
-        // Manejar foto
+        // Manejar foto (MISMA LÓGICA QUE PROJECTS)
         if ($request->hasFile('client_photo')) {
-            try {
-                // Eliminar foto anterior
-                if ($testimonial->client_photo) {
-                    $this->imageService->delete('testimonials/' . $testimonial->client_photo);
+            // Eliminar foto anterior si existe
+            if ($testimonial->client_photo) {
+                $oldImagePath = public_path('images/' . $testimonial->client_photo);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
                 }
-
-                // Subir nueva foto
-                $validated['client_photo'] = $this->imageService->upload(
-                    $request->file('client_photo'),
-                    'testimonials'
-                );
-            } catch (\Exception $e) {
-                return redirect()
-                    ->back()
-                    ->with('error', 'Error al actualizar la foto: ' . $e->getMessage())
-                    ->withInput();
             }
+
+            $image = $request->file('client_photo');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            // Guardar en public/images/testimonials/
+            $destinationPath = public_path('images/testimonials');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $filename);
+
+            $validated['client_photo'] = 'testimonials/' . $filename;
         }
 
         $testimonial->update($validated);
@@ -99,18 +94,28 @@ class TestimonialController extends Controller
 
     public function destroy(Testimonial $testimonial)
     {
-        // Eliminar foto
-        if ($testimonial->client_photo) {
-            $this->imageService->delete('testimonials/' . $testimonial->client_photo);
+        try {
+            // Eliminar la foto si existe
+            if ($testimonial->client_photo) {
+                $imagePath = public_path('images/' . $testimonial->client_photo);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+
+            $testimonial->delete();
+
+            // Limpiar caché
+            CacheService::clearTestimonials();
+
+            return redirect()
+                ->route('admin.testimonials.index')
+                ->with('success', 'Testimonio eliminado exitosamente.');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('admin.testimonials.index')
+                ->with('error', 'Error al eliminar el testimonio: ' . $e->getMessage());
         }
-
-        $testimonial->delete();
-
-        // Limpiar caché
-        CacheService::clearTestimonials();
-
-        return redirect()
-            ->route('admin.testimonials.index')
-            ->with('success', 'Testimonio eliminado exitosamente.');
     }
 }

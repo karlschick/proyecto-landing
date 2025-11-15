@@ -7,6 +7,8 @@ use App\Models\Cart;
 use App\Models\ShippingAddress;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\ProductDownloadNotification;
+use Illuminate\Support\Facades\Notification;
 
 class OrderService
 {
@@ -136,4 +138,50 @@ class OrderService
             default => null,
         };
     }
+    /**
+ * Procesar productos digitales (generar links de descarga)
+ */
+public function processDigitalProducts(Order $order): void
+{
+    $downloads = [];
+
+    foreach ($order->items as $item) {
+        $product = $item->product;
+
+        // Solo procesar si es un producto digital (libro/ebook)
+        if ($product && $product->isBook() && $product->hasFile()) {
+            // Crear token de descarga
+            $download = $product->createDownloadToken(
+                $order,
+                $order->shippingAddress->email
+            );
+
+            $downloads[] = $download;
+
+            \Log::info('Token de descarga creado', [
+                'download_id' => $download->id,
+                'product_id' => $product->id,
+                'order_id' => $order->id,
+                'token' => $download->download_token,
+            ]);
+        }
+    }
+
+    // Si hay descargas, enviar email
+    if (!empty($downloads)) {
+        try {
+            Notification::route('mail', $order->shippingAddress->email)
+                ->notify(new ProductDownloadNotification($order, $downloads));
+
+            \Log::info('Email de descarga enviado', [
+                'order_id' => $order->id,
+                'email' => $order->shippingAddress->email,
+                'products_count' => count($downloads),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar email de descarga: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+}
 }

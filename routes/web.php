@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CheckoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,10 +30,9 @@ use App\Http\Controllers\ProfileController;
 // Página principal
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
-// Formulario de contacto (con limitación)
-Route::middleware(['throttle:5,1'])->group(function () {
-    Route::post('/contacto', [LeadController::class, 'store'])->name('leads.store');
-});
+// Formulario de contacto — PÚBLICO (Sin login)
+Route::post('/contacto', [LeadController::class, 'store'])->name('leads.store');
+
 
 // ============================================
 // RUTAS DE AUTENTICACIÓN
@@ -52,83 +52,83 @@ Route::get('/dashboard', function () {
 // PANEL ADMINISTRATIVO
 // ============================================
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
 
-    // Dashboard principal
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        // Dashboard principal
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // ============================================
-    // CONFIGURACIÓN GENERAL (solo Admin)
-    // ============================================
-    Route::middleware(['admin'])->group(function () {
-        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-        Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+        // CONFIGURACIÓN GENERAL (solo Admin)
+        Route::middleware(['admin'])->group(function () {
+            Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+            Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+        });
+
+        // SERVICIOS (Admin y Editor)
+        Route::middleware(['editor'])->group(function () {
+            Route::resource('services', ServiceController::class);
+        });
+
+        // PROYECTOS (Admin y Editor)
+        Route::middleware(['editor'])->group(function () {
+            Route::resource('projects', ProjectController::class);
+        });
+
+        // TESTIMONIOS (Admin y Editor)
+        Route::middleware(['editor'])->group(function () {
+            Route::resource('testimonials', TestimonialController::class);
+        });
+
+        // GALERÍA (Admin y Editor)
+        Route::middleware(['editor'])->group(function () {
+            Route::resource('gallery', GalleryController::class);
+            Route::post('gallery/upload-multiple', [GalleryController::class, 'uploadMultiple'])
+                ->name('gallery.upload-multiple');
+        });
+
+        // LEADS / CONTACTOS (Admin y Editor)
+        Route::middleware(['editor'])
+            ->prefix('leads')
+            ->name('leads.')
+            ->group(function () {
+                Route::get('/', [AdminLeadController::class, 'index'])->name('index');
+                Route::get('/{lead}', [AdminLeadController::class, 'show'])->name('show');
+                Route::delete('/{lead}', [AdminLeadController::class, 'destroy'])
+                    ->middleware('admin')->name('destroy');
+                Route::put('/{lead}/status', [AdminLeadController::class, 'updateStatus'])
+                    ->name('update-status');
+                Route::put('/{lead}/notes', [AdminLeadController::class, 'updateNotes'])
+                    ->name('update-notes');
+                Route::post('/mark-read-bulk', [AdminLeadController::class, 'markAsReadBulk'])
+                    ->name('mark-read-bulk');
+                Route::get('/export/csv', [AdminLeadController::class, 'export'])->name('export');
+            });
+
+        // PRODUCTOS Y CATEGORÍAS (Admin y Editor)
+        Route::middleware(['editor'])->group(function () {
+            Route::resource('categories', App\Http\Controllers\Admin\ProductCategoryController::class);
+            Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
+            Route::put('products/{product}/stock', [App\Http\Controllers\Admin\ProductController::class, 'updateStock'])
+                ->name('products.update-stock');
+        });
+
+        // ÓRDENES (Admin y Editor)
+        Route::middleware(['editor'])
+            ->prefix('orders')
+            ->name('orders.')
+            ->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('index');
+                Route::get('/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('show');
+                Route::put('/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])
+                    ->name('update-status');
+                Route::post('/{order}/cancel', [App\Http\Controllers\Admin\OrderController::class, 'cancel'])
+                    ->name('cancel');
+                Route::get('/export/csv', [App\Http\Controllers\Admin\OrderController::class, 'export'])
+                    ->name('export');
+            });
     });
-
-    // ============================================
-    // SERVICIOS (Admin y Editor)
-    // ============================================
-    Route::middleware(['editor'])->group(function () {
-        Route::resource('services', ServiceController::class);
-    });
-
-    // ============================================
-    // PROYECTOS (Admin y Editor)
-    // ============================================
-    Route::middleware(['editor'])->group(function () {
-        Route::resource('projects', ProjectController::class);
-    });
-
-    // ============================================
-    // TESTIMONIOS (Admin y Editor)
-    // ============================================
-    Route::middleware(['editor'])->group(function () {
-        Route::resource('testimonials', TestimonialController::class);
-    });
-
-    // ============================================
-    // GALERÍA (Admin y Editor)
-    // ============================================
-    Route::middleware(['editor'])->group(function () {
-        Route::resource('gallery', GalleryController::class);
-        Route::post('gallery/upload-multiple', [GalleryController::class, 'uploadMultiple'])
-            ->name('gallery.upload-multiple');
-    });
-
-    // ============================================
-    // LEADS / CONTACTOS (Admin y Editor)
-    // ============================================
-    Route::middleware(['editor'])->prefix('leads')->name('leads.')->group(function () {
-        Route::get('/', [AdminLeadController::class, 'index'])->name('index');
-        Route::get('/{lead}', [AdminLeadController::class, 'show'])->name('show');
-        Route::delete('/{lead}', [AdminLeadController::class, 'destroy'])->middleware('admin')->name('destroy');
-        Route::put('/{lead}/status', [AdminLeadController::class, 'updateStatus'])->name('update-status');
-        Route::put('/{lead}/notes', [AdminLeadController::class, 'updateNotes'])->name('update-notes');
-        Route::post('/mark-read-bulk', [AdminLeadController::class, 'markAsReadBulk'])->name('mark-read-bulk');
-        Route::get('/export/csv', [AdminLeadController::class, 'export'])->name('export');
-    });
-
-    // ============================================
-    // PRODUCTOS Y CATEGORÍAS (Admin y Editor)
-    // ============================================
-    Route::middleware(['editor'])->group(function () {
-        Route::resource('categories', App\Http\Controllers\Admin\ProductCategoryController::class);
-        Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
-        Route::put('products/{product}/stock', [App\Http\Controllers\Admin\ProductController::class, 'updateStock'])
-            ->name('products.update-stock');
-    });
-
-    // ============================================
-    // ÓRDENES (Admin y Editor)
-    // ============================================
-    Route::middleware(['editor'])->prefix('orders')->name('orders.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('index');
-        Route::get('/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('show');
-        Route::put('/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('update-status');
-        Route::post('/{order}/cancel', [App\Http\Controllers\Admin\OrderController::class, 'cancel'])->name('cancel');
-        Route::get('/export/csv', [App\Http\Controllers\Admin\OrderController::class, 'export'])->name('export');
-    });
-});
 
 // ============================================
 // PERFIL DE USUARIO (FUERA DEL PREFIJO ADMIN)
@@ -144,7 +144,6 @@ Route::middleware(['auth'])->group(function () {
 // RUTAS DE E-COMMERCE - TIENDA
 // ============================================
 
-// Tienda pública
 Route::prefix('tienda')->name('shop.')->group(function () {
     Route::get('/', [App\Http\Controllers\ShopController::class, 'index'])->name('index');
     Route::get('/producto/{product:slug}', [App\Http\Controllers\ShopController::class, 'show'])->name('show');
@@ -166,7 +165,12 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::post('/procesar', [App\Http\Controllers\CheckoutController::class, 'process'])->name('process');
 });
 
-Route::get('/orden/confirmacion/{order}', [App\Http\Controllers\CheckoutController::class, 'confirmation'])->name('orders.confirmation');
+Route::get('/orden/confirmacion/{order}', [App\Http\Controllers\CheckoutController::class, 'confirmation'])
+    ->name('orders.confirmation');
+
+// Ruta QR de pago
+Route::get('/orders/{order}/qr-payment', [CheckoutController::class, 'qrPayment'])
+    ->name('orders.qr-payment');
 
 // ============================================
 // PÁGINA 404 PERSONALIZADA
@@ -174,4 +178,25 @@ Route::get('/orden/confirmacion/{order}', [App\Http\Controllers\CheckoutControll
 
 Route::fallback(function () {
     return view('errors.404');
+});
+
+// ==================== DESCARGAS PÚBLICAS ====================
+use App\Http\Controllers\DownloadController;
+
+Route::get('/descargas/{token}', [DownloadController::class, 'show'])->name('downloads.show');
+Route::get('/descargar/{token}', [DownloadController::class, 'download'])->name('downloads.file');
+
+// ==================== ADMIN - PAGOS ====================
+use App\Http\Controllers\Admin\PaymentController;
+
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // ... tus rutas admin existentes ...
+
+    // Pagos pendientes
+    Route::get('/pagos/pendientes', [PaymentController::class, 'pending'])->name('payments.pending');
+    Route::post('/pagos/{payment}/verificar', [PaymentController::class, 'verify'])->name('payments.verify');
+    Route::post('/pagos/{payment}/rechazar', [PaymentController::class, 'reject'])->name('payments.reject');
+
+    // Órdenes
+    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
 });

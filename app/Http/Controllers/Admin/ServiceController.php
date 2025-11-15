@@ -5,19 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Http\Requests\ServiceRequest;
-use App\Services\ImageUploadService;
 use App\Services\CacheService;
 use Illuminate\Support\Str;
 
 class ServiceController extends Controller
 {
-    protected ImageUploadService $imageService;
-
-    public function __construct(ImageUploadService $imageService)
-    {
-        $this->imageService = $imageService;
-    }
-
     public function index()
     {
         $services = Service::ordered()->paginate(10);
@@ -36,19 +28,19 @@ class ServiceController extends Controller
         // Generar slug único
         $validated['slug'] = $this->generateUniqueSlug($validated['title']);
 
-        // Manejar imagen
+        // Manejar imagen (MISMA LÓGICA QUE PROJECTS)
         if ($request->hasFile('image')) {
-            try {
-                $validated['image'] = $this->imageService->upload(
-                    $request->file('image'),
-                    'services'
-                );
-            } catch (\Exception $e) {
-                return redirect()
-                    ->back()
-                    ->with('error', 'Error al subir la imagen: ' . $e->getMessage())
-                    ->withInput();
+            $image = $request->file('image');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            // Guardar en public/images/services/
+            $destinationPath = public_path('images/services');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
             }
+            $image->move($destinationPath, $filename);
+
+            $validated['image'] = 'services/' . $filename;
         }
 
         Service::create($validated);
@@ -75,25 +67,27 @@ class ServiceController extends Controller
             $validated['slug'] = $this->generateUniqueSlug($validated['title'], $service->id);
         }
 
-        // Manejar imagen
+        // Manejar imagen (MISMA LÓGICA QUE PROJECTS)
         if ($request->hasFile('image')) {
-            try {
-                // Eliminar imagen anterior
-                if ($service->image) {
-                    $this->imageService->delete('services/' . $service->image);
+            // Eliminar imagen anterior si existe
+            if ($service->image) {
+                $oldImagePath = public_path('images/' . $service->image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
                 }
-
-                // Subir nueva imagen
-                $validated['image'] = $this->imageService->upload(
-                    $request->file('image'),
-                    'services'
-                );
-            } catch (\Exception $e) {
-                return redirect()
-                    ->back()
-                    ->with('error', 'Error al actualizar la imagen: ' . $e->getMessage())
-                    ->withInput();
             }
+
+            $image = $request->file('image');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            // Guardar en public/images/services/
+            $destinationPath = public_path('images/services');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $filename);
+
+            $validated['image'] = 'services/' . $filename;
         }
 
         $service->update($validated);
@@ -108,19 +102,29 @@ class ServiceController extends Controller
 
     public function destroy(Service $service)
     {
-        // Eliminar imagen
-        if ($service->image) {
-            $this->imageService->delete('services/' . $service->image);
+        try {
+            // Eliminar la imagen si existe (MISMA LÓGICA QUE PROJECTS)
+            if ($service->image) {
+                $imagePath = public_path('images/' . $service->image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+
+            $service->delete();
+
+            // Limpiar caché
+            CacheService::clearServices();
+
+            return redirect()
+                ->route('admin.services.index')
+                ->with('success', 'Servicio eliminado exitosamente.');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('admin.services.index')
+                ->with('error', 'Error al eliminar el servicio: ' . $e->getMessage());
         }
-
-        $service->delete();
-
-        // Limpiar caché
-        CacheService::clearServices();
-
-        return redirect()
-            ->route('admin.services.index')
-            ->with('success', 'Servicio eliminado exitosamente.');
     }
 
     /**

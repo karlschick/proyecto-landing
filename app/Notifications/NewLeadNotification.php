@@ -4,11 +4,10 @@ namespace App\Notifications;
 
 use App\Models\Lead;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewLeadNotification extends Notification implements ShouldQueue
+class NewLeadNotification extends Notification
 {
     use Queueable;
 
@@ -19,23 +18,21 @@ class NewLeadNotification extends Notification implements ShouldQueue
         $this->lead = $lead;
     }
 
-    /**
-     * Canales de notificación
-     */
     public function via($notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    /**
-     * Email notification
-     */
     public function toMail($notifiable): MailMessage
     {
-        $settings = \App\Models\Setting::getSettings();
+        // ✅ OPTIMIZACIÓN: Solo cargar el campo necesario (no imágenes pesadas)
+        $siteName = \App\Models\Setting::select('site_name')->value('site_name')
+                    ?? config('app.name');
 
         return (new MailMessage)
-            ->subject('🔔 Nuevo Contacto desde ' . ($settings->site_name ?? 'la Web'))
+            ->from($this->lead->email, $this->lead->name)
+            ->replyTo($this->lead->email, $this->lead->name)
+            ->subject('🔔 Nuevo Contacto desde ' . $siteName)
             ->greeting('¡Hola!')
             ->line('Has recibido un nuevo mensaje de contacto desde tu sitio web.')
             ->line('')
@@ -52,13 +49,9 @@ class NewLeadNotification extends Notification implements ShouldQueue
             ->line('• Recibido: ' . $this->lead->created_at->format('d/m/Y H:i'))
             ->line('• IP: ' . $this->lead->ip_address)
             ->action('Ver en el Panel', route('admin.leads.show', $this->lead))
-            ->line('Responde lo antes posible para no perder esta oportunidad.')
-            ->salutation('Saludos, ' . ($settings->site_name ?? config('app.name')));
+            ->salutation('Saludos, ' . $siteName);
     }
 
-    /**
-     * Database notification
-     */
     public function toArray($notifiable): array
     {
         return [

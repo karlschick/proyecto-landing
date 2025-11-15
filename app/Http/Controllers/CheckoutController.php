@@ -34,9 +34,12 @@ class CheckoutController extends Controller
                 ->with('error', 'Tu carrito está vacío.');
         }
 
-        $cart->load('items.product');
+        $cart->load('items.product.category');
 
-        return view('landing.checkout.index', compact('cart'));
+        // Calcular costo de envío estimado (solo si tiene productos físicos)
+        $estimatedShipping = $cart->hasOnlyDigitalProducts() ? 0 : 20000;
+
+        return view('landing.checkout.index', compact('cart', 'estimatedShipping'));
     }
 
     public function process(CheckoutRequest $request)
@@ -50,21 +53,37 @@ class CheckoutController extends Controller
         }
 
         try {
-            $shippingData = [
-                'full_name' => $request->full_name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'address_line_1' => $request->address_line_1,
-                'address_line_2' => $request->address_line_2,
-                'city' => $request->city,
-                'state' => $request->state,
-                'postal_code' => $request->postal_code,
-                'country' => $request->country ?? 'Colombia',
-                'notes' => $request->notes,
-            ];
+            $cart->load('items.product.category');
 
-            // Calcular costo de envío (puedes implementar lógica más compleja)
-            $shippingCost = $this->calculateShipping($request->city);
+            // Preparar datos de envío (solo si NO es solo productos digitales)
+            $shippingData = null;
+            $shippingCost = 0;
+
+            if (!$cart->hasOnlyDigitalProducts()) {
+                $shippingData = [
+                    'full_name' => $request->full_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'address_line_1' => $request->address_line_1,
+                    'address_line_2' => $request->address_line_2,
+                    'city' => $request->city,
+                    'state' => $request->state,
+                    'postal_code' => $request->postal_code,
+                    'country' => $request->country ?? 'Colombia',
+                    'notes' => $request->notes,
+                ];
+
+                // Calcular costo de envío
+                $shippingCost = $this->calculateShipping($request->city);
+            } else {
+                // Para productos digitales, solo necesitamos email y nombre
+                $shippingData = [
+                    'full_name' => $request->full_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'country' => 'Colombia',
+                ];
+            }
 
             // Crear orden
             $order = $this->orderService->createFromCart(
@@ -73,22 +92,27 @@ class CheckoutController extends Controller
                 $shippingCost
             );
 
-            // Procesar pago
-            $payment = $this->paymentService->processPayment(
-                $order,
-                $request->payment_method,
-                $request->only(['payment_method', 'payment_gateway'])
-            );
+            // Procesar según método de pago
+            if ($request->payment_method === 'qr_payment') {
+                // Pago QR para productos digitales
+                $payment = $this->paymentService->processPayment(
+                    $order,
+                    'qr_payment',
+                    $request->only(['payment_method', 'payment_gateway'])
+                );
 
-            // Si es pago contra entrega, marcar como pendiente
+                return redirect()
+                    ->route('orders.qr-payment', $order)
+                    ->with('success', 'Por favor completa el pago escaneando el código QR.');
+            }
+
             if ($request->payment_method === 'cash_on_delivery') {
                 return redirect()
                     ->route('orders.confirmation', $order)
                     ->with('success', '¡Orden creada exitosamente! Pagarás contra entrega.');
             }
 
-            // Redirigir a pasarela de pago
-            // TODO: Implementar integración con pasarela real
+            // Otros métodos de pago
             return redirect()
                 ->route('orders.confirmation', $order)
                 ->with('success', '¡Orden creada exitosamente!');
@@ -113,11 +137,22 @@ class CheckoutController extends Controller
     }
 
     /**
+     * Vista de pago QR
+     */
+    public function qrPayment($order)
+    {
+        $order = \App\Models\Order::with(['items.product', 'payment'])
+            ->where('id', $order)
+            ->firstOrFail();
+
+        return view('landing.orders.qr-payment', compact('order'));
+    }
+
+    /**
      * Calcular costo de envío
      */
     protected function calculateShipping(string $city): float
     {
-        // TODO: Implementar lógica real de cálculo de envío
         $mainCities = ['Bogotá', 'Medellín', 'Cali', 'Barranquilla'];
 
         if (in_array($city, $mainCities)) {

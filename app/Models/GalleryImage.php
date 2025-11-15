@@ -14,6 +14,7 @@ class GalleryImage extends Model
         'title',
         'description',
         'image',
+        'type',
         'category',
         'is_active',
         'order',
@@ -44,31 +45,63 @@ class GalleryImage extends Model
         return $query;
     }
 
+    public function scopeImages($query)
+    {
+        return $query->where('type', 'image');
+    }
+
+    public function scopeVideos($query)
+    {
+        return $query->where('type', 'video');
+    }
+
     /**
-     * Helper para obtener URL de imagen
+     * Helper para verificar si es video
+     */
+    public function isVideo(): bool
+    {
+        return $this->type === 'video';
+    }
+
+    /**
+     * Helper para obtener URL de imagen/video
      */
     public function getImageUrl(): string
     {
-        // Si no hay imagen, retornar imagen por defecto
         if (!$this->image) {
             return asset('images/gallery/default.jpg');
         }
 
-        // Construir la ruta completa del archivo
-        $imagePath = public_path('images/gallery/' . $this->image);
+        $folder = $this->isVideo() ? 'videos' : 'gallery';
+        $filePath = public_path("images/{$folder}/" . $this->image);
 
-        // Verificar si el archivo existe
-        if (file_exists($imagePath)) {
-            return asset('images/gallery/' . $this->image);
+        if (file_exists($filePath)) {
+            return asset("images/{$folder}/" . $this->image);
         }
 
-        // Si no existe, registrar warning y retornar imagen por defecto
-        \Log::warning("Image not found for gallery {$this->id}: {$this->image}", [
-            'expected_path' => $imagePath,
-            'image_field' => $this->image
-        ]);
-
+        \Log::warning("File not found for gallery {$this->id}: {$this->image}");
         return asset('images/gallery/default.jpg');
+    }
+
+    /**
+     * Helper para obtener thumbnail del video
+     */
+    public function getVideoThumbnail(): string
+    {
+        if (!$this->isVideo()) {
+            return $this->getImageUrl();
+        }
+
+        // Buscar thumbnail con el mismo nombre pero extensión .jpg
+        $thumbnailName = pathinfo($this->image, PATHINFO_FILENAME) . '.jpg';
+        $thumbnailPath = public_path('images/videos/thumbnails/' . $thumbnailName);
+
+        if (file_exists($thumbnailPath)) {
+            return asset('images/videos/thumbnails/' . $thumbnailName);
+        }
+
+        // Retornar placeholder de video
+        return asset('images/video-placeholder.jpg');
     }
 
     /**

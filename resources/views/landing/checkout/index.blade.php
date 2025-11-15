@@ -1,10 +1,26 @@
-<x-app-layout>
+@extends('landing.layout')
+
 @section('title', 'Checkout')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="container mx-auto px-4">
         <h1 class="text-3xl font-bold text-gray-900 mb-8">Finalizar Compra</h1>
+
+        @if($cart->hasOnlyDigitalProducts())
+        <!-- Mensaje para productos digitales -->
+        <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                </svg>
+                <div>
+                    <h3 class="font-semibold text-blue-900 mb-1">📚 Productos Digitales</h3>
+                    <p class="text-sm text-blue-800">Tu compra contiene solo productos digitales. Recibirás el acceso por email inmediatamente después del pago. No se requiere dirección de envío.</p>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <form action="{{ route('checkout.process') }}" method="POST">
             @csrf
@@ -33,6 +49,9 @@
                                 @error('email')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
+                                @if($cart->hasOnlyDigitalProducts())
+                                <p class="text-xs text-gray-500 mt-1">Recibirás tus productos digitales en este email</p>
+                                @endif
                             </div>
 
                             <div class="md:col-span-2">
@@ -47,7 +66,8 @@
                         </div>
                     </div>
 
-                    <!-- Dirección de Envío -->
+                    <!-- Dirección de Envío (solo si hay productos físicos) -->
+                    @if(!$cart->hasOnlyDigitalProducts())
                     <div class="bg-white rounded-lg shadow-lg p-6">
                         <h2 class="text-xl font-bold text-gray-900 mb-6">Dirección de Envío</h2>
 
@@ -121,12 +141,26 @@
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     <!-- Método de Pago -->
                     <div class="bg-white rounded-lg shadow-lg p-6">
                         <h2 class="text-xl font-bold text-gray-900 mb-6">Método de Pago</h2>
 
                         <div class="space-y-3">
+                            @if($cart->hasOnlyDigitalProducts())
+                            <!-- Pago QR para productos digitales -->
+                            <label class="flex items-start p-4 border-2 border-blue-500 bg-blue-50 rounded-lg cursor-pointer">
+                                <input type="radio" name="payment_method" value="qr_payment" checked
+                                       class="w-5 h-5 text-blue-600 mt-0.5">
+                                <div class="ml-3">
+                                    <p class="font-semibold text-gray-900">💳 Pago con QR</p>
+                                    <p class="text-sm text-gray-600">Escanea el código QR para pagar con tu app bancaria</p>
+                                    <p class="text-xs text-green-600 mt-1">✓ Acceso inmediato después del pago</p>
+                                </div>
+                            </label>
+                            @else
+                            <!-- Pago contra entrega para productos físicos -->
                             <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
                                 <input type="radio" name="payment_method" value="cash_on_delivery" checked
                                        class="w-5 h-5 text-blue-600 mt-0.5">
@@ -135,6 +169,7 @@
                                     <p class="text-sm text-gray-600">Paga en efectivo al recibir tu pedido</p>
                                 </div>
                             </label>
+                            @endif
 
                             <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition opacity-50">
                                 <input type="radio" name="payment_method" value="card" disabled
@@ -190,6 +225,9 @@
                                 <div class="flex-1">
                                     <p class="font-medium text-sm text-gray-900 line-clamp-2">{{ $item->product->name }}</p>
                                     <p class="text-xs text-gray-600">Cantidad: {{ $item->quantity }}</p>
+                                    @if($item->product->isBook())
+                                    <span class="inline-block text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded mt-1">📚 Digital</span>
+                                    @endif
                                     <p class="text-sm font-semibold text-gray-900">${{ number_format($item->getSubtotal(), 0, ',', '.') }}</p>
                                 </div>
                             </div>
@@ -208,20 +246,30 @@
                             </div>
                             <div class="flex justify-between text-gray-600">
                                 <span>Envío:</span>
-                                <span class="font-semibold">$15.000 - $25.000</span>
+                                @if($cart->hasOnlyDigitalProducts())
+                                <span class="font-semibold text-green-600">Gratis (Digital)</span>
+                                @else
+                                <span class="font-semibold">${{ number_format($estimatedShipping, 0, ',', '.') }}</span>
+                                @endif
                             </div>
+                            @if(!$cart->hasOnlyDigitalProducts())
                             <p class="text-xs text-gray-500">El costo de envío se calcula según la ciudad</p>
+                            @endif
                         </div>
 
-                        <!-- Total Estimado -->
+                        <!-- Total -->
                         <div class="flex justify-between text-xl font-bold text-gray-900 mb-6">
-                            <span>Total Estimado:</span>
-                            <span class="text-blue-600">${{ number_format($cart->getTotal(), 0, ',', '.') }}+</span>
+                            <span>Total:</span>
+                            <span class="text-blue-600">${{ number_format($cart->getTotal() + ($cart->hasOnlyDigitalProducts() ? 0 : $estimatedShipping), 0, ',', '.') }}</span>
                         </div>
 
                         <!-- Botón Finalizar -->
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-lg font-bold text-lg transition mb-3">
+                            @if($cart->hasOnlyDigitalProducts())
+                            Proceder al Pago QR
+                            @else
                             Finalizar Compra
+                            @endif
                         </button>
 
                         <a href="{{ route('cart.index') }}" class="block text-center text-blue-600 hover:text-blue-800 font-medium text-sm">
@@ -242,6 +290,15 @@
                                 </svg>
                                 <span>Datos protegidos</span>
                             </div>
+                            @if($cart->hasOnlyDigitalProducts())
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                                <span>Entrega inmediata por email</span>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -249,4 +306,4 @@
         </form>
     </div>
 </div>
-</x-app-layout>
+@endsection

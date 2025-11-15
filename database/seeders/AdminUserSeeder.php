@@ -12,10 +12,10 @@ class AdminUserSeeder extends Seeder
     {
         // Admin
         User::updateOrCreate(
-            ['email' => 'admin@landing.com'],
+            ['email' => 'skuboxit@gmail.com'],
             [
                 'name' => 'Administrador',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('9906Kael'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ]
@@ -23,10 +23,10 @@ class AdminUserSeeder extends Seeder
 
         // Editor (si lo necesitas)
         User::updateOrCreate(
-            ['email' => 'editor@landing.com'],
+            ['email' => 'maurogomez@studioft5.com'],
             [
                 'name' => 'Editor',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('maurofit2000'),
                 'role' => 'editor',
                 'email_verified_at' => now(),
             ]

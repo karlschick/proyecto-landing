@@ -1,0 +1,15 @@
+fitnesSuit
+------------------------------------
+php artisan migrate:fresh --seed		creacion de migraciones primaria
+php artisan db:seed --class=AdminUserSeeder	creacion de usuarios
+-------------------------------------
+user admin:    admin@landing.com     	pass:  password
+user editor:   editor@landing.com	pass:  password
+-------------------------------------
+npm run dev
+php artisan serve
+-----------------------------------------------
+.env
+
+
+php artisan key:generate

@@ -22,9 +22,14 @@ class GalleryController extends Controller
     {
         $query = GalleryImage::query();
 
-        // Filtrar por categoría si se proporciona
+        // Filtrar por categoría
         if ($request->has('category') && $request->category != '') {
             $query->where('category', $request->category);
+        }
+
+        // Filtrar por tipo
+        if ($request->has('type') && $request->type != '') {
+            $query->where('type', $request->type);
         }
 
         $images = $query->ordered()->paginate(12);
@@ -43,29 +48,45 @@ class GalleryController extends Controller
     {
         $validated = $request->validated();
 
-        // Manejar imagen
+        // Manejar archivo (imagen o video)
         if ($request->hasFile('image')) {
             try {
-                $validated['image'] = $this->imageService->upload(
-                    $request->file('image'),
-                    'gallery'
-                );
+                $file = $request->file('image');
+                $extension = strtolower($file->getClientOriginalExtension());
+
+                // Determinar si es video basado en la extensión
+                $videoExtensions = ['mp4', 'mov', 'avi', 'wmv', 'mpeg', 'mpg'];
+                $isVideo = in_array($extension, $videoExtensions);
+
+                // Definir carpeta según el tipo
+                $folder = $isVideo ? 'videos' : 'gallery';
+
+                // Subir archivo
+                $validated['image'] = $this->imageService->upload($file, $folder);
+                $validated['type'] = $isVideo ? 'video' : 'image';
+
+                \Log::info('Archivo subido', [
+                    'filename' => $validated['image'],
+                    'type' => $validated['type'],
+                    'folder' => $folder,
+                    'extension' => $extension
+                ]);
+
             } catch (\Exception $e) {
+                \Log::error('Error al subir archivo: ' . $e->getMessage());
                 return redirect()
                     ->back()
-                    ->with('error', 'Error al subir la imagen: ' . $e->getMessage())
+                    ->with('error', 'Error al subir el archivo: ' . $e->getMessage())
                     ->withInput();
             }
         }
 
         GalleryImage::create($validated);
-
-        // Limpiar caché
         CacheService::clearGallery();
 
         return redirect()
             ->route('admin.gallery.index')
-            ->with('success', 'Imagen agregada a la galería exitosamente.');
+            ->with('success', 'Archivo agregado a la galería exitosamente.');
     }
 
     public function edit(GalleryImage $gallery)
@@ -78,105 +99,56 @@ class GalleryController extends Controller
     {
         $validated = $request->validated();
 
-        // Manejar imagen
+        // Manejar archivo nuevo
         if ($request->hasFile('image')) {
             try {
-                // Eliminar imagen anterior
+                // Eliminar archivo anterior
                 if ($gallery->image) {
-                    $this->imageService->delete('gallery/' . $gallery->image);
+                    $oldFolder = $gallery->isVideo() ? 'videos' : 'gallery';
+                    $this->imageService->delete($oldFolder . '/' . $gallery->image);
                 }
 
-                // Subir nueva imagen
-                $validated['image'] = $this->imageService->upload(
-                    $request->file('image'),
-                    'gallery'
-                );
-                } catch (\Exception $e) {
+                // Subir nuevo archivo
+                $file = $request->file('image');
+                $extension = strtolower($file->getClientOriginalExtension());
+
+                $videoExtensions = ['mp4', 'mov', 'avi', 'wmv', 'mpeg', 'mpg'];
+                $isVideo = in_array($extension, $videoExtensions);
+
+                $folder = $isVideo ? 'videos' : 'gallery';
+                $validated['image'] = $this->imageService->upload($file, $folder);
+                $validated['type'] = $isVideo ? 'video' : 'image';
+
+            } catch (\Exception $e) {
+                \Log::error('Error al actualizar archivo: ' . $e->getMessage());
                 return redirect()
                     ->back()
-                    ->with('error', 'Error al actualizar la imagen: ' . $e->getMessage())
+                    ->with('error', 'Error al actualizar el archivo: ' . $e->getMessage())
                     ->withInput();
             }
         }
 
         $gallery->update($validated);
-
-        // Limpiar caché
         CacheService::clearGallery();
 
         return redirect()
             ->route('admin.gallery.index')
-            ->with('success', 'Imagen actualizada exitosamente.');
+            ->with('success', 'Archivo actualizado exitosamente.');
     }
 
     public function destroy(GalleryImage $gallery)
     {
-        // Eliminar imagen
+        // Eliminar archivo
         if ($gallery->image) {
-            $this->imageService->delete('gallery/' . $gallery->image);
+            $folder = $gallery->isVideo() ? 'videos' : 'gallery';
+            $this->imageService->delete($folder . '/' . $gallery->image);
         }
 
         $gallery->delete();
-
-        // Limpiar caché
         CacheService::clearGallery();
 
         return redirect()
             ->route('admin.gallery.index')
-            ->with('success', 'Imagen eliminada exitosamente.');
-    }
-
-    /**
-     * Upload múltiple de imágenes
-     */
-    public function uploadMultiple(Request $request)
-    {
-        $request->validate([
-            'images' => 'required',
-            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-            'category' => 'nullable|string|max:100',
-        ]);
-
-        $uploadedCount = 0;
-        $errors = [];
-
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
-                try {
-                    $filename = $this->imageService->upload($file, 'gallery');
-
-                    GalleryImage::create([
-                        'image' => $filename,
-                        'category' => $request->category,
-                        'is_active' => true,
-                        'order' => 0,
-                    ]);
-
-                    $uploadedCount++;
-                } catch (\Exception $e) {
-                    $errors[] = $file->getClientOriginalName() . ': ' . $e->getMessage();
-                }
-            }
-        }
-
-        // Limpiar caché
-        CacheService::clearGallery();
-
-        if ($uploadedCount > 0) {
-            $message = "{$uploadedCount} imágenes agregadas exitosamente.";
-
-            if (count($errors) > 0) {
-                $message .= " Errores: " . implode(', ', $errors);
-            }
-
-            return redirect()
-                ->route('admin.gallery.index')
-                ->with('success', $message);
-        }
-
-        return redirect()
-            ->back()
-            ->with('error', 'No se pudo subir ninguna imagen. Errores: ' . implode(', ', $errors))
-            ->withInput();
+            ->with('success', 'Archivo eliminado exitosamente.');
     }
 }

@@ -49,14 +49,9 @@ class Cart extends Model
         });
     }
 
-    public function getTax(float $rate = 0.19): float
+    public function getTotal(): float
     {
-        return $this->getSubtotal() * $rate;
-    }
-
-    public function getTotal(float $taxRate = 0.19): float
-    {
-        return $this->getSubtotal() + $this->getTax($taxRate);
+        return $this->getSubtotal() + $this->getTax();
     }
 
     public function isEmpty(): bool
@@ -67,5 +62,86 @@ class Cart extends Model
     public function clear(): void
     {
         $this->items()->delete();
+    }
+
+    /**
+     * Calcula el IVA solo sobre productos gravables (excluye libros)
+     */
+    public function getTaxAmount(): float
+    {
+        $taxableAmount = 0;
+
+        foreach ($this->items as $item) {
+            // Solo suma al monto gravable si NO es un libro
+            if (!$item->product->isBook()) {
+                $taxableAmount += $item->getSubtotal();
+            }
+        }
+
+        return $taxableAmount * 0.19; // 19% IVA
+    }
+
+    /**
+     * Alias para mantener compatibilidad con getTax()
+     */
+    public function getTax(): float
+    {
+        return $this->getTaxAmount();
+    }
+
+    /**
+     * Verifica si el carrito tiene libros
+     */
+    public function hasBooks(): bool
+    {
+        foreach ($this->items as $item) {
+            if ($item->product->isBook()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si el carrito contiene SOLO productos digitales (ebooks)
+     */
+    public function hasOnlyDigitalProducts(): bool
+    {
+        if ($this->items->isEmpty()) {
+            return false;
+        }
+
+        foreach ($this->items as $item) {
+            if (!$item->product->isBook()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Verifica si el carrito tiene productos físicos
+     */
+    public function hasPhysicalProducts(): bool
+    {
+        foreach ($this->items as $item) {
+            if (!$item->product->isBook()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Obtiene el total con envío incluido
+     */
+    public function getTotalWithShipping(float $shippingCost = 0): float
+    {
+        // Si solo tiene productos digitales, no cobrar envío
+        if ($this->hasOnlyDigitalProducts()) {
+            return $this->getTotal();
+        }
+
+        return $this->getTotal() + $shippingCost;
     }
 }

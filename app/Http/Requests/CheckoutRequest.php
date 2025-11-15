@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Services\CartService;
 
 class CheckoutRequest extends FormRequest
 {
@@ -13,26 +14,35 @@ class CheckoutRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            // Información de envío
-            'full_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
-            'address_line_1' => 'required|string|max:255',
-            'address_line_2' => 'nullable|string|max:255',
-            'city' => 'required|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'postal_code' => 'required|string|max:20',
-            'country' => 'nullable|string|max:100',
-            'notes' => 'nullable|string|max:1000',
+        $cartService = app(CartService::class);
+        $cart = $cartService->getCart();
+        $cart->load('items.product.category');
 
-            // Información de pago
-            'payment_method' => 'required|in:card,transfer,cash_on_delivery',
-            'payment_gateway' => 'nullable|string|in:mercadopago,paypal,stripe',
+        $isDigitalOnly = $cart->hasOnlyDigitalProducts();
 
-            // Términos y condiciones
-            'terms_accepted' => 'required|accepted',
+        // Reglas base (siempre requeridas)
+        $rules = [
+            'full_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
+            'payment_method' => ['required', 'string', 'in:cash_on_delivery,qr_payment,card,transfer'],
+            'terms_accepted' => ['required', 'accepted'],
         ];
+
+        // Si NO es solo productos digitales, agregar validación de dirección
+        if (!$isDigitalOnly) {
+            $rules = array_merge($rules, [
+                'address_line_1' => ['required', 'string', 'max:255'],
+                'address_line_2' => ['nullable', 'string', 'max:255'],
+                'city' => ['required', 'string', 'max:100'],
+                'state' => ['nullable', 'string', 'max:100'],
+                'postal_code' => ['required', 'string', 'max:20'],
+                'country' => ['required', 'string', 'max:100'],
+                'notes' => ['nullable', 'string', 'max:500'],
+            ]);
+        }
+
+        return $rules;
     }
 
     public function messages(): array
@@ -40,15 +50,14 @@ class CheckoutRequest extends FormRequest
         return [
             'full_name.required' => 'El nombre completo es obligatorio.',
             'email.required' => 'El email es obligatorio.',
-            'email.email' => 'Debes proporcionar un email válido.',
+            'email.email' => 'El email debe ser válido.',
             'phone.required' => 'El teléfono es obligatorio.',
             'address_line_1.required' => 'La dirección es obligatoria.',
             'city.required' => 'La ciudad es obligatoria.',
             'postal_code.required' => 'El código postal es obligatorio.',
+            'country.required' => 'El país es obligatorio.',
             'payment_method.required' => 'Debes seleccionar un método de pago.',
-            'payment_method.in' => 'El método de pago seleccionado no es válido.',
-            'terms_accepted.required' => 'Debes aceptar los términos y condiciones.',
-            'terms_accepted.accepted' => 'Debes aceptar los términos y condiciones para continuar.',
+            'terms_accepted.accepted' => 'Debes aceptar los términos y condiciones.',
         ];
     }
 }

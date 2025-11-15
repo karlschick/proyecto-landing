@@ -19,13 +19,26 @@ class GalleryRequest extends FormRequest
             'category' => 'nullable|string|max:100',
             'is_active' => 'boolean',
             'order' => 'nullable|integer|min:0',
+            'type' => 'required|in:image,video',
         ];
 
-        // Imagen requerida solo en creación
-        if ($this->isMethod('POST')) {
-            $rules['image'] = 'required|image|mimes:jpeg,png,jpg,webp|max:5120';
+        // Obtener el tipo seleccionado
+        $type = $this->input('type', 'image');
+
+        if ($type === 'video') {
+            // Validación para videos
+            if ($this->isMethod('POST')) {
+                $rules['image'] = 'required|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,video/mpeg|max:102400'; // 100MB
+            } else {
+                $rules['image'] = 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,video/mpeg|max:102400';
+            }
         } else {
-            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120';
+            // Validación para imágenes
+            if ($this->isMethod('POST')) {
+                $rules['image'] = 'required|image|mimes:jpeg,png,jpg,webp|max:5120';
+            } else {
+                $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120';
+            }
         }
 
         return $rules;
@@ -41,12 +54,16 @@ class GalleryRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'image.required' => 'La imagen es obligatoria.',
-            'image.image' => 'El archivo debe ser una imagen.',
+            'image.required' => 'Debes seleccionar una imagen o video.',
+            'image.image' => 'El archivo debe ser una imagen válida.',
             'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, webp.',
-            'image.max' => 'La imagen no puede ser mayor a 5MB.',
+            'image.mimetypes' => 'El video debe ser de tipo: mp4, mov, avi, wmv.',
+            'image.max' => 'El archivo es demasiado grande. Máx: 5MB para imágenes, 100MB para videos.',
+            'image.file' => 'Debes seleccionar un archivo válido.',
             'title.max' => 'El título no puede exceder 255 caracteres.',
             'category.max' => 'La categoría no puede exceder 100 caracteres.',
+            'type.required' => 'Debes seleccionar el tipo de archivo.',
+            'type.in' => 'El tipo debe ser imagen o video.',
         ];
     }
 }

@@ -19,12 +19,15 @@ class LeadController extends Controller
      */
     public function store(LeadRequest $request)
     {
-        // Rate limiting: máximo 3 intentos por hora por IP
+        // Rate limiting: máximo intentos por hora por IP
         $key = 'contact-form:' . $request->ip();
 
-        if (RateLimiter::tooManyAttempts($key, 3)) {
+        // Más permisivo en desarrollo, estricto en producción
+        $maxAttempts = config('app.env') === 'production' ? 3 : 100;
+
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             $seconds = RateLimiter::availableIn($key);
-            return back()->with('error', "Demasiados intentos. Por favor espera {$seconds} segundos.");
+            return redirect('/#contacto')->with('error', "Demasiados intentos. Por favor espera {$seconds} segundos.");
         }
 
         try {
@@ -75,14 +78,15 @@ class LeadController extends Controller
                 'ip' => $request->ip()
             ]);
 
-            return back()->with('success', '¡Mensaje enviado correctamente! Te contactaremos pronto.');
+            // ✅ SOLUCIÓN: Redirigir a la sección de contacto con el ancla #contacto
+            return redirect('/#contacto')->with('success', '¡Mensaje enviado correctamente! Te contactaremos pronto.');
 
         } catch (\Exception $e) {
             \Log::error('Error al crear lead: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return back()
+            return redirect('/#contacto')
                 ->with('error', 'Hubo un error al enviar tu mensaje. Por favor intenta nuevamente.')
                 ->withInput();
         }

@@ -27,7 +27,7 @@ class Setting extends Model
         'navbar_show_logo',
         'navbar_show_title',
         'navbar_show_slogan',
-        'navbar_show_shop', // ✅ AGREGADO
+        'navbar_show_shop',
         'navbar_menu_labels',
 
         // Hero Background
@@ -71,7 +71,7 @@ class Setting extends Model
         'stats_enabled',
         'services_enabled',
         'products_enabled',
-        'shop_enabled', // ✅ Agregado para completitud
+        'shop_enabled',
         'testimonials_enabled',
         'gallery_enabled',
         'contact_enabled',
@@ -128,7 +128,7 @@ class Setting extends Model
         'stats_enabled' => 'boolean',
         'services_enabled' => 'boolean',
         'products_enabled' => 'boolean',
-        'shop_enabled' => 'boolean', // ✅ Agregado
+        'shop_enabled' => 'boolean',
         'testimonials_enabled' => 'boolean',
         'gallery_enabled' => 'boolean',
         'contact_enabled' => 'boolean',
@@ -141,7 +141,7 @@ class Setting extends Model
         'navbar_show_logo' => 'boolean',
         'navbar_show_title' => 'boolean',
         'navbar_show_slogan' => 'boolean',
-        'navbar_show_shop' => 'boolean', // ✅ AGREGADO
+        'navbar_show_shop' => 'boolean',
         'hero_show_logo_instead' => 'boolean',
 
         // Otros tipos
@@ -155,34 +155,45 @@ class Setting extends Model
      */
     public static function getSettings()
     {
-        return self::firstOrCreate([
-            'id' => 1
-        ], [
-            'site_name' => config('app.name'),
-            'contact_email' => 'contacto@ejemplo.com',
-            'hero_title_color' => '#ffffff',
-            'hero_title_font' => 'default',
-            'hero_show_logo_instead' => false,
-            // Valores por defecto para las nuevas secciones
-            'cta_enabled' => true,
-            'about_enabled' => true,
-            'features_enabled' => true,
-            'stats_enabled' => true,
-            'navbar_show_shop' => true, // ✅ AGREGADO - Por defecto visible
-        ]);
+        // Si es el área de admin, cargar TODO
+        if (request()->is('admin/*') || request()->is('admin')) {
+            return self::firstOrCreate(['id' => 1], [
+                'site_name' => config('app.name'),
+                'contact_email' => 'contacto@ejemplo.com',
+                'hero_title_color' => '#ffffff',
+                'hero_title_font' => 'default',
+                'hero_show_logo_instead' => false,
+                'cta_enabled' => true,
+                'about_enabled' => true,
+                'features_enabled' => true,
+                'stats_enabled' => true,
+                'navbar_show_shop' => true,
+            ]);
+        }
+
+        // Para frontend, usar la versión en caché optimizada
+        return \App\Services\CacheService::settings();
     }
 
     /**
-     * Obtener URL de la imagen de fondo del Hero
+     * ✅ CORREGIDO: Obtener URL de la imagen de fondo del Hero
      */
     public function getHeroBackgroundImageUrl()
     {
         if ($this->hero_background_image) {
-            $imagePath = public_path('images/hero/' . $this->hero_background_image);
-            if (file_exists($imagePath)) {
+            // 1️⃣ Primero intentar con la ruta directa (ya incluye "hero/")
+            $directPath = public_path('images/' . $this->hero_background_image);
+            if (file_exists($directPath)) {
+                return asset('images/' . $this->hero_background_image);
+            }
+
+            // 2️⃣ Si no existe, intentar agregando "hero/"
+            $heroPath = public_path('images/hero/' . $this->hero_background_image);
+            if (file_exists($heroPath)) {
                 return asset('images/hero/' . $this->hero_background_image);
             }
 
+            // 3️⃣ Última opción: sin carpeta images/
             $publicPath = public_path($this->hero_background_image);
             if (file_exists($publicPath)) {
                 return asset($this->hero_background_image);
@@ -195,16 +206,24 @@ class Setting extends Model
     }
 
     /**
-     * Obtener URL del video de fondo del Hero
+     * ✅ CORREGIDO: Obtener URL del video de fondo del Hero
      */
     public function getHeroBackgroundVideoUrl()
     {
         if ($this->hero_background_video) {
-            $videoPath = public_path('videos/hero/' . $this->hero_background_video);
-            if (file_exists($videoPath)) {
+            // 1️⃣ Primero intentar con la ruta directa (ya incluye "hero/")
+            $directPath = public_path('videos/' . $this->hero_background_video);
+            if (file_exists($directPath)) {
+                return asset('videos/' . $this->hero_background_video);
+            }
+
+            // 2️⃣ Si no existe, intentar agregando "hero/"
+            $heroPath = public_path('videos/hero/' . $this->hero_background_video);
+            if (file_exists($heroPath)) {
                 return asset('videos/hero/' . $this->hero_background_video);
             }
 
+            // 3️⃣ Última opción: sin carpeta videos/
             $publicPath = public_path($this->hero_background_video);
             if (file_exists($publicPath)) {
                 return asset($this->hero_background_video);

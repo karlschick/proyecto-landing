@@ -1,4 +1,4 @@
-<footer class="bg-gray-900 text-white">
+<footer class="bg-black text-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         <!-- Redes Sociales centradas con colores vibrantes -->
@@ -52,12 +52,12 @@
             @endif
         @endif
 
-        <!-- Bottom Footer - Copyright -->
+<!-- Bottom Footer - Copyright -->
         <div class="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
             @if($settings->footer_text)
                 <p>{{ $settings->footer_text }}</p>
             @else
-                <p>&copy; {{ date('Y') }} {{ $settings->site_name ?? 'SKUBOX.IT' }} - Todos los derechos reservados.</p>
+                <p>&copy; {{ date('Y') }} <a href="https://skuboxit.com" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">SKUBOX.IT</a> - Todos los derechos reservados.</p>
             @endif
         </div>
     </div>

@@ -9,6 +9,9 @@ use Illuminate\Support\Str;
 
 class ImageUploadService
 {
+    /**
+     * Configuración de tamaños máximos por tipo de carpeta
+     */
     protected array $config = [
         'services' => ['max_width' => 800, 'max_height' => 600],
         'projects' => ['max_width' => 1200, 'max_height' => 800],
@@ -19,10 +22,11 @@ class ImageUploadService
     ];
 
     /**
-     * Subir y optimizar imagen
+     * Subir y optimizar imagen simple
      */
     public function upload(UploadedFile $file, string $directory): string
     {
+        $this->validateFile($file);
         $this->ensureDirectoryExists($directory);
 
         $filename = $this->generateFilename($file);
@@ -30,51 +34,47 @@ class ImageUploadService
 
         try {
             $file->move($path, $filename);
-
-            Log::info("Image uploaded successfully: {$directory}/{$filename}");
-
-            return $filename;
+            Log::info("✅ Imagen subida: images/{$directory}/{$filename}");
+            return "{$directory}/{$filename}";
         } catch (\Exception $e) {
-            Log::error("Error uploading image: " . $e->getMessage());
+            Log::error("❌ Error al subir imagen: " . $e->getMessage());
             throw $e;
         }
     }
 
     /**
      * Subir imagen con redimensionamiento
+     * (usa Intervention Image si está instalado)
      */
-    public function uploadWithResize(
-        UploadedFile $file,
-        string $folder = 'images',
-        int $maxWidth = 1200,
-        int $maxHeight = 1200
-    ): string {
+    public function uploadWithResize(UploadedFile $file, string $folder = 'projects'): string
+    {
+        $this->validateFile($file);
+        $config = $this->getConfig($folder) ?? ['max_width' => 1200, 'max_height' => 1200];
+
         $filename = $this->generateFilename($file);
         $path = public_path("images/{$folder}");
-
         $this->ensureDirectoryExists($folder);
 
-        // Si tienes Intervention Image instalado, usa este bloque
-        // Descomentar si tienes el paquete: composer require intervention/image
-        /*
-        try {
-            $image = \Intervention\Image\Facades\Image::make($file);
-
-            $image->resize($maxWidth, $maxHeight, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            });
-
-            $image->save($path . '/' . $filename, 85);
-        } catch (\Exception $e) {
+        // Si Intervention Image está disponible
+        if (class_exists('\Intervention\Image\Facades\Image')) {
+            try {
+                $image = \Intervention\Image\Facades\Image::make($file);
+                $image->resize($config['max_width'], $config['max_height'], function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+                $image->save($path . '/' . $filename, 85);
+                Log::info("🖼️ Imagen redimensionada correctamente: {$folder}/{$filename}");
+            } catch (\Exception $e) {
+                Log::warning("⚠️ Error al redimensionar, se guarda original: " . $e->getMessage());
+                $file->move($path, $filename);
+            }
+        } else {
+            // Si no está instalado Intervention, subir sin redimensionar
             $file->move($path, $filename);
         }
-        */
 
-        // Sin Intervention Image, usa el método simple
-        $file->move($path, $filename);
-
-        return $filename;
+        return "{$folder}/{$filename}";
     }
 
     /**
@@ -83,44 +83,43 @@ class ImageUploadService
     public function uploadVideo(UploadedFile $file, string $directory): string
     {
         $this->ensureDirectoryExists($directory, 'videos');
-
         $filename = $this->generateFilename($file);
         $path = public_path("videos/{$directory}");
 
         try {
             $file->move($path, $filename);
-
-            Log::info("Video uploaded successfully: {$directory}/{$filename}");
-
-            return $filename;
+            Log::info("🎬 Video subido: videos/{$directory}/{$filename}");
+            return "{$directory}/{$filename}";
         } catch (\Exception $e) {
-            Log::error("Error uploading video: " . $e->getMessage());
+            Log::error("❌ Error al subir video: " . $e->getMessage());
             throw $e;
         }
     }
 
     /**
-     * Eliminar archivo
+     * Eliminar archivo (imagen o video)
      */
-    public function delete(?string $path, string $type = 'images'): bool
+    public function delete(?string $relativePath, string $type = 'images'): bool
     {
-        if (!$path) {
+        if (!$relativePath) {
             return false;
         }
 
         $possiblePaths = [
-            public_path("{$type}/" . $path),
-            public_path($path),
+            public_path("{$type}/{$relativePath}"),
+            public_path("images/{$relativePath}"),
+            public_path("videos/{$relativePath}"),
+            public_path($relativePath),
         ];
 
         foreach ($possiblePaths as $fullPath) {
             if (File::exists($fullPath)) {
                 try {
                     File::delete($fullPath);
-                    Log::info("File deleted successfully: {$fullPath}");
+                    Log::info("🗑️ Archivo eliminado: {$fullPath}");
                     return true;
                 } catch (\Exception $e) {
-                    Log::error("Error deleting file: " . $e->getMessage());
+                    Log::error("❌ Error al eliminar archivo: " . $e->getMessage());
                 }
             }
         }
@@ -145,31 +144,51 @@ class ImageUploadService
     }
 
     /**
-     * Asegurar que el directorio existe
+     * Asegura que el directorio exista (images o videos)
      */
     protected function ensureDirectoryExists(string $directory, string $type = 'images'): void
     {
+        $directory = trim($directory, '/');
         $path = public_path("{$type}/{$directory}");
 
         if (!File::exists($path)) {
             File::makeDirectory($path, 0755, true);
+            Log::info("📁 Directorio creado: {$path}");
         }
     }
 
     /**
-     * Generar nombre único para archivo
+     * Genera nombre único para archivo
      */
     protected function generateFilename(UploadedFile $file): string
     {
         $extension = $file->getClientOriginalExtension();
-        return time() . '_' . Str::random(10) . '.' . $extension;
+        return time() . '_' . Str::random(10) . '.' . strtolower($extension);
     }
 
     /**
-     * Obtener configuración para un directorio
+     * Obtiene configuración para un directorio (ancho/alto)
      */
     public function getConfig(string $directory): ?array
     {
         return $this->config[$directory] ?? null;
+    }
+
+    /**
+     * Valida tipo y tamaño del archivo antes de subir
+     */
+    protected function validateFile(UploadedFile $file): void
+    {
+        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mov', 'avi'];
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        if (!in_array($ext, $allowed)) {
+            throw new \Exception("Tipo de archivo no permitido: {$ext}");
+        }
+
+        // Máximo 5 MB
+        if ($file->getSize() > 5 * 1024 * 1024) {
+            throw new \Exception('El archivo excede el tamaño máximo permitido (5 MB).');
+        }
     }
 }

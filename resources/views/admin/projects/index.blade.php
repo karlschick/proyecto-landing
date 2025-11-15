@@ -25,8 +25,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Orden</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Imagen</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Título</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
             </tr>
@@ -50,17 +49,11 @@
                 </td>
                 <td class="px-6 py-4">
                     <div class="text-sm font-medium text-gray-900">{{ $project->title }}</div>
-                    @if($project->is_featured)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                            ⭐ Destacado
-                        </span>
-                    @endif
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {{ $project->category->name ?? 'Sin categoría' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {{ $project->client ?? '-' }}
+                <td class="px-6 py-4 max-w-xs">
+                    <div class="text-sm text-gray-600 truncate">
+                        {{ Str::limit($project->description, 80) }}
+                    </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     @if($project->is_active)

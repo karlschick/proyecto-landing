@@ -3,12 +3,12 @@
 @section('title', 'Tienda')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-200">
     <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12">
+    <div class="bg-gradient-to-r from-black to-[rgb(245,245,0)] text-white py-12">
         <div class="container mx-auto px-4">
             <h1 class="text-4xl font-bold mb-2">Nuestra Tienda</h1>
-            <p class="text-blue-100">Encuentra los mejores productos con envío a toda Colombia</p>
+            <p class="text-blue-100">SELECCIONA TU PRODUCTO Y TE LLEGARA EL LINK DE DESCARGA</p>
         </div>
     </div>
 

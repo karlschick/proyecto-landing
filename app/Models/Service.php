@@ -63,29 +63,33 @@ class Service extends Model
     }
 
     /**
-     * Helper para obtener URL de imagen (con caché)
+     * Helper para obtener URL de imagen (MISMA LÓGICA QUE PROJECT)
      */
     public function getImageUrl(): string
     {
-        return Cache::remember("service_image_{$this->id}", 3600, function() {
-            if (!$this->image) {
-                return asset('images/services/default.jpg');
-            }
-
-            $paths = [
-                public_path('images/services/' . $this->image),
-                public_path($this->image)
-            ];
-
-            foreach ($paths as $path) {
-                if (file_exists($path)) {
-                    return asset(str_replace(public_path(), '', $path));
-                }
-            }
-
-            \Log::warning("Image not found for service {$this->id}: {$this->image}");
+        if (!$this->image) {
             return asset('images/services/default.jpg');
-        });
+        }
+
+        // Normaliza ruta (quita posibles "/")
+        $path = ltrim($this->image, '/');
+
+        // Si la ruta ya incluye "services/" al inicio
+        if (str_starts_with($path, 'services/')) {
+            $fullPath = public_path('images/' . $path); // images/services/archivo.jpg
+            if (file_exists($fullPath)) {
+                return asset('images/' . $path);
+            }
+        }
+
+        // Si solo es el nombre del archivo
+        $fullPath = public_path('images/services/' . $path);
+        if (file_exists($fullPath)) {
+            return asset('images/services/' . $path);
+        }
+
+        \Log::warning("⚠️ Imagen no encontrada para service {$this->id}: {$this->image}");
+        return asset('images/services/default.jpg');
     }
 
     /**

@@ -1,6 +1,6 @@
 {{-- Hero Section --}}
 <section class="relative text-white overflow-hidden flex items-end"
-         style="height: 60vh;"> {{-- Más alto (antes era py-20/md:py-32) --}}
+         style="height: 70vh;">
 
     <!-- Background dinámico -->
     @if($settings->hero_background_type === 'video' && $settings->hero_background_video)
@@ -40,9 +40,9 @@
         }
     @endphp
 
-    <!-- Contenido (solo ocupa el 25% inferior del Hero) -->
+    <!-- Contenido en el 25% inferior (imagen visible 75%) -->
     <div class="relative z-10 w-full"
-         style="padding-bottom: 5vh; height: 25%; display: flex; flex-direction: column; justify-content: flex-end;">
+         style="padding-bottom: 3vh; height: 25%; display: flex; flex-direction: column; justify-content: center;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
             {{-- LOGO o TÍTULO con color y fuente --}}
@@ -70,21 +70,21 @@
 
             {{-- Eslogan --}}
             @if($settings->site_slogan)
-                <p class="text-lg md:text-xl text-white/80 mb-3 font-medium">
+                <p class="text-lg md:text-xl text-white/80 mb-2 font-medium">
                     {{ $settings->site_slogan }}
                 </p>
             @endif
 
             {{-- Subtítulo --}}
-            <p class="text-xl md:text-2xl text-white/90 mb-6 max-w-3xl mx-auto">
+            <p class="text-xl md:text-2xl text-white/90 mb-3 max-w-3xl mx-auto">
                 {{ $settings->hero_subtitle ?? '' }}
             </p>
 
             {{-- Botón --}}
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ $finalUrl }}"
-                   class="inline-block bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-black hover:text-primary transition">
-                    {{ $settings->hero_button_text ?? 'Ver Productos' }}
+                   class="hero-button inline-block bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold relative overflow-hidden transition-all duration-300">
+                    <span class="relative z-10">{{ $settings->hero_button_text ?? 'Ver Productos' }}</span>
                 </a>
             </div>
         </div>
@@ -99,5 +99,28 @@
 }
 .animate-fade-in {
     animation: fade-in 1.5s ease forwards;
+}
+
+/* Efecto de reflejo amarillo en el botón */
+.hero-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(245, 245, 0, 0.6), transparent);
+    transition: left 0.5s ease;
+}
+
+.hero-button:hover::before {
+    left: 100%;
+}
+
+.hero-button:hover {
+    background-color: rgba(245, 245, 0, 0.15);
+    border-color: rgb(245, 245, 0);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(245, 245, 0, 0.4);
 }
 </style>
