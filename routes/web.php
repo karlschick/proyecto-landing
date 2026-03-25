@@ -13,100 +13,79 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\DownloadController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Aquí se registran todas las rutas web de la aplicación.
-|
 */
 
-// ============================================
-// RUTAS PÚBLICAS - LANDING PAGE
-// ============================================
+/* =============================
+   RUTAS PÚBLICAS - LANDING
+============================= */
 
-// Página principal
 Route::get('/', [LandingController::class, 'index'])->name('home');
-
-// Formulario de contacto — PÚBLICO (Sin login)
 Route::post('/contacto', [LeadController::class, 'store'])->name('leads.store');
 
-
-// ============================================
-// RUTAS DE AUTENTICACIÓN
-// ============================================
+/* =============================
+   AUTENTICACIÓN
+============================= */
 
 require __DIR__ . '/auth.php';
 
-// ============================================
-// REDIRECCIÓN AL DASHBOARD
-// ============================================
+/* =============================
+   REDIRECCIÓN DASHBOARD
+============================= */
 
 Route::get('/dashboard', function () {
     return redirect()->route('admin.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// ============================================
-// PANEL ADMINISTRATIVO
-// ============================================
+/* =============================
+   PANEL ADMIN
+============================= */
 
 Route::middleware(['auth', 'verified'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
-        // Dashboard principal
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // CONFIGURACIÓN GENERAL (solo Admin)
+        /* SETTINGS */
         Route::middleware(['admin'])->group(function () {
             Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
             Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
         });
 
-        // SERVICIOS (Admin y Editor)
+        /* SERVICIOS, PROYECTOS, ETC */
         Route::middleware(['editor'])->group(function () {
             Route::resource('services', ServiceController::class);
-        });
-
-        // PROYECTOS (Admin y Editor)
-        Route::middleware(['editor'])->group(function () {
             Route::resource('projects', ProjectController::class);
-        });
-
-        // TESTIMONIOS (Admin y Editor)
-        Route::middleware(['editor'])->group(function () {
             Route::resource('testimonials', TestimonialController::class);
-        });
-
-        // GALERÍA (Admin y Editor)
-        Route::middleware(['editor'])->group(function () {
             Route::resource('gallery', GalleryController::class);
+
             Route::post('gallery/upload-multiple', [GalleryController::class, 'uploadMultiple'])
                 ->name('gallery.upload-multiple');
         });
 
-        // LEADS / CONTACTOS (Admin y Editor)
+        /* LEADS */
         Route::middleware(['editor'])
             ->prefix('leads')
             ->name('leads.')
             ->group(function () {
                 Route::get('/', [AdminLeadController::class, 'index'])->name('index');
                 Route::get('/{lead}', [AdminLeadController::class, 'show'])->name('show');
-                Route::delete('/{lead}', [AdminLeadController::class, 'destroy'])
-                    ->middleware('admin')->name('destroy');
-                Route::put('/{lead}/status', [AdminLeadController::class, 'updateStatus'])
-                    ->name('update-status');
-                Route::put('/{lead}/notes', [AdminLeadController::class, 'updateNotes'])
-                    ->name('update-notes');
-                Route::post('/mark-read-bulk', [AdminLeadController::class, 'markAsReadBulk'])
-                    ->name('mark-read-bulk');
+                Route::delete('/{lead}', [AdminLeadController::class, 'destroy'])->middleware('admin')->name('destroy');
+                Route::put('/{lead}/status', [AdminLeadController::class, 'updateStatus'])->name('update-status');
+                Route::put('/{lead}/notes', [AdminLeadController::class, 'updateNotes'])->name('update-notes');
+                Route::post('/mark-read-bulk', [AdminLeadController::class, 'markAsReadBulk'])->name('mark-read-bulk');
                 Route::get('/export/csv', [AdminLeadController::class, 'export'])->name('export');
             });
 
-        // PRODUCTOS Y CATEGORÍAS (Admin y Editor)
+        /* PRODUCTS */
         Route::middleware(['editor'])->group(function () {
             Route::resource('categories', App\Http\Controllers\Admin\ProductCategoryController::class);
             Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
@@ -114,25 +93,35 @@ Route::middleware(['auth', 'verified'])
                 ->name('products.update-stock');
         });
 
-        // ÓRDENES (Admin y Editor)
+        /* ADMIN ORDERS */
         Route::middleware(['editor'])
             ->prefix('orders')
             ->name('orders.')
             ->group(function () {
                 Route::get('/', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('index');
                 Route::get('/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('show');
-                Route::put('/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])
-                    ->name('update-status');
-                Route::post('/{order}/cancel', [App\Http\Controllers\Admin\OrderController::class, 'cancel'])
-                    ->name('cancel');
-                Route::get('/export/csv', [App\Http\Controllers\Admin\OrderController::class, 'export'])
-                    ->name('export');
+                Route::put('/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('update-status');
+                Route::post('/{order}/cancel', [App\Http\Controllers\Admin\OrderController::class, 'cancel'])->name('cancel');
+                Route::get('/export/csv', [App\Http\Controllers\Admin\OrderController::class, 'export'])->name('export');
+            });
+
+        /* ADMIN PAGOS - GESTIÓN DE COMPROBANTES */
+        Route::middleware(['editor'])
+            ->prefix('payments')
+            ->name('payments.')
+            ->group(function () {
+                Route::get('/', [PaymentController::class, 'adminIndex'])->name('index');
+                Route::get('/pending', [PaymentController::class, 'pending'])->name('pending');
+                Route::post('/{payment}/verify', [PaymentController::class, 'verify'])->name('verify');
+                Route::post('/{payment}/reject', [PaymentController::class, 'reject'])->name('reject');
+                Route::post('/{id}/aprobar', [PaymentController::class, 'aprobar'])->name('aprobar');
+                Route::post('/{id}/rechazar', [PaymentController::class, 'rechazar'])->name('rechazar');
             });
     });
 
-// ============================================
-// PERFIL DE USUARIO (FUERA DEL PREFIJO ADMIN)
-// ============================================
+/* =============================
+   PERFIL USUARIO
+============================= */
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -140,16 +129,19 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// ============================================
-// RUTAS DE E-COMMERCE - TIENDA
-// ============================================
+/* =============================
+   TIENDA
+============================= */
 
 Route::prefix('tienda')->name('shop.')->group(function () {
     Route::get('/', [App\Http\Controllers\ShopController::class, 'index'])->name('index');
     Route::get('/producto/{product:slug}', [App\Http\Controllers\ShopController::class, 'show'])->name('show');
 });
 
-// Carrito de compras
+/* =============================
+   CARRITO
+============================= */
+
 Route::prefix('carrito')->name('cart.')->group(function () {
     Route::get('/', [App\Http\Controllers\CartController::class, 'index'])->name('index');
     Route::post('/agregar/{product}', [App\Http\Controllers\CartController::class, 'add'])->name('add');
@@ -159,44 +151,117 @@ Route::prefix('carrito')->name('cart.')->group(function () {
     Route::get('/cantidad', [App\Http\Controllers\CartController::class, 'count'])->name('count');
 });
 
-// Checkout y órdenes
+/* =============================
+   CHECKOUT - FLUJO PRINCIPAL
+============================= */
+
 Route::prefix('checkout')->name('checkout.')->group(function () {
-    Route::get('/', [App\Http\Controllers\CheckoutController::class, 'index'])->name('index');
-    Route::post('/procesar', [App\Http\Controllers\CheckoutController::class, 'process'])->name('process');
+    Route::get('/', [CheckoutController::class, 'index'])->name('index');
+    Route::post('/procesar', [CheckoutController::class, 'process'])->name('process');
 });
 
-Route::get('/orden/confirmacion/{order}', [App\Http\Controllers\CheckoutController::class, 'confirmation'])
+/* =============================
+   CONFIRMACIÓN Y PAGOS
+============================= */
+
+// Confirmación de orden (Contra entrega)
+Route::get('/orden/confirmacion/{order}', [CheckoutController::class, 'confirmation'])
     ->name('orders.confirmation');
 
-// Ruta QR de pago
-Route::get('/orders/{order}/qr-payment', [CheckoutController::class, 'qrPayment'])
-    ->name('orders.qr-payment');
+/* =============================
+   INSTRUCCIONES DE PAGO SEGÚN MÉTODO
+============================= */
 
-// ============================================
-// PÁGINA 404 PERSONALIZADA
-// ============================================
+// 🔑 BRE-B (LLAVE)
+Route::get('/orden/{order}/pago/breb', [PaymentController::class, 'showInstructionsBreb'])
+    ->name('payment.instructions.breb');
+
+// 🏦 TRANSFERENCIA BANCARIA
+Route::get('/orden/{order}/pago/transferencia', [PaymentController::class, 'showInstructionsTransfer'])
+    ->name('payment.instructions.transfer');
+
+// 📱 CÓDIGO QR
+Route::get('/orden/{order}/pago/qr', [PaymentController::class, 'showInstructionsQr'])
+    ->name('payment.instructions.qr');
+
+// 💳 TARJETA DE CRÉDITO/DÉBITO
+Route::get('/orden/{order}/pago/tarjeta', [PaymentController::class, 'showInstructionsCard'])
+    ->name('payment.instructions.card');
+
+/* =============================
+   SUBIR COMPROBANTE DE PAGO
+============================= */
+
+// Formulario para subir comprobante
+Route::get('/orden/{order}/subir-comprobante', [PaymentController::class, 'showUploadForm'])
+    ->name('payment.upload-form');
+
+// Procesar subida de comprobante
+Route::post('/orden/{order}/comprobante', [PaymentController::class, 'subirComprobante'])
+    ->name('payment.upload');
+
+// Página de confirmación
+Route::get('/orden/{order}/confirmacion', [PaymentController::class, 'confirmation'])
+    ->name('payment.confirmation');
+
+/* =============================
+   PANEL ADMIN - GESTIÓN DE PAGOS
+============================= */
+
+/* Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // Listar pagos pendientes
+    Route::get('/pagos', [PaymentController::class, 'adminIndex'])
+        ->name('payments.index');
+
+    // Aprobar pago
+    Route::post('/pagos/{payment}/aprobar', [PaymentController::class, 'approvePayment'])
+        ->name('payments.approve');
+
+    // Rechazar pago
+    Route::post('/pagos/{payment}/rechazar', [PaymentController::class, 'rejectPayment'])
+        ->name('payments.reject');
+});
+ */
+
+/* =============================
+   DESCARGAS
+============================= */
+
+Route::get('/descargas/{token}', [DownloadController::class, 'show'])->name('downloads.show');
+Route::get('/descargar/{token}', [DownloadController::class, 'download'])->name('downloads.file');
+
+/* =============================
+   PÁGINAS LEGALES
+============================= */
+
+Route::get('/terminos-y-condiciones', [App\Http\Controllers\LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/politica-de-privacidad', [App\Http\Controllers\LegalController::class, 'privacy'])->name('legal.privacy');
+
+/* =============================
+   ARCHIVOS PÚBLICOS
+============================= */
+
+Route::get('/images/{any}', function ($any) {
+    $path = public_path('images/' . $any);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path);
+})->where('any', '.*');
+
+/* =============================
+   ⚠️ FALLBACK (DEBE IR AL FINAL)
+============================= */
 
 Route::fallback(function () {
     return view('errors.404');
 });
 
-// ==================== DESCARGAS PÚBLICAS ====================
-use App\Http\Controllers\DownloadController;
 
-Route::get('/descargas/{token}', [DownloadController::class, 'show'])->name('downloads.show');
-Route::get('/descargar/{token}', [DownloadController::class, 'download'])->name('downloads.file');
-
-// ==================== ADMIN - PAGOS ====================
-use App\Http\Controllers\Admin\PaymentController;
-
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    // ... tus rutas admin existentes ...
-
-    // Pagos pendientes
-    Route::get('/pagos/pendientes', [PaymentController::class, 'pending'])->name('payments.pending');
-    Route::post('/pagos/{payment}/verificar', [PaymentController::class, 'verify'])->name('payments.verify');
-    Route::post('/pagos/{payment}/rechazar', [PaymentController::class, 'reject'])->name('payments.reject');
-
-    // Órdenes
-    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
-});
+Route::get('/admin/hero', [App\Http\Controllers\Admin\HeroController::class, 'index'])->name('admin.hero.index');
+Route::put('/admin/hero', [App\Http\Controllers\Admin\HeroController::class, 'update'])->name('admin.hero.update');
+// About
+Route::get('/admin/about', [App\Http\Controllers\Admin\AboutController::class, 'index'])->name('admin.about.index');
+Route::put('/admin/about', [App\Http\Controllers\Admin\AboutController::class, 'update'])->name('admin.about.update');

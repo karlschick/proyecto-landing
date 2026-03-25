@@ -1,12 +1,12 @@
 {{-- Hero Section --}}
 <section class="relative text-white overflow-hidden flex items-end"
-         style="height: 70vh;">
+         style="height: 80vh;">
 
     <!-- Background dinámico -->
     @if($settings->hero_background_type === 'video' && $settings->hero_background_video)
         <!-- Video de fondo -->
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
-            <source src="{{ $settings->getHeroBackgroundVideoUrl() }}" type="video/mp4">
+            <source src="{{ $settings->getHeroBackgroundVideoUrl() }}?v={{ $settings->updated_at?->timestamp ?? time() }}" type="video/mp4">
         </video>
         <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-black"
@@ -15,14 +15,19 @@
     @elseif($settings->hero_background_type === 'image' && $settings->hero_background_image)
         <!-- Imagen de fondo -->
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-             style="background-image: url('{{ $settings->getHeroBackgroundImageUrl() }}')"></div>
+             style="background-image: url('{{ $settings->getHeroBackgroundImageUrl() }}?v={{ time() }}')">
+        </div>
         <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-black"
              style="opacity: {{ $settings->hero_overlay_opacity ?? 0.5 }}"></div>
 
     @else
-        <!-- Gradiente de colores (por defecto) -->
-        <div class="absolute inset-0 hero-gradient"></div>
+        <!-- Video por defecto -->
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
+            <source src="{{ asset('videos/hero/plantilla1.mp4') }}" type="video/mp4">
+        </video>
+        <!-- Overlay oscuro -->
+        <div class="absolute inset-0 bg-black" style="opacity: 0.5"></div>
     @endif
 
     @php
@@ -41,13 +46,13 @@
     @endphp
 
     <!-- Contenido en el 25% inferior (imagen visible 75%) -->
-    <div class="relative z-10 w-full"
-         style="padding-bottom: 3vh; height: 25%; display: flex; flex-direction: column; justify-content: center;">
+<div class="relative z-10 w-full"
+     style="padding-bottom: 5vh; padding-top: 2vh; height: 35%; display: flex; flex-direction: column; justify-content: center;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
             {{-- LOGO o TÍTULO con color y fuente --}}
             @if($settings->hero_show_logo_instead && $settings->getLogoUrl())
-                <img src="{{ $settings->getLogoUrl() }}"
+                <img src="{{ $settings->getLogoUrl() }}?v={{ time() }}"
                      alt="{{ $settings->site_name }}"
                      class="mx-auto mb-4 h-20 md:h-28 object-contain animate-fade-in">
             @else
@@ -64,7 +69,7 @@
                                 @default inherit;
                             @endswitch;
                            font-size: clamp(2rem, 6vw, 4rem);">
-                    {{ $settings->hero_title ?? 'Bienvenido a ' . ($settings->site_name ?? 'Nuestro Sitio') }}
+                    {{ $settings->hero_title ?? 'Bienvenido a ' . ($settings->site_name ?? 'Tu landingPage') }}
                 </h1>
             @endif
 
@@ -98,7 +103,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in {
-    animation: fade-in 1.5s ease forwards;
+    animation: fade-in 5.5s ease forwards;
 }
 
 /* Efecto de reflejo amarillo en el botón */

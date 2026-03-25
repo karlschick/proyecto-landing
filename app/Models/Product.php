@@ -28,6 +28,7 @@ class Product extends Model
         'gallery_images',
         'is_featured',
         'is_active',
+        'is_digital',
         'order',
         'meta_title',
         'meta_description',
@@ -36,6 +37,7 @@ class Product extends Model
         'file_size',
         'download_limit',
         'access_days',
+
     ];
 
     protected $casts = [
@@ -48,6 +50,7 @@ class Product extends Model
         'gallery_images' => 'array',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
+        'is_digital' => 'boolean',
     ];
 
     protected static function boot()
@@ -132,14 +135,30 @@ class Product extends Model
         return round((($this->compare_price - $this->price) / $this->compare_price) * 100);
     }
 
-        public function getFeaturedImageUrl(): string
+    public function getFeaturedImageUrl(): string
     {
         if (!$this->featured_image) {
+            // Si no hay imagen destacada, usar la primera de la galería
+            if ($this->gallery_images && count($this->gallery_images) > 0) {
+                $firstGallery = $this->gallery_images[0];
+                if (str_starts_with($firstGallery, 'products/')) {
+                    return asset('images/' . $firstGallery);
+                }
+                return asset('images/products/' . $firstGallery);
+            }
             return asset('images/products/default.jpg');
         }
 
-        $path = public_path('images/products/' . $this->featured_image);
+        // Si ya incluye "products/"
+        if (str_starts_with($this->featured_image, 'products/')) {
+            $path = public_html_path('images/' . $this->featured_image);
+            if (file_exists($path)) {
+                return asset('images/' . $this->featured_image);
+            }
+        }
 
+        // Si solo es el nombre del archivo (productos viejos)
+        $path = public_html_path('images/products/' . $this->featured_image);
         if (file_exists($path)) {
             return asset('images/products/' . $this->featured_image);
         }
@@ -154,6 +173,9 @@ class Product extends Model
         }
 
         return array_map(function ($image) {
+            if (str_starts_with($image, 'products/')) {
+                return asset('images/' . $image);
+            }
             return asset('images/products/' . $image);
         }, $this->gallery_images);
     }

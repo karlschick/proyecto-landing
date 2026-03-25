@@ -11,19 +11,24 @@ class Payment extends Model
 
     protected $fillable = [
         'order_id',
-        'transaction_id',
-        'payment_method',
-        'payment_gateway',
+        'method',
+        'reference',
         'amount',
         'currency',
         'status',
-        'paid_at',
+        'payment_gateway',
+        'receipt_path',
         'metadata',
+        'paid_at',
+        'admin_notes',
+        'reviewed_by',
+        'reviewed_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'reviewed_at' => 'datetime',
         'metadata' => 'array',
     ];
 
@@ -33,46 +38,70 @@ class Payment extends Model
         return $this->belongsTo(Order::class);
     }
 
-    // Scopes
-    public function scopeSuccessful($query)
+    public function reviewer()
     {
-        return $query->where('status', 'completed');
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    // Scopes
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
     }
 
-    public function scopeFailed($query)
+    public function scopePendingVerification($query)
     {
-        return $query->where('status', 'failed');
+        return $query->where('status', 'pending_verification');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->whereIn('status', ['completed', 'approved']);
     }
 
     // Helpers
-    public function isSuccessful(): bool
+    public function getReceiptUrl(): ?string
     {
-        return $this->status === 'completed';
+        if (!$this->receipt_path) {
+            return null;
+        }
+
+        return asset('storage/' . $this->receipt_path);
     }
 
-    public function isPending(): bool
-    {
-        return $this->status === 'pending';
-    }
-
-    public function isFailed(): bool
-    {
-        return $this->status === 'failed';
-    }
-
-    public function getStatusBadge(): string
+    public function getStatusText(): string
     {
         return match($this->status) {
-            'completed' => 'bg-green-100 text-green-800',
+            'pending' => 'Pendiente',
+            'pending_verification' => 'En Revisión',
+            'completed', 'approved' => 'Aprobado',
+            'failed', 'rejected' => 'Rechazado',
+            'cancelled' => 'Cancelado',
+            default => 'Desconocido',
+        };
+    }
+
+    public function getStatusBadgeClass(): string
+    {
+        return match($this->status) {
+            'completed', 'approved' => 'bg-green-100 text-green-800',
             'pending' => 'bg-yellow-100 text-yellow-800',
-            'failed' => 'bg-red-100 text-red-800',
-            'refunded' => 'bg-gray-100 text-gray-800',
-            default => 'bg-gray-100 text-gray-800',
+            'pending_verification' => 'bg-blue-100 text-blue-800',
+            'failed', 'rejected' => 'bg-red-100 text-red-800',
+            'cancelled' => 'bg-gray-100 text-gray-800',
+            default => 'bg-gray-100 text-gray-600',
+        };
+    }
+
+    public function getMethodName(): string
+    {
+        return match($this->method) {
+            'manual_breb' => 'Bre-b (Llave)',
+            'manual_transfer' => 'Transferencia Bancaria',
+            'manual_qr' => 'Código QR',
+            'card' => 'Tarjeta de Crédito/Débito',
+            'cash_on_delivery' => 'Contra Entrega',
+            default => 'Método Desconocido',
         };
     }
 }

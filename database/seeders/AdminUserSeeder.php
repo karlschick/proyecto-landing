@@ -23,10 +23,10 @@ class AdminUserSeeder extends Seeder
 
         // Editor (si lo necesitas)
         User::updateOrCreate(
-            ['email' => 'maurogomez@studioft5.com'],
+            ['email' => 'user@gmail.com'],
             [
                 'name' => 'Editor',
-                'password' => Hash::make('maurofit2000'),
+                'password' => Hash::make('user2026'),
                 'role' => 'editor',
                 'email_verified_at' => now(),
             ]

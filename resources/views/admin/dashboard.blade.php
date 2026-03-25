@@ -115,7 +115,7 @@
             </div>
         </div>
     </div>
-    <!-- Leads (AGREGAR ESTO) -->
+<!-- Leads (AGREGAR ESTO) -->
 <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition">
     <div class="flex items-center justify-between">
         <div>
@@ -158,7 +158,8 @@
     </a>
 </div>
 
-div class="bg-white shadow rounded-lg p-6 text-center hover:shadow-lg transition">
+<div class="bg-white shadow rounded-lg p-6 text-center hover:shadow-lg transition">
+    <!-- 👆 AQUÍ FALTABA EL < -->
     <h3 class="text-gray-700 font-semibold text-lg mb-2">Órdenes</h3>
     @php
         $ordersCount = \App\Models\Order::count();
@@ -174,12 +175,11 @@ div class="bg-white shadow rounded-lg p-6 text-center hover:shadow-lg transition
         Gestionar
     </a>
 </div>
-
 <!-- Pagos Pendientes (Daviplata) -->
 <div class="bg-white shadow rounded-lg p-6 text-center hover:shadow-lg transition border-l-4 border-orange-500">
     <h3 class="text-gray-700 font-semibold text-lg mb-2">Pagos QR Daviplata</h3>
     @php
-        $qrPending = \App\Models\Payment::where('payment_method', 'qr_payment')
+        $qrPending = \App\Models\Payment::where('method', 'qr_payment')
                                         ->where('status', 'pending')
                                         ->count();
     @endphp

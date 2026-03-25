@@ -17,7 +17,7 @@ class SettingSeeder extends Seeder
             'accent_color' => '#10B981',
             'contact_email' => 'contacto@ejemplo.com',
             'hero_enabled' => true,
-            'hero_title' => 'Bienvenido a Nuestro Sitio',
+            'hero_title' => 'Bienvenido a Tu LandingPage',
             'hero_subtitle' => 'Ofrecemos las mejores soluciones para tu negocio',
             'hero_button_text' => 'Comenzar',
             'hero_button_url' => '#contacto',
@@ -32,6 +32,9 @@ class SettingSeeder extends Seeder
             'show_social_footer' => true,
             'show_whatsapp_button' => true,
             'whatsapp_button_message' => 'Hola, quiero más información',
+            'navbar_bg_color' => '#000000',
+            'navbar_text_color' => '#ffffff',
+            'hero_show_logo_instead' => true,
         ]);
     }
 }

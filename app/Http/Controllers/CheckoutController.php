@@ -7,6 +7,7 @@ use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Http\Requests\CheckoutRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -19,14 +20,17 @@ class CheckoutController extends Controller
         OrderService $orderService,
         PaymentService $paymentService
     ) {
-        $this->cartService = $cartService;
+        $this->cartService  = $cartService;
         $this->orderService = $orderService;
         $this->paymentService = $paymentService;
     }
 
+    /**
+     * Vista del checkout
+     */
     public function index()
     {
-        $cart = $this->cartService->getCart();
+        $cart = $this->cartService->getCart()->load('items.product.category');
 
         if ($cart->isEmpty()) {
             return redirect()
@@ -34,131 +38,148 @@ class CheckoutController extends Controller
                 ->with('error', 'Tu carrito está vacío.');
         }
 
-        $cart->load('items.product.category');
-
-        // Calcular costo de envío estimado (solo si tiene productos físicos)
         $estimatedShipping = $cart->hasOnlyDigitalProducts() ? 0 : 20000;
 
         return view('landing.checkout.index', compact('cart', 'estimatedShipping'));
     }
 
-    public function process(CheckoutRequest $request)
-    {
-        $cart = $this->cartService->getCart();
+    /**
+     * Procesar checkout
+     */
+public function process(CheckoutRequest $request)
+{
+    $cart = $this->cartService->getCart()->load('items.product.category');
 
-        if ($cart->isEmpty()) {
-            return redirect()
-                ->route('shop.index')
-                ->with('error', 'Tu carrito está vacío.');
-        }
-
-        try {
-            $cart->load('items.product.category');
-
-            // Preparar datos de envío (solo si NO es solo productos digitales)
-            $shippingData = null;
-            $shippingCost = 0;
-
-            if (!$cart->hasOnlyDigitalProducts()) {
-                $shippingData = [
-                    'full_name' => $request->full_name,
-                    'email' => $request->email,
-                    'phone' => $request->phone,
-                    'address_line_1' => $request->address_line_1,
-                    'address_line_2' => $request->address_line_2,
-                    'city' => $request->city,
-                    'state' => $request->state,
-                    'postal_code' => $request->postal_code,
-                    'country' => $request->country ?? 'Colombia',
-                    'notes' => $request->notes,
-                ];
-
-                // Calcular costo de envío
-                $shippingCost = $this->calculateShipping($request->city);
-            } else {
-                // Para productos digitales, solo necesitamos email y nombre
-                $shippingData = [
-                    'full_name' => $request->full_name,
-                    'email' => $request->email,
-                    'phone' => $request->phone,
-                    'country' => 'Colombia',
-                ];
-            }
-
-            // Crear orden
-            $order = $this->orderService->createFromCart(
-                $cart,
-                $shippingData,
-                $shippingCost
-            );
-
-            // Procesar según método de pago
-            if ($request->payment_method === 'qr_payment') {
-                // Pago QR para productos digitales
-                $payment = $this->paymentService->processPayment(
-                    $order,
-                    'qr_payment',
-                    $request->only(['payment_method', 'payment_gateway'])
-                );
-
-                return redirect()
-                    ->route('orders.qr-payment', $order)
-                    ->with('success', 'Por favor completa el pago escaneando el código QR.');
-            }
-
-            if ($request->payment_method === 'cash_on_delivery') {
-                return redirect()
-                    ->route('orders.confirmation', $order)
-                    ->with('success', '¡Orden creada exitosamente! Pagarás contra entrega.');
-            }
-
-            // Otros métodos de pago
-            return redirect()
-                ->route('orders.confirmation', $order)
-                ->with('success', '¡Orden creada exitosamente!');
-
-        } catch (\Exception $e) {
-            \Log::error('Error en checkout: ' . $e->getMessage());
-
-            return redirect()
-                ->back()
-                ->with('error', 'Error al procesar la orden: ' . $e->getMessage())
-                ->withInput();
-        }
+    if ($cart->isEmpty()) {
+        return redirect()
+            ->route('shop.index')
+            ->with('error', 'Tu carrito está vacío.');
     }
 
+    try {
+        $shippingData = [];
+        $shippingCost = 0;
+
+        if (!$cart->hasOnlyDigitalProducts()) {
+            $shippingData = [
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'address_line_1' => $request->address_line_1,
+                'address_line_2' => $request->address_line_2,
+                'city' => $request->city,
+                'state' => $request->state,
+                'postal_code' => $request->postal_code,
+                'country' => $request->country ?? 'Colombia',
+                'notes' => $request->notes,
+            ];
+            $shippingCost = $this->calculateShipping($request->city);
+        } else {
+            $shippingData = [
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'country' => 'Colombia',
+            ];
+        }
+
+        // Crear orden
+        $order = $this->orderService->createFromCart(
+            $cart,
+            $shippingData,
+            $shippingCost
+        );
+
+        Log::info('Orden creada', [
+            'order_id' => $order->id,
+            'payment_method' => $request->payment_method,
+            'total' => $order->total
+        ]);
+
+        // Crear el pago y preparar redirección
+        $redirect = $this->redirectToPaymentMethod($order, $request->payment_method);
+
+        // ✅ Vaciar carrito DESPUÉS de que todo salió bien
+        $cart->clear();
+
+        return $redirect;
+
+    } catch (\Exception $e) {
+        Log::error('Error en checkout: ' . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return back()
+            ->with('error', 'Error al procesar la orden: ' . $e->getMessage())
+            ->withInput();
+    }
+}
+
+    /**
+     * Redirigir a la página específica según el método de pago
+     */
+    protected function redirectToPaymentMethod($order, string $paymentMethod)
+{
+    // Crear el registro de pago
+    $payment = $this->paymentService->processPayment(
+        $order,
+        $paymentMethod,
+        []
+    );
+
+    switch ($paymentMethod) {
+        case 'manual_breb':
+            return redirect()
+                ->route('payment.instructions.breb', $order->id)
+                ->with('success', 'Orden creada. Sigue las instrucciones para pagar con Bre-b.');
+
+        case 'manual_transfer':
+            return redirect()
+                ->route('payment.instructions.transfer', $order->id)
+                ->with('success', 'Orden creada. Sigue las instrucciones para la transferencia bancaria.');
+
+        case 'manual_qr':
+            return redirect()
+                ->route('payment.instructions.qr', $order->id)
+                ->with('success', 'Completa el pago escaneando el código QR.');
+
+        case 'card':
+            return redirect()
+                ->route('payment.instructions.card', $order->id)
+                ->with('success', 'Orden creada. Procede con el pago con tarjeta.');
+
+        case 'cash_on_delivery':
+            return redirect()
+                ->route('payment.confirmation', $order->id)
+                ->with('success', 'Orden creada. Pagarás contra entrega.');
+
+        default:
+            return redirect()
+                ->route('payment.confirmation', $order->id)
+                ->with('warning', 'Orden creada con método de pago pendiente de configuración.');
+    }
+}
+
+    /**
+     * Confirmación de orden
+     */
     public function confirmation($order)
     {
         $order = \App\Models\Order::with(['items.product', 'shippingAddress', 'payment'])
-            ->where('id', $order)
-            ->firstOrFail();
+            ->findOrFail($order);
 
         return view('landing.orders.confirmation', compact('order'));
     }
 
     /**
-     * Vista de pago QR
+     * Costo de envío dinámico
      */
-    public function qrPayment($order)
+    protected function calculateShipping(string $city = null): float
     {
-        $order = \App\Models\Order::with(['items.product', 'payment'])
-            ->where('id', $order)
-            ->firstOrFail();
+        if (!$city) return 0;
 
-        return view('landing.orders.qr-payment', compact('order'));
-    }
-
-    /**
-     * Calcular costo de envío
-     */
-    protected function calculateShipping(string $city): float
-    {
         $mainCities = ['Bogotá', 'Medellín', 'Cali', 'Barranquilla'];
 
-        if (in_array($city, $mainCities)) {
-            return 15000; // $15.000
-        }
-
-        return 25000; // $25.000
+        return in_array($city, $mainCities) ? 15000 : 25000;
     }
 }

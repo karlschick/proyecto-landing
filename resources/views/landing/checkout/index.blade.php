@@ -22,6 +22,31 @@
         </div>
         @endif
 
+        {{-- Mensajes de sesión (success / error) --}}
+        @if(session('success'))
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        {{-- Resumen de errores de validación --}}
+        @if($errors->any())
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded">
+                <strong>Corrige los siguientes errores:</strong>
+                <ul class="mt-2 list-disc list-inside">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('checkout.process') }}" method="POST">
             @csrf
 
@@ -57,7 +82,7 @@
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
                                 <input type="tel" name="phone" value="{{ old('phone') }}" required
-                                       placeholder="+57 300 123 4567"
+                                       placeholder="+57 3## ### ###"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 @error('phone')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -147,48 +172,131 @@
                     <div class="bg-white rounded-lg shadow-lg p-6">
                         <h2 class="text-xl font-bold text-gray-900 mb-6">Método de Pago</h2>
 
-                        <div class="space-y-3">
+                        {{-- 🔥 Grid que se adapta automáticamente --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                             @if($cart->hasOnlyDigitalProducts())
-                            <!-- Pago QR para productos digitales -->
-                            <label class="flex items-start p-4 border-2 border-blue-500 bg-blue-50 rounded-lg cursor-pointer">
-                                <input type="radio" name="payment_method" value="qr_payment" checked
-                                       class="w-5 h-5 text-blue-600 mt-0.5">
-                                <div class="ml-3">
-                                    <p class="font-semibold text-gray-900">💳 Pago con QR</p>
-                                    <p class="text-sm text-gray-600">Escanea el código QR para pagar con tu app bancaria</p>
-                                    <p class="text-xs text-green-600 mt-1">✓ Acceso inmediato después del pago</p>
-                                </div>
-                            </label>
+                                <!-- Bre-b (Llave) - Solo productos digitales -->
+                                <label class="cursor-pointer payment-option">
+                                    <input type="radio" name="payment_method" value="manual_breb" class="hidden peer payment-radio" checked required>
+                                    <div class="bg-white rounded-lg shadow p-4 border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition hover:shadow-md h-full">
+                                        <div class="flex items-start">
+                                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center mt-0.5 radio-visual">
+                                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden radio-dot"></div>
+                                            </div>
+                                            <div class="ml-3 flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="text-2xl">🔑</span>
+                                                    <h3 class="text-base font-bold">Bre-b (Llave)</h3>
+                                                </div>
+                                                <p class="text-sm text-gray-600 mb-2">Pago manual con llave Bre-b</p>
+                                                <div class="text-xs text-gray-500 space-y-1">
+                                                    <p>✓ Fácil y rápido</p>
+                                                    <p>✓ Sin comisiones extra</p>
+                                                    <p>✓ Confirmación en 24h</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Pago QR - Solo productos digitales -->
+                                <label class="cursor-pointer payment-option">
+                                    <input type="radio" name="payment_method" value="manual_qr" class="hidden peer payment-radio" required>
+                                    <div class="bg-white rounded-lg shadow p-4 border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition hover:shadow-md h-full">
+                                        <div class="flex items-start">
+                                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center mt-0.5 radio-visual">
+                                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden radio-dot"></div>
+                                            </div>
+                                            <div class="ml-3 flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="text-2xl">📱</span>
+                                                    <h3 class="text-base font-bold">Código QR</h3>
+                                                </div>
+                                                <p class="text-sm text-gray-600 mb-2">Escanea y paga</p>
+                                                <div class="text-xs text-gray-500 space-y-1">
+                                                    <p>✓ Escanea con tu app</p>
+                                                    <p>✓ Rápido y seguro</p>
+                                                    <p>✓ Confirmación en 24h</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
                             @else
-                            <!-- Pago contra entrega para productos físicos -->
-                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
-                                <input type="radio" name="payment_method" value="cash_on_delivery" checked
-                                       class="w-5 h-5 text-blue-600 mt-0.5">
-                                <div class="ml-3">
-                                    <p class="font-semibold text-gray-900">Pago Contra Entrega</p>
-                                    <p class="text-sm text-gray-600">Paga en efectivo al recibir tu pedido</p>
-                                </div>
-                            </label>
+                                <!-- Pago Contra Entrega - Solo productos físicos -->
+                                <label class="cursor-pointer payment-option">
+                                    <input type="radio" name="payment_method" value="cash_on_delivery" class="hidden peer payment-radio" checked required>
+                                    <div class="bg-white rounded-lg shadow p-4 border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition hover:shadow-md h-full">
+                                        <div class="flex items-start">
+                                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center mt-0.5 radio-visual">
+                                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden radio-dot"></div>
+                                            </div>
+                                            <div class="ml-3 flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="text-2xl">💵</span>
+                                                    <h3 class="text-base font-bold">Pago Contra Entrega</h3>
+                                                </div>
+                                                <p class="text-sm text-gray-600 mb-2">Paga en efectivo al recibir tu pedido</p>
+                                                <div class="text-xs text-gray-500 space-y-1">
+                                                    <p>✓ Paga en efectivo</p>
+                                                    <p>✓ Al momento de entrega</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
                             @endif
 
-                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition opacity-50">
-                                <input type="radio" name="payment_method" value="card" disabled
-                                       class="w-5 h-5 text-blue-600 mt-0.5">
-                                <div class="ml-3">
-                                    <p class="font-semibold text-gray-900">Tarjeta de Crédito/Débito</p>
-                                    <p class="text-sm text-gray-600">Próximamente disponible</p>
+                            <!-- Transferencia Bancaria -->
+                            <label class="cursor-pointer payment-option">
+                                <input type="radio" name="payment_method" value="manual_transfer" class="hidden peer payment-radio" required>
+                                <div class="bg-white rounded-lg shadow p-4 border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition hover:shadow-md h-full">
+                                    <div class="flex items-start">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center mt-0.5 radio-visual">
+                                            <div class="w-3 h-3 rounded-full bg-blue-600 hidden radio-dot"></div>
+                                        </div>
+                                        <div class="ml-3 flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-2xl">🏦</span>
+                                                <h3 class="text-base font-bold">Transferencia Bancaria</h3>
+                                            </div>
+                                            <p class="text-sm text-gray-600 mb-2">Pago por transferencia</p>
+                                            <div class="text-xs text-gray-500 space-y-1">
+                                                <p>✓ Transferencia tradicional</p>
+                                                <p>✓ Todos los bancos</p>
+                                                <p>✓ Confirmación en 24h</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </label>
 
-                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition opacity-50">
-                                <input type="radio" name="payment_method" value="transfer" disabled
-                                       class="w-5 h-5 text-blue-600 mt-0.5">
-                                <div class="ml-3">
-                                    <p class="font-semibold text-gray-900">Transferencia Bancaria</p>
-                                    <p class="text-sm text-gray-600">Próximamente disponible</p>
+                            <!-- Tarjeta de Crédito/Débito -->
+                            <label class="cursor-pointer payment-option">
+                                <input type="radio" name="payment_method" value="card" class="hidden peer payment-radio" required>
+                                <div class="bg-white rounded-lg shadow p-4 border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition hover:shadow-md h-full">
+                                    <div class="flex items-start">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center mt-0.5 radio-visual">
+                                            <div class="w-3 h-3 rounded-full bg-blue-600 hidden radio-dot"></div>
+                                        </div>
+                                        <div class="ml-3 flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-2xl">💳</span>
+                                                <h3 class="text-base font-bold">Tarjeta Débito/Crédito</h3>
+                                            </div>
+                                            <p class="text-sm text-gray-600 mb-2">Pago con tarjeta</p>
+                                            <div class="text-xs text-gray-500 space-y-1">
+                                                <p>✓ Aprobación inmediata</p>
+                                                <p>✓ Todas las tarjetas</p>
+                                                <p>✓ 100% seguro</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </label>
                         </div>
+
                         @error('payment_method')
                             <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
                         @enderror
@@ -198,10 +306,16 @@
                     <div class="bg-white rounded-lg shadow-lg p-6">
                         <label class="flex items-start">
                             <input type="checkbox" name="terms_accepted" value="1" required
-                                   class="w-5 h-5 text-blue-600 rounded mt-0.5">
+                                class="w-5 h-5 text-blue-600 rounded mt-0.5">
                             <span class="ml-3 text-sm text-gray-700">
-                                Acepto los <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">términos y condiciones</a>
-                                y la <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">política de privacidad</a>
+                                Acepto los
+                                <a href="/terminos-y-condiciones" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium underline">
+                                    términos y condiciones
+                                </a>
+                                y la
+                                <a href="/politica-de-privacidad" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium underline">
+                                    política de privacidad
+                                </a>
                             </span>
                         </label>
                         @error('terms_accepted')
@@ -209,6 +323,7 @@
                         @enderror
                     </div>
                 </div>
+                {{-- 👆 CIERRE del lg:col-span-2 --}}
 
                 <!-- Resumen del Pedido -->
                 <div class="lg:col-span-1">
@@ -266,7 +381,7 @@
                         <!-- Botón Finalizar -->
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-lg font-bold text-lg transition mb-3">
                             @if($cart->hasOnlyDigitalProducts())
-                            Proceder al Pago QR
+                            Proceder al Pago
                             @else
                             Finalizar Compra
                             @endif
@@ -302,8 +417,75 @@
                         </div>
                     </div>
                 </div>
+                {{-- 👆 CIERRE del lg:col-span-1 --}}
             </div>
+            {{-- 👆 CIERRE del grid lg:grid-cols-3 --}}
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Sincronizar radio buttons visuales con los ocultos
+    const paymentOptions = document.querySelectorAll('.payment-option');
+
+    // Marcar el inicial como checked
+    const checkedRadio = document.querySelector('.payment-radio:checked');
+    if (checkedRadio) {
+        const label = checkedRadio.closest('.payment-option');
+        updateVisualRadio(label, true);
+    }
+
+    paymentOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const radio = this.querySelector('.payment-radio');
+
+            // Desmarcar todos
+            document.querySelectorAll('.payment-option').forEach(opt => {
+                updateVisualRadio(opt, false);
+            });
+
+            // Marcar el seleccionado
+            radio.checked = true;
+            updateVisualRadio(this, true);
+        });
+    });
+
+    function updateVisualRadio(label, isChecked) {
+        const radioDot = label.querySelector('.radio-dot');
+        const radioVisual = label.querySelector('.radio-visual');
+
+        if (isChecked) {
+            radioDot.classList.remove('hidden');
+            radioVisual.classList.add('border-blue-600');
+            radioVisual.classList.remove('border-gray-300');
+        } else {
+            radioDot.classList.add('hidden');
+            radioVisual.classList.remove('border-blue-600');
+            radioVisual.classList.add('border-gray-300');
+        }
+    }
+
+    // Formulario de checkout
+    const form = document.querySelector('form[action*="checkout.process"]');
+    if (!form) return;
+
+    form.addEventListener('submit', function (ev) {
+        console.log('checkout form submitted — timestamp:', new Date().toISOString());
+        const formData = new FormData(form);
+        const entries = {};
+        for (const [k,v] of formData.entries()) {
+            entries[k] = v;
+        }
+        console.log('Form data:', entries);
+
+        // Desactivar botón temporalmente
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = true;
+            setTimeout(() => submitButton.disabled = false, 1000);
+        }
+    });
+});
+</script>
 @endsection

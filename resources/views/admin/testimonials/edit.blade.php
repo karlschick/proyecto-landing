@@ -56,7 +56,7 @@
                 </div>
 
                 <!-- Foto del Cliente -->
-                <div>
+                <div x-data="{ selectedImage: '{{ $testimonial->client_photo ?? '' }}' }">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Foto del Cliente</label>
 
                     @if($testimonial->client_photo)
@@ -66,6 +66,46 @@
                         </div>
                     @endif
 
+                    <!-- Galería de imágenes existentes -->
+                    @php
+                        $testimonialsImagesPath = public_html_path('images/testimonials');
+                        $testimonialsImages = [];
+                        if (is_dir($testimonialsImagesPath)) {
+                            $files = glob($testimonialsImagesPath . '/*.{jpg,jpeg,png,webp,gif}', GLOB_BRACE);
+                            foreach ($files as $file) {
+                                $testimonialsImages[] = 'testimonials/' . basename($file);
+                            }
+                        }
+                    @endphp
+
+                    @if(count($testimonialsImages) > 0)
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                📁 Fotos guardadas ({{ count($testimonialsImages) }}) — haz clic para seleccionar
+                            </label>
+                            <div class="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
+                                @foreach($testimonialsImages as $img)
+                                    <div class="relative cursor-pointer group"
+                                         @click="selectedImage = '{{ $img }}'">
+                                        <img src="{{ asset('images/' . $img) }}"
+                                             alt="{{ basename($img) }}"
+                                             class="w-full h-20 object-cover rounded-lg border-2 transition"
+                                             :class="selectedImage === '{{ $img }}' ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200 group-hover:border-blue-300'">
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition"></div>
+                                        @if($testimonial->client_photo === $img)
+                                            <span class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 rounded">Actual</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                            <input type="hidden" name="image_selected" :value="selectedImage">
+                            <p class="text-xs text-gray-500 mt-1" x-show="selectedImage">
+                                ✅ Seleccionada: <span x-text="selectedImage" class="font-medium text-blue-600"></span>
+                            </p>
+                        </div>
+                    @endif
+
+                    <label class="block text-sm font-medium text-gray-700 mb-1">O subir nueva foto</label>
                     <input type="file" name="client_photo" accept="image/jpeg,image/png,image/jpg"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG. Máx: 2MB. Deja en blanco para mantener la foto actual.</p>

@@ -1,20 +1,20 @@
-
-<section class="py-20 bg-gradient-to-r from-primary via-secondary to-accent bg-gray-400 relative overflow-hidden">
+<section class="py-20 bg-gradient-to-r from-black via-gray-900 to-black relative overflow-hidden">
     {{-- Efectos de fondo --}}
     <div class="absolute inset-0 bg-black opacity-10"></div>
-    <div class="absolute -top-24 -right-24 w-96 h-96 bg-gray-800 opacity-5 rounded-full"></div>
-    <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-white opacity-5 rounded-full"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full" style="background: rgba(245,245,0,0.05)"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full" style="background: rgba(245,245,0,0.05)"></div>
 
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <h2 class="text-3xl md:text-5xl font-bold mb-6 animate-fade-in">
-            ¿Listo para Comenzar tu Proyecto?
+        <h2 class="text-3xl md:text-5xl font-bold mb-6 animate-fade-in text-white">
+            ¿Listo para Digitalizar tu Negocio?
         </h2>
-        <p class="text-xl md:text-2xl text-white/90 mb-10 animate-fade-in" style="animation-delay: 0.2s;">
-            Contáctanos hoy y convierte tus ideas en realidad
+        <p class="text-xl md:text-2xl mb-10 animate-fade-in" style="animation-delay: 0.2s; color: rgba(245,245,0,0.9)">
+            Contáctanos hoy y convierte tus ideas en soluciones tecnológicas reales
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style="animation-delay: 0.4s;">
             <a href="#contacto"
-               class="inline-block bg-white text-primary px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition shadow-2xl transform hover:scale-105">
+               class="inline-block px-8 py-4 rounded-lg font-bold text-lg transition shadow-2xl transform hover:scale-105"
+               style="background: rgb(245,245,0); color: black;">
                 Solicitar Cotización
             </a>
             @if($settings->hasWhatsApp())
@@ -31,4 +31,3 @@
         </div>
     </div>
 </section>
-

@@ -65,13 +65,13 @@ class ProductCategory extends Model
         }
 
         $paths = [
-            public_path('images/categories/' . $this->image),
-            public_path($this->image)
+            public_html_path('images/categories/' . $this->image),
+            public_html_path($this->image)
         ];
 
         foreach ($paths as $path) {
             if (file_exists($path)) {
-                return asset(str_replace(public_path(), '', $path));
+                return asset(str_replace(public_html_path(), '', $path));
             }
         }
 

@@ -98,11 +98,14 @@
     height: 100%;
     position: relative;
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
     transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+    -webkit-transition: -webkit-transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
 .service-card:hover .card-inner {
     transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
 }
 
 /* Caras */
@@ -114,14 +117,18 @@
     -webkit-backface-visibility: hidden;
     border-radius: 1rem;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    -webkit-transform: translateZ(0);
 }
 
 .card-front {
     background: #000;
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
 }
 
 .card-back {
     transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
 }
 </style>

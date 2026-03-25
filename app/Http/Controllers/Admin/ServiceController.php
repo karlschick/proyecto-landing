@@ -24,33 +24,24 @@ class ServiceController extends Controller
     public function store(ServiceRequest $request)
     {
         $validated = $request->validated();
-
-        // Generar slug único
         $validated['slug'] = $this->generateUniqueSlug($validated['title']);
 
-        // Manejar imagen (MISMA LÓGICA QUE PROJECTS)
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
 
-            // Guardar en public/images/services/
-            $destinationPath = public_path('images/services');
+            $destinationPath = public_html_path('images/services');
             if (!file_exists($destinationPath)) {
                 mkdir($destinationPath, 0755, true);
             }
             $image->move($destinationPath, $filename);
-
             $validated['image'] = 'services/' . $filename;
         }
 
         Service::create($validated);
-
-        // Limpiar caché
         CacheService::clearServices();
 
-        return redirect()
-            ->route('admin.services.index')
-            ->with('success', 'Servicio creado exitosamente.');
+        return redirect()->route('admin.services.index')->with('success', 'Servicio creado exitosamente.');
     }
 
     public function edit(Service $service)
@@ -62,16 +53,18 @@ class ServiceController extends Controller
     {
         $validated = $request->validated();
 
-        // Actualizar slug solo si cambió el título
         if ($request->title !== $service->title) {
             $validated['slug'] = $this->generateUniqueSlug($validated['title'], $service->id);
         }
 
-        // Manejar imagen (MISMA LÓGICA QUE PROJECTS)
+        // Si seleccionó una imagen existente y no subió una nueva
+        if (!$request->hasFile('image') && $request->filled('image_selected')) {
+            $validated['image'] = $request->image_selected;
+        }
+
         if ($request->hasFile('image')) {
-            // Eliminar imagen anterior si existe
             if ($service->image) {
-                $oldImagePath = public_path('images/' . $service->image);
+                $oldImagePath = public_html_path('images/' . $service->image);
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
@@ -80,50 +73,37 @@ class ServiceController extends Controller
             $image = $request->file('image');
             $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
 
-            // Guardar en public/images/services/
-            $destinationPath = public_path('images/services');
+            $destinationPath = public_html_path('images/services');
             if (!file_exists($destinationPath)) {
                 mkdir($destinationPath, 0755, true);
             }
             $image->move($destinationPath, $filename);
-
             $validated['image'] = 'services/' . $filename;
         }
 
         $service->update($validated);
-
-        // Limpiar caché
         CacheService::clearServices();
 
-        return redirect()
-            ->route('admin.services.index')
-            ->with('success', 'Servicio actualizado exitosamente.');
+        return redirect()->route('admin.services.index')->with('success', 'Servicio actualizado exitosamente.');
     }
 
     public function destroy(Service $service)
     {
         try {
-            // Eliminar la imagen si existe (MISMA LÓGICA QUE PROJECTS)
             if ($service->image) {
-                $imagePath = public_path('images/' . $service->image);
+                $imagePath = public_html_path('images/' . $service->image);
                 if (file_exists($imagePath)) {
                     unlink($imagePath);
                 }
             }
 
             $service->delete();
-
-            // Limpiar caché
             CacheService::clearServices();
 
-            return redirect()
-                ->route('admin.services.index')
-                ->with('success', 'Servicio eliminado exitosamente.');
+            return redirect()->route('admin.services.index')->with('success', 'Servicio eliminado exitosamente.');
 
         } catch (\Exception $e) {
-            return redirect()
-                ->route('admin.services.index')
-                ->with('error', 'Error al eliminar el servicio: ' . $e->getMessage());
+            return redirect()->route('admin.services.index')->with('error', 'Error al eliminar el servicio: ' . $e->getMessage());
         }
     }
 

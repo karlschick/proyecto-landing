@@ -29,43 +29,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-2">Texto del Footer (Copyright)</label>
         <textarea name="footer_text" rows="3"
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="© 2025 SKUBOX.IT     -     Todos los derechos reservados.">{{ old('footer_text', $settings->footer_text) }}</textarea>
-        <p class="text-xs text-gray-500 mt-1">Si lo dejas vacío, se usará el texto por defecto.</p>
-    </div>
-
-    <!-- Preview -->
-<div x-show="activeTab === 'footer'" class="space-y-6" style="display: none;">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">Configuración del Footer</h3>
-
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <p class="text-sm text-blue-800">
-            <strong>Info:</strong> Configura cómo se verá el pie de página de tu sitio web.
-        </p>
-    </div>
-
-    <!-- Mostrar redes sociales -->
-    <div class="border rounded-lg p-4">
-        <div class="flex items-start gap-3">
-            <input type="checkbox" name="show_social_footer" id="show_social_footer" value="1"
-                   {{ $settings->show_social_footer ? 'checked' : '' }}
-                   class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 mt-0.5">
-            <div class="flex-1">
-                <label for="show_social_footer" class="text-sm font-semibold text-gray-800 block mb-1">
-                    Mostrar iconos de redes sociales en el footer
-                </label>
-                <p class="text-xs text-gray-600">
-                    Las redes sociales configuradas en la pestaña "Redes Sociales" aparecerán en el footer
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Texto del footer -->
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Texto del Footer (Copyright)</label>
-        <textarea name="footer_text" rows="3"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="© 2025 SKUBOX.IT     -     Todos los derechos reservados.">{{ old('footer_text', $settings->footer_text) }}</textarea>
+                  placeholder="© 2026 SKUBOX.IT     -     Todos los derechos reservados.">{{ old('footer_text', $settings->footer_text) }}</textarea>
         <p class="text-xs text-gray-500 mt-1">Si lo dejas vacío, se usará el texto por defecto.</p>
     </div>
 
@@ -128,5 +92,4 @@
             </p>
         </div>
     </div>
-</div>
 </div>

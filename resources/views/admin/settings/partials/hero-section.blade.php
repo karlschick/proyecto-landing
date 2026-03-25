@@ -1,6 +1,7 @@
 <div class="border rounded-lg p-4" x-data="{
     heroBackgroundType: '{{ old('hero_background_type', $settings->hero_background_type ?? 'color') }}',
-    overlayOpacity: {{ old('hero_overlay_opacity', $settings->hero_overlay_opacity ?? 0.5) }}
+    overlayOpacity: {{ old('hero_overlay_opacity', $settings->hero_overlay_opacity ?? 0.5) }},
+    selectedImage: '{{ old('hero_background_image_selected', $settings->hero_background_image ?? '') }}'
 }">
     <div class="flex items-center gap-2 mb-4">
         <input type="checkbox" name="hero_enabled" id="hero_enabled" value="1"
@@ -52,12 +53,55 @@
         <!-- Configuración de Imagen -->
         <div x-show="heroBackgroundType === 'image'" class="bg-gray-50 p-4 rounded-lg border border-gray-200" x-transition>
             <label class="block text-sm font-medium text-gray-700 mb-2">Imagen de Fondo</label>
+
             @if($settings->hero_background_image)
                 <div class="mb-3">
                     <img src="{{ $settings->getHeroBackgroundImageUrl() }}" alt="Hero Background" class="h-32 object-cover rounded-lg shadow">
                     <p class="text-xs text-gray-600 mt-1">Imagen actual: {{ $settings->hero_background_image }}</p>
                 </div>
             @endif
+
+            <!-- Galería de imágenes existentes -->
+            @php
+                $heroImagesPath = public_html_path('images/hero');
+                $heroImages = [];
+                if (is_dir($heroImagesPath)) {
+                    $files = glob($heroImagesPath . '/*.{jpg,jpeg,png,webp,gif}', GLOB_BRACE);
+                    foreach ($files as $file) {
+                        $heroImages[] = 'hero/' . basename($file);
+                    }
+                }
+            @endphp
+
+            @if(count($heroImages) > 0)
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        📁 Imágenes guardadas ({{ count($heroImages) }}) — haz clic para seleccionar
+                    </label>
+                    <div class="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
+                        @foreach($heroImages as $img)
+                            <div class="relative cursor-pointer group"
+                                 @click="selectedImage = '{{ $img }}'">
+                                <img src="{{ asset('images/' . $img) }}"
+                                     alt="{{ basename($img) }}"
+                                     class="w-full h-20 object-cover rounded-lg border-2 transition"
+                                     :class="selectedImage === '{{ $img }}' ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200 group-hover:border-blue-300'">
+                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition"></div>
+                                @if($settings->hero_background_image === $img)
+                                    <span class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 rounded">Actual</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                    <!-- Input hidden para enviar la imagen seleccionada -->
+                    <input type="hidden" name="hero_background_image_selected" :value="selectedImage">
+                    <p class="text-xs text-gray-500 mt-1" x-show="selectedImage">
+                        ✅ Seleccionada: <span x-text="selectedImage" class="font-medium text-blue-600"></span>
+                    </p>
+                </div>
+            @endif
+
+            <label class="block text-sm font-medium text-gray-700 mb-1">O subir nueva imagen</label>
             <input type="file" name="hero_background_image" accept="image/jpeg,image/png,image/jpg,image/webp"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WEBP. Máx: 5MB. Recomendado: 1920x1080px</p>

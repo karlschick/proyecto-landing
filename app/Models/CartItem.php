@@ -16,11 +16,6 @@ class CartItem extends Model
         'price',
     ];
 
-    protected $casts = [
-        'quantity' => 'integer',
-        'price' => 'decimal:2',
-    ];
-
     // Relaciones
     public function cart()
     {
@@ -32,25 +27,27 @@ class CartItem extends Model
         return $this->belongsTo(Product::class);
     }
 
-    // Helpers
+    /**
+     * Subtotal = precio * cantidad
+     */
     public function getSubtotal(): float
     {
         return $this->price * $this->quantity;
     }
 
-    public function increaseQuantity(int $amount = 1): void
+    /**
+     * Verifica si el producto es digital (ebook)
+     */
+    public function isDigital(): bool
     {
-        $this->increment('quantity', $amount);
+        return $this->product->isBook();
     }
 
-    public function decreaseQuantity(int $amount = 1): void
+    /**
+     * Verifica si el producto es físico
+     */
+    public function isPhysical(): bool
     {
-        $newQuantity = $this->quantity - $amount;
-
-        if ($newQuantity <= 0) {
-            $this->delete();
-        } else {
-            $this->decrement('quantity', $amount);
-        }
+        return !$this->product->isBook();
     }
 }

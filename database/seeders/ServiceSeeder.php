@@ -9,6 +9,8 @@ class ServiceSeeder extends Seeder
 {
     public function run(): void
     {
+        Service::truncate();
+
         $services = [
             [
                 'title' => 'Desarrollo Web',

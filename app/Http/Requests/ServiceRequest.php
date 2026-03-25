@@ -26,7 +26,7 @@ class ServiceRequest extends FormRequest
             'short_description' => 'nullable|string|max:500',
             'description' => 'required|string',
             'icon' => 'nullable|string|max:100',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'is_active' => 'boolean',
             'order' => 'nullable|integer|min:0',
         ];
@@ -53,7 +53,7 @@ class ServiceRequest extends FormRequest
             'description.required' => 'La descripción es obligatoria.',
             'image.image' => 'El archivo debe ser una imagen.',
             'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, webp.',
-            'image.max' => 'La imagen no puede ser mayor a 2MB.',
+            'image.max' => 'La imagen no puede ser mayor a 5MB.',
             'order.integer' => 'El orden debe ser un número entero.',
             'order.min' => 'El orden debe ser mayor o igual a 0.',
         ];

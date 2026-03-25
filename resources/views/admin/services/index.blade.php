@@ -18,7 +18,7 @@
 </div>
 
 @if($services->count() > 0)
-<div class="bg-white rounded-lg shadow overflow-hidden">
+<div class="bg-white rounded-lg shadow overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>
@@ -43,7 +43,7 @@
                     <div class="text-sm font-medium text-gray-900">{{ $service->title }}</div>
                 </td>
                 <td class="px-6 py-4">
-                    <div class="text-sm text-gray-600 max-w-md truncate">
+                    <div class="text-sm text-gray-600 max-w-xs truncate">
                         {{ $service->short_description ?? Str::limit($service->description, 60) }}
                     </div>
                 </td>

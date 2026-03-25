@@ -71,19 +71,16 @@ class Service extends Model
             return asset('images/services/default.jpg');
         }
 
-        // Normaliza ruta (quita posibles "/")
         $path = ltrim($this->image, '/');
 
-        // Si la ruta ya incluye "services/" al inicio
         if (str_starts_with($path, 'services/')) {
-            $fullPath = public_path('images/' . $path); // images/services/archivo.jpg
+            $fullPath = public_html_path('images/' . $path);
             if (file_exists($fullPath)) {
                 return asset('images/' . $path);
             }
         }
 
-        // Si solo es el nombre del archivo
-        $fullPath = public_path('images/services/' . $path);
+        $fullPath = public_html_path('images/services/' . $path);
         if (file_exists($fullPath)) {
             return asset('images/services/' . $path);
         }

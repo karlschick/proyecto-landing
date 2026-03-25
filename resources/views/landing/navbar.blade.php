@@ -251,10 +251,10 @@
                     <span>Mi Cuenta</span>
                 </a>
             @else
-                <button @click="showLoginDropdown = !showLoginDropdown"
-                        class="block bg-blue-600 hover:bg-blue-700 text-center py-2 px-4 rounded-lg transition font-medium w-full">
-                    Iniciar Sesión
-                </button>
+            <a href="{{ route('login') }}"
+            class="block bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg transition font-medium w-full">
+                Iniciar Sesión
+            </a>
             @endauth
         </div>
     </div>

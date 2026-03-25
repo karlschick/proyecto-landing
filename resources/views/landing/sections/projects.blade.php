@@ -2,10 +2,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 animate-from-top">
-                NUESTRA SEDE
+                NUESTROS PROYECTOS
             </h2>
             <p class="text-gray-600 max-w-2xl mx-auto animate-from-bottom">
-                Conoce nuestra sede, donde poderte enfocarte
+                Conoce algunos de nuestros proyectos realizados, es parte de nuestro trabajo
             </p>
         </div>
 

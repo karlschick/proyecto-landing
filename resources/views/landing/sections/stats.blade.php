@@ -6,7 +6,7 @@
     <div class="flex flex-wrap justify-center items-center gap-8 text-center">
 
       {{-- Stat 1 --}}
-      {{-- <div>
+      <div>
         <div class="text-4xl md:text-5xl font-bold text-accent mb-2"
              x-data="{ count: 0 }"
              x-init="window.addEventListener('scroll', () => {
@@ -20,10 +20,10 @@
           0+
         </div>
         <p class="text-gray-400 text-sm md:text-base">Proyectos Completados</p>
-      </div> --}}
+      </div>
 
       {{-- Stat 2 --}}
-      {{-- <div>
+      <div>
         <div class="text-4xl md:text-5xl font-bold text-accent mb-2"
              x-data="{ count: 0 }"
              x-init="window.addEventListener('scroll', () => {
@@ -37,9 +37,9 @@
           0%
         </div>
         <p class="text-gray-400 text-sm md:text-base">Satisfacción del Cliente</p>
-      </div> --}}
+      </div>
 
-      {{-- Stat 3 --}}
+
       <div>
         <div class="text-4xl md:text-5xl font-bold text-accent mb-2"
              x-data="{ count: 0 }"
@@ -64,7 +64,7 @@
                  if ($el.getBoundingClientRect().top < window.innerHeight && count === 0) {
                      let interval = setInterval(() => {
                          if (count < 50) { count += 2; $el.textContent = count + '+'; }
-                         else { clearInterval(interval); $el.textContent = '1000+'; }
+                         else { clearInterval(interval); $el.textContent = '2000+'; }
                      }, 200);
                  }
              })">

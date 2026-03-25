@@ -45,7 +45,7 @@ class SettingController extends Controller
             'navbar_show_logo' => 'nullable',
             'navbar_show_title' => 'nullable',
             'navbar_show_slogan' => 'nullable',
-            'navbar_show_shop' => 'nullable', // ✅ AGREGADO
+            'navbar_show_shop' => 'nullable',
             'navbar_menu_labels' => 'nullable|array',
 
             // Redes Sociales
@@ -71,7 +71,7 @@ class SettingController extends Controller
             'hero_button_url' => 'nullable|string|max:255',
 
             // Hero Background
-            'hero_background_type' => 'required|in:color,image,video',
+            'hero_background_type' => 'nullable|in:color,image,video', // ← CAMBIADO
             'hero_background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'hero_background_video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:51200',
             'hero_overlay_opacity' => 'nullable|numeric|min:0|max:1',
@@ -94,22 +94,17 @@ class SettingController extends Controller
             'facebook_pixel_id' => 'nullable|string|max:50',
         ]);
 
-        // 🔥 CRÍTICO: Manejar checkboxes (booleanos)
+        // Checkboxes (booleanos)
         $checkboxFields = [
-            // Redes sociales
             'facebook_enabled',
             'instagram_enabled',
             'twitter_enabled',
             'linkedin_enabled',
             'whatsapp_enabled',
-
-            // Contacto
             'show_email',
             'show_phone',
             'show_address',
             'show_map',
-
-            // Secciones principales
             'hero_enabled',
             'about_enabled',
             'services_enabled',
@@ -117,29 +112,20 @@ class SettingController extends Controller
             'testimonials_enabled',
             'gallery_enabled',
             'contact_enabled',
-
-            // Controles de secciones
             'cta_enabled',
             'features_enabled',
             'stats_enabled',
             'shop_enabled',
-
-            // Footer y otros
             'show_social_footer',
             'show_whatsapp_button',
-
-            // Navbar
             'navbar_show_logo',
             'navbar_show_title',
             'navbar_show_slogan',
-            'navbar_show_shop', // ✅ AGREGADO AQUÍ
+            'navbar_show_shop',
             'hero_show_logo_instead',
         ];
 
         foreach ($checkboxFields as $field) {
-            // 🔥 FIX CRÍTICO: usar input() + filter_var en lugar de has()
-            // has() devuelve true si el campo existe (incluso con valor "0")
-            // input() devuelve el valor real, y filter_var lo convierte correctamente a boolean
             $validated[$field] = filter_var($request->input($field), FILTER_VALIDATE_BOOLEAN);
         }
 
@@ -147,6 +133,12 @@ class SettingController extends Controller
         if ($request->has('navbar_menu_labels')) {
             $validated['navbar_menu_labels'] = json_encode($request->navbar_menu_labels);
         }
+
+        // ← NUEVO: Valor por defecto para hero_background_type
+        $validated['hero_background_type'] = $request->input(
+            'hero_background_type',
+            $settings->hero_background_type ?? 'color'
+        );
 
         try {
             // Manejar subida de Logo
@@ -181,6 +173,11 @@ class SettingController extends Controller
                 $validated['hero_background_image'] = $this->imageService->upload($request->file('hero_background_image'), 'hero');
             }
 
+            // Si seleccionó una imagen existente y no subió una nueva
+            if (!$request->hasFile('hero_background_image') && $request->filled('hero_background_image_selected')) {
+                $validated['hero_background_image'] = $request->hero_background_image_selected;
+            }
+
             // Manejar subida de video de fondo Hero
             if ($request->hasFile('hero_background_video')) {
                 if ($settings->hero_background_video) {
@@ -189,23 +186,22 @@ class SettingController extends Controller
                 $validated['hero_background_video'] = $this->imageService->uploadVideo($request->file('hero_background_video'), 'hero');
             }
 
-            // 🧩 Guardar cambios
+            // Guardar cambios
             $settings->update($validated);
 
-            // ✅ Refrescar instancia desde la base de datos
+            // Refrescar instancia desde la base de datos
             $settings->refresh();
 
-            // 🔥 CRÍTICO: Limpiar caché
+            // Limpiar caché
             CacheService::clearSettings();
             CacheService::clearAll();
 
-            // Registrar log
             \Log::info('Settings actualizados correctamente', [
                 'cta_enabled' => $validated['cta_enabled'],
                 'features_enabled' => $validated['features_enabled'],
                 'stats_enabled' => $validated['stats_enabled'],
                 'shop_enabled' => $validated['shop_enabled'],
-                'navbar_show_shop' => $validated['navbar_show_shop'], // ✅ AGREGADO AL LOG
+                'navbar_show_shop' => $validated['navbar_show_shop'],
             ]);
 
             return redirect()

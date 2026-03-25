@@ -117,9 +117,9 @@
                     @endif
                     <div>
                         <p class="text-sm text-gray-600">Estado del Pago</p>
-                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full {{ $order->payment->getStatusBadge() }}">
-                            {{ ucfirst($order->payment->status) }}
-                        </span>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium {{ $order->payment->getStatusBadgeClass() }}">
+                        {{ $order->payment->getStatusText() }}
+                    </span>
                     </div>
                     @if($order->payment->paid_at)
                     <div>

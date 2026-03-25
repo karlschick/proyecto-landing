@@ -1,0 +1,29 @@
+LANDING PAGE
+-----------------------------------------
+BD    
+
+npm run dev
+
+php artisan serve
+-----------------------------------------
+boora todos los datos de base de datos con migrate
+
+-----------------------------------------
+crea  los datos de base de datos con migrate de seeder
+
+php artisan db:seed --class=AdminUserSeeder
+
+
+
+Objetivo									Comando
+genera automáticamente una nueva APP_KEY		php artisan key:generate		
+Ejecutar todos los seeders registrados			php artisan db:seed
+Ejecutar un seeder específico				php artisan db:seed --class=NombreDelSeeder
+Resetear base y seeders					php artisan migrate:fresh --seed
+Refrescar (rollback + migrate + seed)			php artisan migrate:refresh --seed
+Forzar seeders en producción				php artisan db:seed --force
+
+
+php artisan config:clear
+php artisan cache:clear
+php artisan config:cache

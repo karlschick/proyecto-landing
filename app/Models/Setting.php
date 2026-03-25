@@ -27,7 +27,7 @@ class Setting extends Model
         'navbar_show_logo',
         'navbar_show_title',
         'navbar_show_slogan',
-        'navbar_show_shop',
+        'navbar_show_shop', // ✅ AGREGADO
         'navbar_menu_labels',
 
         // Hero Background
@@ -71,7 +71,7 @@ class Setting extends Model
         'stats_enabled',
         'services_enabled',
         'products_enabled',
-        'shop_enabled',
+        'shop_enabled', // ✅ Agregado para completitud
         'testimonials_enabled',
         'gallery_enabled',
         'contact_enabled',
@@ -128,7 +128,7 @@ class Setting extends Model
         'stats_enabled' => 'boolean',
         'services_enabled' => 'boolean',
         'products_enabled' => 'boolean',
-        'shop_enabled' => 'boolean',
+        'shop_enabled' => 'boolean', // ✅ Agregado
         'testimonials_enabled' => 'boolean',
         'gallery_enabled' => 'boolean',
         'contact_enabled' => 'boolean',
@@ -141,7 +141,7 @@ class Setting extends Model
         'navbar_show_logo' => 'boolean',
         'navbar_show_title' => 'boolean',
         'navbar_show_slogan' => 'boolean',
-        'navbar_show_shop' => 'boolean',
+        'navbar_show_shop' => 'boolean', // ✅ AGREGADO
         'hero_show_logo_instead' => 'boolean',
 
         // Otros tipos
@@ -155,48 +155,32 @@ class Setting extends Model
      */
     public static function getSettings()
     {
-        // Si es el área de admin, cargar TODO
-        if (request()->is('admin/*') || request()->is('admin')) {
-            return self::firstOrCreate(['id' => 1], [
-                'site_name' => config('app.name'),
-                'contact_email' => 'contacto@ejemplo.com',
-                'hero_title_color' => '#ffffff',
-                'hero_title_font' => 'default',
-                'hero_show_logo_instead' => false,
-                'cta_enabled' => true,
-                'about_enabled' => true,
-                'features_enabled' => true,
-                'stats_enabled' => true,
-                'navbar_show_shop' => true,
-            ]);
-        }
-
-        // Para frontend, usar la versión en caché optimizada
-        return \App\Services\CacheService::settings();
+        return self::firstOrCreate([
+            'id' => 1
+        ], [
+            'site_name' => config('app.name'),
+            'contact_email' => 'contacto@ejemplo.com',
+            'hero_title_color' => '#ffffff',
+            'hero_title_font' => 'default',
+            'hero_show_logo_instead' => false,
+            'cta_enabled' => true,
+            'about_enabled' => true,
+            'features_enabled' => true,
+            'stats_enabled' => true,
+            'navbar_show_shop' => true, // ✅ AGREGADO - Por defecto visible
+        ]);
     }
 
     /**
-     * ✅ CORREGIDO: Obtener URL de la imagen de fondo del Hero
+     * Obtener URL de la imagen de fondo del Hero
      */
     public function getHeroBackgroundImageUrl()
     {
         if ($this->hero_background_image) {
-            // 1️⃣ Primero intentar con la ruta directa (ya incluye "hero/")
-            $directPath = public_path('images/' . $this->hero_background_image);
-            if (file_exists($directPath)) {
+            // Busca como images/hero/1771479187_1HvNQPjSyd.jpg
+            $imagePath = public_html_path('images/' . $this->hero_background_image);
+            if (file_exists($imagePath)) {
                 return asset('images/' . $this->hero_background_image);
-            }
-
-            // 2️⃣ Si no existe, intentar agregando "hero/"
-            $heroPath = public_path('images/hero/' . $this->hero_background_image);
-            if (file_exists($heroPath)) {
-                return asset('images/hero/' . $this->hero_background_image);
-            }
-
-            // 3️⃣ Última opción: sin carpeta images/
-            $publicPath = public_path($this->hero_background_image);
-            if (file_exists($publicPath)) {
-                return asset($this->hero_background_image);
             }
 
             \Log::warning('Hero background image no encontrada: ' . $this->hero_background_image);
@@ -204,34 +188,18 @@ class Setting extends Model
 
         return null;
     }
-
     /**
-     * ✅ CORREGIDO: Obtener URL del video de fondo del Hero
+     * Obtener URL del video de fondo del Hero
      */
     public function getHeroBackgroundVideoUrl()
     {
         if ($this->hero_background_video) {
-            // 1️⃣ Primero intentar con la ruta directa (ya incluye "hero/")
-            $directPath = public_path('videos/' . $this->hero_background_video);
-            if (file_exists($directPath)) {
+            $videoPath = public_html_path('videos/' . $this->hero_background_video);
+            if (file_exists($videoPath)) {
                 return asset('videos/' . $this->hero_background_video);
             }
-
-            // 2️⃣ Si no existe, intentar agregando "hero/"
-            $heroPath = public_path('videos/hero/' . $this->hero_background_video);
-            if (file_exists($heroPath)) {
-                return asset('videos/hero/' . $this->hero_background_video);
-            }
-
-            // 3️⃣ Última opción: sin carpeta videos/
-            $publicPath = public_path($this->hero_background_video);
-            if (file_exists($publicPath)) {
-                return asset($this->hero_background_video);
-            }
-
             \Log::warning('Hero background video no encontrado: ' . $this->hero_background_video);
         }
-
         return null;
     }
 
@@ -241,15 +209,15 @@ class Setting extends Model
     public function getFaviconUrl()
     {
         if ($this->favicon) {
-            if (file_exists(public_path('images/settings/' . $this->favicon))) {
+            if (file_exists(public_html_path('images/settings/' . $this->favicon))) {
                 return asset('images/settings/' . $this->favicon);
             }
 
-            if (file_exists(public_path('images/' . $this->favicon))) {
+            if (file_exists(public_html_path('images/' . $this->favicon))) {
                 return asset('images/' . $this->favicon);
             }
 
-            if (file_exists(public_path($this->favicon))) {
+            if (file_exists(public_html_path($this->favicon))) {
                 return asset($this->favicon);
             }
 
@@ -263,16 +231,16 @@ class Setting extends Model
     {
         if ($this->logo) {
             // 1️⃣ Ruta donde el servicio realmente guarda los logos
-            if (file_exists(public_path('images/settings/' . $this->logo))) {
+            if (file_exists(public_html_path('images/settings/' . $this->logo))) {
                 return asset('images/settings/' . $this->logo);
             }
 
             // 2️⃣ Otras ubicaciones posibles (compatibilidad con versiones anteriores)
-            if (file_exists(public_path('images/' . $this->logo))) {
+            if (file_exists(public_html_path('images/' . $this->logo))) {
                 return asset('images/' . $this->logo);
             }
 
-            if (file_exists(public_path($this->logo))) {
+            if (file_exists(public_html_path($this->logo))) {
                 return asset($this->logo);
             }
 
@@ -286,12 +254,12 @@ class Setting extends Model
     public function getAboutImageUrl()
     {
         if ($this->about_image) {
-            $imagePath = public_path('images/' . $this->about_image);
+            $imagePath = public_html_path('images/' . $this->about_image);
             if (file_exists($imagePath)) {
                 return asset('images/' . $this->about_image);
             }
 
-            $publicPath = public_path($this->about_image);
+            $publicPath = public_html_path($this->about_image);
             if (file_exists($publicPath)) {
                 return asset($this->about_image);
             }

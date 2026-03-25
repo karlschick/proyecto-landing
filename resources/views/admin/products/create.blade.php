@@ -74,7 +74,10 @@
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-
+<div class="mt-4">
+    <label class="font-semibold">¿Producto digital?</label>
+    <input type="checkbox" name="is_digital" value="1" {{ old('is_digital', $product->is_digital ?? false) ? 'checked' : '' }}>
+</div>
                         <!-- Costo -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Costo (COP)</label>

@@ -73,8 +73,17 @@ class GalleryImage extends Model
         }
 
         $folder = $this->isVideo() ? 'videos' : 'gallery';
-        $filePath = public_path("images/{$folder}/" . $this->image);
 
+        // Si el valor ya incluye la carpeta (gallery/archivo.jpg)
+        if (str_starts_with($this->image, $folder . '/') || str_starts_with($this->image, 'gallery/') || str_starts_with($this->image, 'videos/')) {
+            $filePath = public_html_path('images/' . $this->image);
+            if (file_exists($filePath)) {
+                return asset('images/' . $this->image);
+            }
+        }
+
+        // Si solo es el nombre del archivo
+        $filePath = public_html_path("images/{$folder}/" . $this->image);
         if (file_exists($filePath)) {
             return asset("images/{$folder}/" . $this->image);
         }
@@ -92,15 +101,13 @@ class GalleryImage extends Model
             return $this->getImageUrl();
         }
 
-        // Buscar thumbnail con el mismo nombre pero extensión .jpg
         $thumbnailName = pathinfo($this->image, PATHINFO_FILENAME) . '.jpg';
-        $thumbnailPath = public_path('images/videos/thumbnails/' . $thumbnailName);
+        $thumbnailPath = public_html_path('images/videos/thumbnails/' . $thumbnailName);
 
         if (file_exists($thumbnailPath)) {
             return asset('images/videos/thumbnails/' . $thumbnailName);
         }
 
-        // Retornar placeholder de video
         return asset('images/video-placeholder.jpg');
     }
 

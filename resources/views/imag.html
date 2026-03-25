@@ -1,0 +1,311 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\GalleryImage;
+
+class GallerySeeder extends Seeder
+{
+    public function run(): void
+    {
+        $images = [
+            [
+                'title' => 'Proyecto Web 1',
+                'description' => 'Captura de pantalla del proyecto web corporativo',
+                'image' => 'gallery/default-1.jpg', // ✅
+                'category' => 'Desarrollo Web',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 1,
+            ],
+            [
+                'title' => 'Proyecto Web 2',
+                'description' => 'Vista responsive del portal',
+                'image' => 'gallery/default-2.jpg', // ✅
+                'category' => 'Desarrollo Web',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 2,
+            ],
+            [
+                'title' => 'App Móvil 1',
+                'description' => 'Interfaz principal de la app',
+                'image' => 'gallery/default-3.jpg', // ✅
+                'category' => 'Apps Móviles',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 3,
+            ],
+            [
+                'title' => 'App Móvil 2',
+                'description' => 'Pantalla de checkout',
+                'image' => 'gallery/default-4.jpg', // ✅
+                'category' => 'Apps Móviles',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 4,
+            ],
+            [
+                'title' => 'Diseño UX 1',
+                'description' => 'Wireframes del proyecto',
+                'image' => 'gallery/default-5.jpg', // ✅
+                'category' => 'Diseño',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 5,
+            ],
+            [
+                'title' => 'Diseño UX 2',
+                'description' => 'Prototipos de alta fidelidad',
+                'image' => 'gallery/default-6.jpg', // ✅
+                'category' => 'Diseño',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 6,
+            ],
+        ];
+
+        foreach ($images as $imageData) {
+            GalleryImage::create($imageData);
+        }
+
+        $this->command->info('✓ ' . count($images) . ' imágenes de galería creadas correctamente');
+    }
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Gallery Placeholders</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; font-family: 'Georgia', serif; padding: 40px; }
+  h1 { color: #fff; text-align: center; margin-bottom: 40px; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; opacity: 0.5; }
+  .grid { display: grid; grid-template-columns: repeat(3, 400px); gap: 20px; justify-content: center; }
+
+  .card { width: 400px; height: 400px; position: relative; overflow: hidden; border-radius: 4px; cursor: pointer; }
+  .label { position: absolute; bottom: 20px; left: 20px; color: white; z-index: 10; }
+  .label span { display: block; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; }
+  .label strong { font-size: 18px; font-weight: normal; }
+
+  /* default-1.jpg - Proyecto Web 1 */
+  .img1 { background: #0a0a2e; }
+  .img1 .lines { position: absolute; inset: 0; }
+  .img1 .lines::before { content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(99,102,241,0.15) 40px),
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(99,102,241,0.15) 40px); }
+  .img1 .browser { position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 200px; background: #1e1b4b; border-radius: 8px; border: 1px solid rgba(99,102,241,0.4); }
+  .img1 .browser::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 28px;
+    background: #312e81; border-radius: 8px 8px 0 0; border-bottom: 1px solid rgba(99,102,241,0.3); }
+  .img1 .dots { position: absolute; top: 8px; left: 12px; display: flex; gap: 6px; }
+  .img1 .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .img1 .dot:nth-child(1) { background: #ef4444; }
+  .img1 .dot:nth-child(2) { background: #f59e0b; }
+  .img1 .dot:nth-child(3) { background: #10b981; }
+  .img1 .content-lines { padding: 40px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .img1 .line { height: 8px; border-radius: 4px; background: rgba(99,102,241,0.3); }
+  .img1 .line:nth-child(1) { width: 80%; }
+  .img1 .line:nth-child(2) { width: 60%; }
+  .img1 .line:nth-child(3) { width: 90%; }
+  .img1 .glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 200px; height: 200px; background: radial-gradient(circle, rgba(99,102,241,0.3), transparent 70%); border-radius: 50%; }
+
+  /* default-2.jpg - Proyecto Web 2 */
+  .img2 { background: #0d1117; }
+  .img2 .phones { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 16px; align-items: center; }
+  .img2 .phone { width: 80px; height: 160px; border-radius: 14px; border: 2px solid rgba(16,185,129,0.5); background: #0a2a1f; position: relative; }
+  .img2 .phone.big { width: 110px; height: 200px; border-color: rgba(16,185,129,0.8); background: #0d3327; }
+  .img2 .phone::before { content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 30px; height: 4px; background: rgba(16,185,129,0.4); border-radius: 2px; }
+  .img2 .plines { padding: 24px 8px 8px; display: flex; flex-direction: column; gap: 6px; }
+  .img2 .pline { height: 6px; border-radius: 3px; background: rgba(16,185,129,0.25); }
+  .img2 .grid-bg { position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 29px, rgba(16,185,129,0.05) 30px),
+                repeating-linear-gradient(90deg, transparent, transparent 29px, rgba(16,185,129,0.05) 30px); }
+  .img2 .label { color: #10b981; }
+  .img2 .label span { color: rgba(16,185,129,0.6); }
+
+  /* default-3.jpg - App Móvil 1 */
+  .img3 { background: #1a0533; }
+  .img3 .phone-big { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 160px; height: 280px; border-radius: 24px; background: #2d0a5e;
+    border: 2px solid rgba(168,85,247,0.6); box-shadow: 0 0 60px rgba(168,85,247,0.3); }
+  .img3 .notch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 50px; height: 6px; background: rgba(168,85,247,0.4); border-radius: 3px; }
+  .img3 .app-icon { position: absolute; top: 36px; left: 50%; transform: translateX(-50%);
+    width: 50px; height: 50px; border-radius: 14px; background: linear-gradient(135deg, #a855f7, #ec4899); }
+  .img3 .menu-items { position: absolute; top: 100px; left: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .img3 .mi { height: 32px; border-radius: 8px; background: rgba(168,85,247,0.2); border: 1px solid rgba(168,85,247,0.2); }
+  .img3 .particles { position: absolute; inset: 0; }
+  .img3 .p { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: rgba(168,85,247,0.6); }
+  .img3 .label span { color: rgba(216,180,254,0.6); }
+
+  /* default-4.jpg - App Móvil 2 */
+  .img4 { background: #0c1a2e; }
+  .img4 .card-big { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%) rotate(-5deg);
+    width: 220px; height: 130px; border-radius: 16px;
+    background: linear-gradient(135deg, #1e40af, #0369a1);
+    box-shadow: 0 20px 60px rgba(59,130,246,0.4); }
+  .img4 .card2 { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -20%) rotate(3deg);
+    width: 220px; height: 130px; border-radius: 16px;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border: 1px solid rgba(59,130,246,0.3); }
+  .img4 .chip { position: absolute; top: 20px; left: 20px;
+    width: 35px; height: 28px; border-radius: 5px; background: rgba(250,204,21,0.7);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 4px; }
+  .img4 .chip-cell { background: rgba(0,0,0,0.3); border-radius: 2px; }
+  .img4 .card-num { position: absolute; bottom: 30px; left: 20px;
+    font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,0.7); font-family: monospace; }
+  .img4 .wave { position: absolute; inset: 0; overflow: hidden; }
+  .img4 .wave::before { content: ''; position: absolute; bottom: -20px; left: -20px; right: -20px;
+    height: 120px; background: rgba(59,130,246,0.08); border-radius: 50%; }
+  .img4 .label span { color: rgba(147,197,253,0.6); }
+
+  /* default-5.jpg - Diseño UX 1 */
+  .img5 { background: #fafaf0; }
+  .img5 .wireframe { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 280px; height: 220px; border: 2px solid #d4d4aa; border-radius: 4px; background: white; }
+  .img5 .wf-header { height: 36px; background: #f5f5dc; border-bottom: 1px solid #d4d4aa;
+    display: flex; align-items: center; padding: 0 12px; gap: 6px; }
+  .img5 .wf-dot { width: 8px; height: 8px; border-radius: 50%; background: #d4d4aa; }
+  .img5 .wf-body { padding: 12px; display: flex; gap: 10px; }
+  .img5 .wf-sidebar { width: 60px; display: flex; flex-direction: column; gap: 6px; }
+  .img5 .wf-s { height: 20px; background: #e8e8c8; border-radius: 2px; }
+  .img5 .wf-main { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .img5 .wf-m { height: 12px; background: #efefd0; border-radius: 2px; }
+  .img5 .wf-img { height: 60px; background: #e8e8c8; border-radius: 2px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
+  .img5 .cross { width: 100%; height: 100%; position: relative; overflow: hidden; }
+  .img5 .cross::before, .img5 .cross::after { content: ''; position: absolute; background: #d4d4aa; top: 50%; left: 0; right: 0; height: 1px; }
+  .img5 .cross::after { transform: rotate(90deg); }
+  .img5 .label { color: #5c5c3d; }
+  .img5 .label span { color: #8c8c5c; }
+  .img5 .annotations { position: absolute; top: 30px; right: 30px; }
+  .img5 .ann { width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; margin: 4px; }
+
+  /* default-6.jpg - Diseño UX 2 */
+  .img6 { background: #0f0f0f; }
+  .img6 .proto { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 260px; height: 200px; }
+  .img6 .screen { width: 100%; height: 100%; border: 1px solid rgba(251,191,36,0.4); border-radius: 8px;
+    background: #1a1a1a; overflow: hidden; position: relative; }
+  .img6 .sc-header { height: 40px; background: #222; border-bottom: 1px solid rgba(251,191,36,0.2);
+    display: flex; align-items: center; padding: 0 16px; gap: 8px; }
+  .img6 .sc-logo { width: 20px; height: 20px; border-radius: 4px; background: #fbbf24; }
+  .img6 .sc-nav { display: flex; gap: 12px; margin-left: auto; }
+  .img6 .sc-ni { width: 30px; height: 6px; border-radius: 3px; background: rgba(251,191,36,0.3); }
+  .img6 .sc-hero { height: 80px; background: linear-gradient(135deg, #1c1700, #2a2000);
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; padding: 12px; }
+  .img6 .sc-h1 { width: 120px; height: 10px; background: rgba(251,191,36,0.6); border-radius: 5px; }
+  .img6 .sc-h2 { width: 80px; height: 6px; background: rgba(251,191,36,0.3); border-radius: 3px; }
+  .img6 .sc-btn { width: 60px; height: 20px; background: #fbbf24; border-radius: 4px; margin-top: 4px; }
+  .img6 .sc-cards { display: flex; gap: 6px; padding: 10px; }
+  .img6 .sc-card { flex: 1; height: 40px; background: #222; border-radius: 4px; border: 1px solid rgba(251,191,36,0.15); }
+  .img6 .arrows { position: absolute; inset: -20px; }
+  .img6 .arrow { position: absolute; width: 40px; height: 1px; background: rgba(251,191,36,0.3); }
+  .img6 .label span { color: rgba(251,191,36,0.5); }
+</style>
+</head>
+<body>
+<h1>Gallery Placeholders — Skubox</h1>
+<div class="grid">
+
+  <!-- default-1.jpg -->
+  <div class="card img1">
+    <div class="lines"></div>
+    <div class="glow"></div>
+    <div class="browser">
+      <div class="dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="content-lines">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+    </div>
+    <div class="label"><span>Desarrollo Web</span><strong>Proyecto Web 1</strong></div>
+  </div>
+
+  <!-- default-2.jpg -->
+  <div class="card img2">
+    <div class="grid-bg"></div>
+    <div class="phones">
+      <div class="phone"><div class="plines"><div class="pline" style="width:70%"></div><div class="pline" style="width:50%"></div><div class="pline" style="width:80%"></div></div></div>
+      <div class="phone big"><div class="plines"><div class="pline" style="width:80%"></div><div class="pline" style="width:60%"></div><div class="pline" style="width:90%"></div><div class="pline" style="width:40%"></div></div></div>
+      <div class="phone"><div class="plines"><div class="pline" style="width:65%"></div><div class="pline" style="width:75%"></div><div class="pline" style="width:55%"></div></div></div>
+    </div>
+    <div class="label"><span>Desarrollo Web</span><strong>Proyecto Web 2</strong></div>
+  </div>
+
+  <!-- default-3.jpg -->
+  <div class="card img3">
+    <div class="particles">
+      <div class="p" style="top:10%;left:15%"></div><div class="p" style="top:20%;left:80%"></div>
+      <div class="p" style="top:70%;left:10%"></div><div class="p" style="top:85%;left:75%"></div>
+      <div class="p" style="top:40%;left:90%"></div><div class="p" style="top:60%;left:5%"></div>
+    </div>
+    <div class="phone-big">
+      <div class="notch"></div>
+      <div class="app-icon"></div>
+      <div class="menu-items">
+        <div class="mi"></div><div class="mi"></div><div class="mi"></div>
+      </div>
+    </div>
+    <div class="label"><span>Apps Móviles</span><strong>App Móvil 1</strong></div>
+  </div>
+
+  <!-- default-4.jpg -->
+  <div class="card img4">
+    <div class="wave"></div>
+    <div class="card-big">
+      <div class="chip"><div class="chip-cell"></div><div class="chip-cell"></div><div class="chip-cell"></div><div class="chip-cell"></div></div>
+      <div class="card-num">•••• •••• •••• 4242</div>
+    </div>
+    <div class="card2"></div>
+    <div class="label"><span>Apps Móviles</span><strong>App Móvil 2</strong></div>
+  </div>
+
+  <!-- default-5.jpg -->
+  <div class="card img5">
+    <div class="wireframe">
+      <div class="wf-header"><div class="wf-dot"></div><div class="wf-dot"></div><div class="wf-dot"></div></div>
+      <div class="wf-body">
+        <div class="wf-sidebar"><div class="wf-s"></div><div class="wf-s"></div><div class="wf-s"></div><div class="wf-s"></div></div>
+        <div class="wf-main">
+          <div class="wf-img"><div class="cross"></div></div>
+          <div class="wf-m" style="width:90%"></div>
+          <div class="wf-m" style="width:70%"></div>
+          <div class="wf-m" style="width:80%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations"><div class="ann"></div><div class="ann"></div><div class="ann"></div></div>
+    <div class="label"><span>Diseño</span><strong>Diseño UX 1</strong></div>
+  </div>
+
+  <!-- default-6.jpg -->
+  <div class="card img6">
+    <div class="proto">
+      <div class="screen">
+        <div class="sc-header">
+          <div class="sc-logo"></div>
+          <div class="sc-nav"><div class="sc-ni"></div><div class="sc-ni"></div><div class="sc-ni"></div></div>
+        </div>
+        <div class="sc-hero">
+          <div class="sc-h1"></div>
+          <div class="sc-h2"></div>
+          <div class="sc-btn"></div>
+        </div>
+        <div class="sc-cards">
+          <div class="sc-card"></div><div class="sc-card"></div><div class="sc-card"></div>
+        </div>
+      </div>
+    </div>
+    <div class="label"><span>Diseño</span><strong>Diseño UX 2</strong></div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -155,13 +155,20 @@ class ProductController extends Controller
             $validated['gallery_images'] = $galleryImages;
         }
 
+        // Marca si el checkbox fue seleccionado
+        $validated['is_digital'] = $request->has('is_digital');
+
+        // Actualizar el producto con todos los datos validados + is_digital
         $product->update($validated);
 
-        CacheService::clearProducts(); // 🔹 limpia caché al actualizar
+        // Limpiar caché (tu lógica original)
+        CacheService::clearProducts();
 
         return redirect()
             ->route('admin.products.index')
             ->with('success', 'Producto actualizado exitosamente.');
+
+
     }
 
     public function destroy(Product $product)

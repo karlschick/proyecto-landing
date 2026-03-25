@@ -21,24 +21,24 @@
                 ¿Por Qué Elegirnos?
             </h2>
             <p class="text-sm sm:text-base text-gray-200 max-w-2xl mx-auto px-4">
-                Entrenamiento inteligente - planes diseñados según tu nivel, objetivos y condición física.
+                Tecnología de calidad — soluciones diseñadas según las necesidades de tu empresa o negocio.
             </p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {{-- Feature 1 --}}
             <div class="text-center feature-card bg-black/30 backdrop-blur-sm p-4 sm:p-5 rounded-lg">
-                <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-400 feature-title">Resultados sostenibles</h3>
+                <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-400 feature-title">Resultados garantizados</h3>
                 <p class="text-sm sm:text-base text-gray-200">
-                    Te ayudamos a construir un estilo de vida, no solo a cumplir una meta temporal.
+                    Implementamos soluciones tecnológicas que realmente funcionan y se adaptan a tu negocio.
                 </p>
             </div>
 
             {{-- Feature 2 --}}
             <div class="text-center feature-card bg-black/30 backdrop-blur-sm p-4 sm:p-5 rounded-lg">
-                <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-400 feature-title">Calidad</h3>
+                <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-400 feature-title">Experiencia IT</h3>
                 <p class="text-sm sm:text-base text-gray-200">
-                    Más de 20 años de experiencia: trayectoria profesional que respalda cada método que aplicamos.
+                    Más de 10 años en el sector tecnológico respaldan cada servicio y solución que ofrecemos.
                 </p>
             </div>
 
@@ -46,7 +46,7 @@
             <div class="text-center feature-card bg-black/30 backdrop-blur-sm p-4 sm:p-5 rounded-lg">
                 <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-400 feature-title">Precio Justo</h3>
                 <p class="text-sm sm:text-base text-gray-200">
-                    Acompañamiento integral: guiamos tu progreso en entrenamiento, alimentación y estilo de vida.
+                    Servicios profesionales a precios competitivos, sin costos ocultos ni sorpresas.
                 </p>
             </div>
 
@@ -54,7 +54,7 @@
             <div class="text-center feature-card bg-black/30 backdrop-blur-sm p-4 sm:p-5 rounded-lg">
                 <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-400 feature-title">Soporte 24/7</h3>
                 <p class="text-sm sm:text-base text-gray-200">
-                    Enfoque en salud y rendimiento: buscamos que te sientas, te veas y vivas mejor.
+                    Estamos disponibles cuando nos necesitas, brindando asistencia técnica en todo momento.
                 </p>
             </div>
         </div>
@@ -62,21 +62,15 @@
 </section>
 
 <style>
-/* Animación de brillo en los títulos */
 @keyframes text-shine {
-    0% {
-        background-position: -200% center;
-    }
-    100% {
-        background-position: 200% center;
-    }
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
 }
 
 .feature-card {
     transition: transform 0.3s ease;
 }
 
-/* Solo hover en desktop */
 @media (min-width: 768px) {
     .feature-card:hover {
         transform: translateY(-10px);
@@ -103,7 +97,6 @@
     transition: all 0.3s ease;
 }
 
-/* Mejora visual en móvil */
 @media (max-width: 767px) {
     .feature-card {
         border: 1px solid rgba(245, 245, 0, 0.2);

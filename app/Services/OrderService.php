@@ -22,6 +22,7 @@ class OrderService
         }
 
         return DB::transaction(function () use ($cart, $shippingData, $shippingCost, $taxRate) {
+
             $subtotal = $cart->getSubtotal();
             $tax = $subtotal * $taxRate;
             $total = $subtotal + $tax + $shippingCost;
@@ -54,25 +55,59 @@ class OrderService
                 $product->decreaseStock($cartItem->quantity);
             }
 
-            // Crear dirección de envío
-            ShippingAddress::create([
-                'order_id' => $order->id,
-                'full_name' => $shippingData['full_name'],
-                'email' => $shippingData['email'],
-                'phone' => $shippingData['phone'],
-                'address_line_1' => $shippingData['address_line_1'],
-                'address_line_2' => $shippingData['address_line_2'] ?? null,
-                'city' => $shippingData['city'],
-                'state' => $shippingData['state'] ?? null,
-                'postal_code' => $shippingData['postal_code'],
-                'country' => $shippingData['country'] ?? 'Colombia',
-                'notes' => $shippingData['notes'] ?? null,
-            ]);
+            /**
+             * Si es compra digital: NO crear dirección
+             */
+            $addressLine1 = $shippingData['address_line_1'] ?? null;
+            $city = $shippingData['city'] ?? null;
+            $postal = $shippingData['postal_code'] ?? null;
 
-            // Vaciar carrito
-            $cart->clear();
+            $isDigitalOrder = empty($addressLine1) && empty($city) && empty($postal);
+
+            if (!$isDigitalOrder) {
+                ShippingAddress::create([
+                    'order_id' => $order->id,
+                    'full_name' => $shippingData['full_name'] ?? null,
+                    'email' => $shippingData['email'] ?? null,
+                    'phone' => $shippingData['phone'] ?? null,
+                    'address_line_1' => $addressLine1,
+                    'address_line_2' => $shippingData['address_line_2'] ?? null,
+                    'city' => $city,
+                    'state' => $shippingData['state'] ?? null,
+                    'postal_code' => $postal,
+                    'country' => $shippingData['country'] ?? 'Colombia',
+                    'notes' => $shippingData['notes'] ?? null,
+                ]);
+            }
+
+            // ✅ NO VACIAR EL CARRITO AQUÍ
+            // Se vacía en CheckoutController después de crear el pago
+            // $cart->clear();
 
             return $order;
+        });
+    }
+
+    /**
+     * Marcar orden como esperando pago por QR
+     */
+    public function markAsPendingQR(Order $order): void
+    {
+        DB::transaction(function () use ($order) {
+
+            // Cambia estado de la orden
+            $order->update([
+                'status' => 'pending_qr',
+            ]);
+
+            // Crear registro del pago pendiente
+            $order->payment()->create([
+                'method'    => 'qr_payment',
+                'reference' => 'QR-' . strtoupper(uniqid()),
+                'amount'    => $order->total,
+                'status'    => 'pending',
+                'receipt'   => null,
+            ]);
         });
     }
 
@@ -87,9 +122,6 @@ class OrderService
 
         DB::transaction(function () use ($order) {
             $order->markAsCancelled();
-
-            // Notificar al cliente (implementar según necesites)
-            // event(new OrderCancelled($order));
         });
     }
 
@@ -99,6 +131,7 @@ class OrderService
     public function markAsPaid(Order $order, array $paymentData): void
     {
         DB::transaction(function () use ($order, $paymentData) {
+
             $order->markAsPaid();
 
             $order->payment()->create([
@@ -111,18 +144,24 @@ class OrderService
                 'paid_at' => now(),
                 'metadata' => $paymentData['metadata'] ?? null,
             ]);
-
-            // Notificar al cliente
-            // event(new OrderPaid($order));
         });
     }
 
     /**
-     * Actualizar estado de orden
+     * Actualizar estado
      */
     public function updateStatus(Order $order, string $status): void
     {
-        $validStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+        $validStatuses = [
+            'pending',
+            'pending_qr',
+            'paid',
+            'processing',
+            'shipped',
+            'delivered',
+            'cancelled',
+            'refunded'
+        ];
 
         if (!in_array($status, $validStatuses)) {
             throw new \Exception('Estado de orden inválido');
@@ -130,7 +169,6 @@ class OrderService
 
         $order->update(['status' => $status]);
 
-        // Actualizar timestamps específicos
         match($status) {
             'shipped' => $order->markAsShipped(),
             'delivered' => $order->markAsDelivered(),
@@ -138,50 +176,31 @@ class OrderService
             default => null,
         };
     }
+
     /**
- * Procesar productos digitales (generar links de descarga)
- */
-public function processDigitalProducts(Order $order): void
-{
-    $downloads = [];
+     * Productos digitales
+     */
+    public function processDigitalProducts(Order $order): void
+    {
+        $downloads = [];
 
-    foreach ($order->items as $item) {
-        $product = $item->product;
+        foreach ($order->items as $item) {
 
-        // Solo procesar si es un producto digital (libro/ebook)
-        if ($product && $product->isBook() && $product->hasFile()) {
-            // Crear token de descarga
-            $download = $product->createDownloadToken(
-                $order,
-                $order->shippingAddress->email
-            );
+            $product = $item->product;
 
-            $downloads[] = $download;
+            if ($product && $product->isBook() && $product->hasFile()) {
+                $download = $product->createDownloadToken(
+                    $order,
+                    $order->shippingAddress?->email ?? $order->user->email
+                );
 
-            \Log::info('Token de descarga creado', [
-                'download_id' => $download->id,
-                'product_id' => $product->id,
-                'order_id' => $order->id,
-                'token' => $download->download_token,
-            ]);
+                $downloads[] = $download;
+            }
         }
-    }
 
-    // Si hay descargas, enviar email
-    if (!empty($downloads)) {
-        try {
-            Notification::route('mail', $order->shippingAddress->email)
+        if (!empty($downloads)) {
+            Notification::route('mail', $order->shippingAddress->email ?? $order->user->email)
                 ->notify(new ProductDownloadNotification($order, $downloads));
-
-            \Log::info('Email de descarga enviado', [
-                'order_id' => $order->id,
-                'email' => $order->shippingAddress->email,
-                'products_count' => count($downloads),
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Error al enviar email de descarga: ' . $e->getMessage());
-            throw $e;
         }
     }
-}
 }

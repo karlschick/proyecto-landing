@@ -4,31 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Lead;
 use App\Models\User;
-use App\Models\Setting;
 use App\Http\Requests\LeadRequest;
-use App\Notifications\NewLeadNotification;
-use App\Notifications\LeadConfirmationNotification;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class LeadController extends Controller
 {
     /**
-     * Guardar nuevo lead desde formulario de contacto
+     * Guardar nuevo lead y enviar emails directos (SIN notificaciones)
      */
     public function store(LeadRequest $request)
     {
-        // Rate limiting: máximo intentos por hora por IP
         $key = 'contact-form:' . $request->ip();
-
-        // Más permisivo en desarrollo, estricto en producción
         $maxAttempts = config('app.env') === 'production' ? 3 : 100;
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             $seconds = RateLimiter::availableIn($key);
             return redirect('/#contacto')->with('error', "Demasiados intentos. Por favor espera {$seconds} segundos.");
         }
+
+        set_time_limit(120);
 
         try {
             // Crear el lead
@@ -43,46 +40,67 @@ class LeadController extends Controller
                 'status' => 'nuevo',
             ]);
 
-            // Incrementar rate limiter
-            RateLimiter::hit($key, 3600); // 1 hora
+            RateLimiter::hit($key, 3600);
+            Log::info('✅ Lead creado', ['lead_id' => $lead->id, 'email' => $lead->email]);
 
-            // Obtener configuración
-            $settings = Setting::getSettings();
-
-            // Enviar email de confirmación al cliente
-            $lead->notify(new LeadConfirmationNotification($lead));
-
-            // Notificar a administradores
-            $notificationEmail = $settings->notification_email ?? $settings->contact_email;
-
-            if ($notificationEmail) {
-                // Buscar usuario admin con ese email o crear notificación anónima
-                $adminUser = User::where('email', $notificationEmail)->first();
-
-                if ($adminUser) {
-                    $adminUser->notify(new NewLeadNotification($lead));
-                } else {
-                    // Enviar email directo sin usuario
-                    Notification::route('mail', $notificationEmail)
-                        ->notify(new NewLeadNotification($lead));
-                }
+            // ✅ 1. EMAIL AL CLIENTE (Confirmación)
+            try {
+                Mail::send('emails.lead-confirmation', ['lead' => $lead], function ($message) use ($lead) {
+                    $message->to($lead->email, $lead->name)
+                            ->subject('✅ Hemos recibido tu mensaje - ' . config('app.name'));
+                });
+                Log::info('✅ Email enviado al cliente', ['email' => $lead->email]);
+            } catch (\Exception $e) {
+                Log::error('❌ Error email cliente: ' . $e->getMessage());
             }
 
-            // Notificar a todos los admins
-            $admins = User::where('role', 'admin')->get();
-            Notification::send($admins, new NewLeadNotification($lead));
+            // ✅ 2. EMAIL A ADMINISTRADORES (Notificación)
+            try {
+                // Obtener email de notificación
+                $settings = DB::table('settings')
+                    ->select('notification_email', 'contact_email')
+                    ->first();
 
-            \Log::info('Nuevo lead creado', [
-                'id' => $lead->id,
-                'email' => $lead->email,
-                'ip' => $request->ip()
-            ]);
+                $adminEmail = $settings->notification_email ?? $settings->contact_email;
 
-            // ✅ SOLUCIÓN: Redirigir a la sección de contacto con el ancla #contacto
+                if ($adminEmail) {
+                    Mail::send('emails.new-lead', ['lead' => $lead], function ($message) use ($lead, $adminEmail) {
+                        $message->to($adminEmail)
+                                ->replyTo($lead->email, $lead->name)
+                                ->subject('🔔 Nuevo Contacto desde ' . config('app.name'));
+                    });
+                    Log::info('✅ Email enviado a admin', ['email' => $adminEmail]);
+                }
+
+                // Notificar a otros admins del sistema
+                $admins = User::where('role', 'admin')
+                    ->whereNotNull('email')
+                    ->pluck('email')
+                    ->toArray();
+
+                foreach ($admins as $adminEmail) {
+                    try {
+                        Mail::send('emails.new-lead', ['lead' => $lead], function ($message) use ($lead, $adminEmail) {
+                            $message->to($adminEmail)
+                                    ->replyTo($lead->email, $lead->name)
+                                    ->subject('🔔 Nuevo Contacto desde ' . config('app.name'));
+                        });
+                    } catch (\Exception $e) {
+                        Log::error('❌ Error email admin: ' . $e->getMessage());
+                    }
+                }
+
+                Log::info('✅ Emails enviados a admins', ['count' => count($admins)]);
+
+            } catch (\Exception $e) {
+                Log::error('❌ Error enviando emails a admins: ' . $e->getMessage());
+            }
+
             return redirect('/#contacto')->with('success', '¡Mensaje enviado correctamente! Te contactaremos pronto.');
 
         } catch (\Exception $e) {
-            \Log::error('Error al crear lead: ' . $e->getMessage(), [
+            Log::error('❌ Error crítico al crear lead', [
+                'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 

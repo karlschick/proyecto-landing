@@ -4,33 +4,29 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreatePaymentsTable extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
 
-            $table->string('transaction_id')->unique()->nullable();
-            $table->string('payment_method'); // card, transfer, cash_on_delivery
-            $table->string('payment_gateway')->nullable(); // mercadopago, paypal, stripe
+            $table->unsignedBigInteger('order_id');
+            $table->string('method')->default('daviplata');
+            $table->string('reference')->unique();
             $table->decimal('amount', 10, 2);
-            $table->string('currency', 3)->default('COP');
-            $table->enum('status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
-            $table->timestamp('paid_at')->nullable();
-            $table->json('metadata')->nullable(); // Datos adicionales del pago
+
+            $table->string('status')->default('pending'); // pending, approved, rejected
+            $table->string('receipt')->nullable(); // imagen del comprobante
 
             $table->timestamps();
 
-            $table->index('order_id');
-            $table->index('transaction_id');
-            $table->index('status');
+            $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('payments');
     }
-};
+}

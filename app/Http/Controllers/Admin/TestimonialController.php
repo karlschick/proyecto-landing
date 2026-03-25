@@ -25,28 +25,22 @@ class TestimonialController extends Controller
     {
         $validated = $request->validated();
 
-        // Manejar foto (MISMA LÓGICA QUE PROJECTS)
         if ($request->hasFile('client_photo')) {
             $image = $request->file('client_photo');
             $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
 
-            // Guardar en public/images/testimonials/
-            $destinationPath = public_path('images/testimonials');
+            $destinationPath = public_html_path('images/testimonials');
             if (!file_exists($destinationPath)) {
                 mkdir($destinationPath, 0755, true);
             }
             $image->move($destinationPath, $filename);
-
             $validated['client_photo'] = 'testimonials/' . $filename;
         }
 
         Testimonial::create($validated);
-
-        // Limpiar caché
         CacheService::clearTestimonials();
 
-        return redirect()
-            ->route('admin.testimonials.index')
+        return redirect()->route('admin.testimonials.index')
             ->with('success', 'Testimonio creado exitosamente.');
     }
 
@@ -59,11 +53,9 @@ class TestimonialController extends Controller
     {
         $validated = $request->validated();
 
-        // Manejar foto (MISMA LÓGICA QUE PROJECTS)
         if ($request->hasFile('client_photo')) {
-            // Eliminar foto anterior si existe
             if ($testimonial->client_photo) {
-                $oldImagePath = public_path('images/' . $testimonial->client_photo);
+                $oldImagePath = public_html_path('images/' . $testimonial->client_photo);
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
@@ -72,49 +64,39 @@ class TestimonialController extends Controller
             $image = $request->file('client_photo');
             $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
 
-            // Guardar en public/images/testimonials/
-            $destinationPath = public_path('images/testimonials');
+            $destinationPath = public_html_path('images/testimonials');
             if (!file_exists($destinationPath)) {
                 mkdir($destinationPath, 0755, true);
             }
             $image->move($destinationPath, $filename);
-
             $validated['client_photo'] = 'testimonials/' . $filename;
         }
 
         $testimonial->update($validated);
-
-        // Limpiar caché
         CacheService::clearTestimonials();
 
-        return redirect()
-            ->route('admin.testimonials.index')
+        return redirect()->route('admin.testimonials.index')
             ->with('success', 'Testimonio actualizado exitosamente.');
     }
 
     public function destroy(Testimonial $testimonial)
     {
         try {
-            // Eliminar la foto si existe
             if ($testimonial->client_photo) {
-                $imagePath = public_path('images/' . $testimonial->client_photo);
+                $imagePath = public_html_path('images/' . $testimonial->client_photo);
                 if (file_exists($imagePath)) {
                     unlink($imagePath);
                 }
             }
 
             $testimonial->delete();
-
-            // Limpiar caché
             CacheService::clearTestimonials();
 
-            return redirect()
-                ->route('admin.testimonials.index')
+            return redirect()->route('admin.testimonials.index')
                 ->with('success', 'Testimonio eliminado exitosamente.');
 
         } catch (\Exception $e) {
-            return redirect()
-                ->route('admin.testimonials.index')
+            return redirect()->route('admin.testimonials.index')
                 ->with('error', 'Error al eliminar el testimonio: ' . $e->getMessage());
         }
     }

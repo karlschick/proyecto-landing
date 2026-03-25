@@ -55,19 +55,16 @@ class Testimonial extends Model
             return asset('images/testimonials/default.jpg');
         }
 
-        // Normaliza ruta (quita posibles "/")
         $path = ltrim($this->client_photo, '/');
 
-        // Si la ruta ya incluye "testimonials/" al inicio
         if (str_starts_with($path, 'testimonials/')) {
-            $fullPath = public_path('images/' . $path); // images/testimonials/archivo.jpg
+            $fullPath = public_html_path('images/' . $path);
             if (file_exists($fullPath)) {
                 return asset('images/' . $path);
             }
         }
 
-        // Si solo es el nombre del archivo
-        $fullPath = public_path('images/testimonials/' . $path);
+        $fullPath = public_html_path('images/testimonials/' . $path);
         if (file_exists($fullPath)) {
             return asset('images/testimonials/' . $path);
         }

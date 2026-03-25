@@ -25,9 +25,8 @@ class NewLeadNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        // ✅ OPTIMIZACIÓN: Solo cargar el campo necesario (no imágenes pesadas)
-        $siteName = \App\Models\Setting::select('site_name')->value('site_name')
-                    ?? config('app.name');
+        // ✅ SIN consultar base de datos con imágenes, solo valores necesarios
+        $siteName = config('app.name', 'FitnessSuit');
 
         return (new MailMessage)
             ->from($this->lead->email, $this->lead->name)
@@ -48,7 +47,7 @@ class NewLeadNotification extends Notification
             ->line('**Información adicional:**')
             ->line('• Recibido: ' . $this->lead->created_at->format('d/m/Y H:i'))
             ->line('• IP: ' . $this->lead->ip_address)
-            ->action('Ver en el Panel', route('admin.leads.show', $this->lead))
+            ->action('Ver en el Panel', url('/admin/leads/' . $this->lead->id))
             ->salutation('Saludos, ' . $siteName);
     }
 

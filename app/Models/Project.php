@@ -87,32 +87,25 @@ class Project extends Model
     /**
      * Helper para obtener URL de imagen (con caché)
      */
-    public function getImageUrl(): string
-    {
-        if (!$this->featured_image) {
-            return asset('images/projects/default.jpg');
-        }
-
-        // Normaliza ruta (quita posibles "/")
-        $path = ltrim($this->featured_image, '/');
-
-        // Si la ruta ya incluye "projects/" al inicio
-        if (str_starts_with($path, 'projects/')) {
-            $fullPath = public_path('images/' . $path); // images/projects/archivo.jpg
-            if (file_exists($fullPath)) {
-                return asset('images/' . $path);
-            }
-        }
-
-        // Si solo es el nombre del archivo
-        $fullPath = public_path('images/projects/' . $path);
-        if (file_exists($fullPath)) {
-            return asset('images/projects/' . $path);
-        }
-
-        \Log::warning("⚠️ Imagen no encontrada para project {$this->id}: {$this->featured_image}");
+public function getImageUrl(): string
+{
+    if (!$this->featured_image) {
         return asset('images/projects/default.jpg');
     }
+
+    $path = ltrim($this->featured_image, '/');
+    $fullPath = public_html_path('images/' . $path);
+
+    // DEBUG TEMPORAL - quitar después
+    \Log::info("Buscando imagen en: " . $fullPath);
+    \Log::info("Existe: " . (file_exists($fullPath) ? 'SI' : 'NO'));
+
+    if (file_exists($fullPath)) {
+        return asset('images/' . $path);
+    }
+
+    return asset('images/projects/default.jpg');
+}
 
     /**
      * Limpiar caché de imagen al actualizar
