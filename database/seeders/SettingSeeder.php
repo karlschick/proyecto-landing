@@ -16,6 +16,7 @@ class SettingSeeder extends Seeder
             'secondary_color' => '#8B5CF6',
             'accent_color' => '#10B981',
             'contact_email' => 'contacto@ejemplo.com',
+            'favicon' => 'favicon.ico',
             'hero_enabled' => true,
             'hero_title' => 'Bienvenido a Tu LandingPage',
             'hero_subtitle' => 'Ofrecemos las mejores soluciones para tu negocio',

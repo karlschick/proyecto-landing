@@ -1,6 +1,6 @@
 LANDING PAGE
 -----------------------------------------
-BD    
+BD
 
 npm run dev
 
@@ -16,7 +16,7 @@ php artisan db:seed --class=AdminUserSeeder
 
 
 Objetivo									Comando
-genera automáticamente una nueva APP_KEY		php artisan key:generate		
+genera automáticamente una nueva APP_KEY		php artisan key:generate
 Ejecutar todos los seeders registrados			php artisan db:seed
 Ejecutar un seeder específico				php artisan db:seed --class=NombreDelSeeder
 Resetear base y seeders					php artisan migrate:fresh --seed
@@ -27,3 +27,6 @@ Forzar seeders en producción				php artisan db:seed --force
 php artisan config:clear
 php artisan cache:clear
 php artisan config:cache
+
+
+call READ\list_hero.bat

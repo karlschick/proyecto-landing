@@ -32,7 +32,7 @@ class SettingController extends Controller
             'site_name' => 'required|string|max:255',
             'site_slogan' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
-            'favicon' => 'nullable|image|mimes:ico,png|max:1024',
+            'favicon' => 'nullable|mimes:ico,png,x-icon,vnd.microsoft.icon|max:1024',
 
             // Colores
             'primary_color' => 'nullable|string|max:7',

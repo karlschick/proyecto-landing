@@ -60,6 +60,18 @@ Route::middleware(['auth', 'verified'])
             Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
         });
 
+        /* HERO */
+        Route::middleware(['editor'])->group(function () {
+            Route::get('/hero', [App\Http\Controllers\Admin\HeroController::class, 'index'])->name('hero.index');
+            Route::put('/hero', [App\Http\Controllers\Admin\HeroController::class, 'update'])->name('hero.update');
+        });
+
+        /* ABOUT */
+        Route::middleware(['editor'])->group(function () {
+            Route::get('/about', [App\Http\Controllers\Admin\AboutController::class, 'index'])->name('about.index');
+            Route::put('/about', [App\Http\Controllers\Admin\AboutController::class, 'update'])->name('about.update');
+        });
+
         /* SERVICIOS, PROYECTOS, ETC */
         Route::middleware(['editor'])->group(function () {
             Route::resource('services', ServiceController::class);
@@ -164,7 +176,6 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
    CONFIRMACIÓN Y PAGOS
 ============================= */
 
-// Confirmación de orden (Contra entrega)
 Route::get('/orden/confirmacion/{order}', [CheckoutController::class, 'confirmation'])
     ->name('orders.confirmation');
 
@@ -172,19 +183,15 @@ Route::get('/orden/confirmacion/{order}', [CheckoutController::class, 'confirmat
    INSTRUCCIONES DE PAGO SEGÚN MÉTODO
 ============================= */
 
-// 🔑 BRE-B (LLAVE)
 Route::get('/orden/{order}/pago/breb', [PaymentController::class, 'showInstructionsBreb'])
     ->name('payment.instructions.breb');
 
-// 🏦 TRANSFERENCIA BANCARIA
 Route::get('/orden/{order}/pago/transferencia', [PaymentController::class, 'showInstructionsTransfer'])
     ->name('payment.instructions.transfer');
 
-// 📱 CÓDIGO QR
 Route::get('/orden/{order}/pago/qr', [PaymentController::class, 'showInstructionsQr'])
     ->name('payment.instructions.qr');
 
-// 💳 TARJETA DE CRÉDITO/DÉBITO
 Route::get('/orden/{order}/pago/tarjeta', [PaymentController::class, 'showInstructionsCard'])
     ->name('payment.instructions.card');
 
@@ -192,36 +199,14 @@ Route::get('/orden/{order}/pago/tarjeta', [PaymentController::class, 'showInstru
    SUBIR COMPROBANTE DE PAGO
 ============================= */
 
-// Formulario para subir comprobante
 Route::get('/orden/{order}/subir-comprobante', [PaymentController::class, 'showUploadForm'])
     ->name('payment.upload-form');
 
-// Procesar subida de comprobante
 Route::post('/orden/{order}/comprobante', [PaymentController::class, 'subirComprobante'])
     ->name('payment.upload');
 
-// Página de confirmación
 Route::get('/orden/{order}/confirmacion', [PaymentController::class, 'confirmation'])
     ->name('payment.confirmation');
-
-/* =============================
-   PANEL ADMIN - GESTIÓN DE PAGOS
-============================= */
-
-/* Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    // Listar pagos pendientes
-    Route::get('/pagos', [PaymentController::class, 'adminIndex'])
-        ->name('payments.index');
-
-    // Aprobar pago
-    Route::post('/pagos/{payment}/aprobar', [PaymentController::class, 'approvePayment'])
-        ->name('payments.approve');
-
-    // Rechazar pago
-    Route::post('/pagos/{payment}/rechazar', [PaymentController::class, 'rejectPayment'])
-        ->name('payments.reject');
-});
- */
 
 /* =============================
    DESCARGAS
@@ -258,10 +243,3 @@ Route::get('/images/{any}', function ($any) {
 Route::fallback(function () {
     return view('errors.404');
 });
-
-
-Route::get('/admin/hero', [App\Http\Controllers\Admin\HeroController::class, 'index'])->name('admin.hero.index');
-Route::put('/admin/hero', [App\Http\Controllers\Admin\HeroController::class, 'update'])->name('admin.hero.update');
-// About
-Route::get('/admin/about', [App\Http\Controllers\Admin\AboutController::class, 'index'])->name('admin.about.index');
-Route::put('/admin/about', [App\Http\Controllers\Admin\AboutController::class, 'update'])->name('admin.about.update');
