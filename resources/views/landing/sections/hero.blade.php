@@ -4,29 +4,23 @@
 
     <!-- Background dinámico -->
     @if($settings->hero_background_type === 'video' && $settings->hero_background_video)
-        <!-- Video de fondo -->
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
             <source src="{{ $settings->getHeroBackgroundVideoUrl() }}?v={{ $settings->updated_at?->timestamp ?? time() }}" type="video/mp4">
         </video>
-        <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-black"
              style="opacity: {{ $settings->hero_overlay_opacity ?? 0.5 }}"></div>
 
     @elseif($settings->hero_background_type === 'image' && $settings->hero_background_image)
-        <!-- Imagen de fondo -->
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
              style="background-image: url('{{ $settings->getHeroBackgroundImageUrl() }}?v={{ time() }}')">
         </div>
-        <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-black"
              style="opacity: {{ $settings->hero_overlay_opacity ?? 0.5 }}"></div>
 
     @else
-        <!-- Video por defecto -->
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
             <source src="{{ asset('videos/hero/plantilla1.mp4') }}" type="video/mp4">
         </video>
-        <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-black" style="opacity: 0.5"></div>
     @endif
 
@@ -35,7 +29,6 @@
 
         $buttonUrl = $settings->hero_button_url ?? '#productos';
 
-        // Detectar tipo de URL y construir correctamente
         if (Str::startsWith($buttonUrl, '#')) {
             $finalUrl = url('/') . '/' . ltrim($buttonUrl, '/');
         } elseif (Str::startsWith($buttonUrl, ['http://', 'https://'])) {
@@ -43,19 +36,30 @@
         } else {
             $finalUrl = url($buttonUrl);
         }
+
+        $logoX    = $settings->hero_logo_x    ?? 50;
+        $logoY    = $settings->hero_logo_y    ?? 50;
+        $logoSize = $settings->hero_logo_size ?? 112;
     @endphp
 
-    <!-- Contenido en el 25% inferior (imagen visible 75%) -->
-<div class="relative z-10 w-full"
-     style="padding-bottom: 5vh; padding-top: 2vh; height: 35%; display: flex; flex-direction: column; justify-content: center;">
+    {{-- LOGO con posicion libre - z-index 5 para que el texto quede encima --}}
+    @if($settings->hero_show_logo_instead && $settings->getLogoUrl())
+        <div class="absolute"
+             style="z-index: 5; left: {{ $logoX }}%; top: {{ $logoY }}%; transform: translate(-50%, -50%);">
+            <img src="{{ $settings->getLogoUrl() }}?v={{ time() }}"
+                 alt="{{ $settings->site_name }}"
+                 class="object-contain animate-fade-in"
+                 style="height: {{ $logoSize }}px; max-width: 80vw;">
+        </div>
+    @endif
+
+    <!-- Contenido inferior - z-index 20 siempre encima del logo -->
+    <div class="absolute bottom-0 left-0 right-0"
+         style="z-index: 20; padding-bottom: 5vh; padding-top: 2vh;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
-            {{-- LOGO o TÍTULO con color y fuente --}}
-            @if($settings->hero_show_logo_instead && $settings->getLogoUrl())
-                <img src="{{ $settings->getLogoUrl() }}?v={{ time() }}"
-                     alt="{{ $settings->site_name }}"
-                     class="mx-auto mb-4 h-20 md:h-28 object-contain animate-fade-in">
-            @else
+            {{-- TITULO (solo si NO se muestra el logo) --}}
+            @if(!$settings->hero_show_logo_instead)
                 <h1 class="font-bold mb-4 animate-fade-in"
                     style="color: {{ $settings->hero_title_color ?? '#ffffff' }};
                            font-family:
@@ -80,12 +84,12 @@
                 </p>
             @endif
 
-            {{-- Subtítulo --}}
+            {{-- Subtitulo --}}
             <p class="text-xl md:text-2xl text-white/90 mb-3 max-w-3xl mx-auto">
                 {{ $settings->hero_subtitle ?? '' }}
             </p>
 
-            {{-- Botón --}}
+            {{-- Boton --}}
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ $finalUrl }}"
                    class="hero-button inline-block bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold relative overflow-hidden transition-all duration-300">
@@ -97,16 +101,13 @@
 </section>
 
 <style>
-/* Pequeña animación para que aparezca suave */
 @keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in {
-    animation: fade-in 5.5s ease forwards;
+    animation: fade-in 1.5s ease forwards;
 }
-
-/* Efecto de reflejo amarillo en el botón */
 .hero-button::before {
     content: '';
     position: absolute;
@@ -117,11 +118,9 @@
     background: linear-gradient(90deg, transparent, rgba(245, 245, 0, 0.6), transparent);
     transition: left 0.5s ease;
 }
-
 .hero-button:hover::before {
     left: 100%;
 }
-
 .hero-button:hover {
     background-color: rgba(245, 245, 0, 0.15);
     border-color: rgb(245, 245, 0);

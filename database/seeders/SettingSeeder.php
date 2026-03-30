@@ -36,6 +36,10 @@ class SettingSeeder extends Seeder
             'navbar_bg_color' => '#000000',
             'navbar_text_color' => '#ffffff',
             'hero_show_logo_instead' => true,
+            'hero_show_logo_instead' => true,
+            'hero_logo_x'    => 50,
+            'hero_logo_y'    => 50,
+            'hero_logo_size' => 112,
         ]);
     }
 }

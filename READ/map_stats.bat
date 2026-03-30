@@ -1,23 +1,41 @@
 @echo off
 REM -------------------------------
-REM Script BAT - Mapa completo del HERO
+REM Script BAT - Mapa completo de STATS
 REM -------------------------------
 
-set SALIDA=hero_map.txt
+set SALIDA=stats_map.txt
 
-echo Mapa de archivos - HERO > %SALIDA%
+echo Mapa de archivos - STATS > %SALIDA%
 echo ======================== >> %SALIDA%
 echo Generado: %date% %time% >> %SALIDA%
 echo ======================== >> %SALIDA%
 
 REM -------------------------------
-REM 1. CONTROLADORES
+REM 1. VISTA PRINCIPAL
+REM -------------------------------
+echo. >> %SALIDA%
+echo [VISTA - STATS] >> %SALIDA%
+echo ======================== >> %SALIDA%
+
+if exist resources\views\landing\sections\stats.blade.php (
+    echo Archivo: resources\views\landing\sections\stats.blade.php >> %SALIDA%
+    echo ----------------------- >> %SALIDA%
+    type "resources\views\landing\sections\stats.blade.php" >> %SALIDA%
+    echo. >> %SALIDA%
+    echo ======================== >> %SALIDA%
+) else (
+    echo NO ENCONTRADO: resources\views\landing\sections\stats.blade.php >> %SALIDA%
+    echo ======================== >> %SALIDA%
+)
+
+REM -------------------------------
+REM 2. CONTROLADORES
 REM -------------------------------
 echo. >> %SALIDA%
 echo [CONTROLADORES] >> %SALIDA%
 echo ======================== >> %SALIDA%
 
-set CONTROLADORES=app\Http\Controllers\LandingController.php app\Http\Controllers\Admin\HeroController.php app\Http\Controllers\Admin\SettingController.php
+set CONTROLADORES=app\Http\Controllers\LandingController.php app\Http\Controllers\Admin\StatController.php app\Http\Controllers\Admin\SettingController.php
 
 for %%f in (%CONTROLADORES%) do (
     if exist %%f (
@@ -33,13 +51,13 @@ for %%f in (%CONTROLADORES%) do (
 )
 
 REM -------------------------------
-REM 2. MODELO
+REM 3. MODELO
 REM -------------------------------
 echo. >> %SALIDA%
 echo [MODELO] >> %SALIDA%
 echo ======================== >> %SALIDA%
 
-set MODELOS=app\Models\Setting.php
+set MODELOS=app\Models\Stat.php app\Models\Setting.php
 
 for %%f in (%MODELOS%) do (
     if exist %%f (
@@ -55,13 +73,13 @@ for %%f in (%MODELOS%) do (
 )
 
 REM -------------------------------
-REM 3. SERVICIOS
+REM 4. SERVICIOS
 REM -------------------------------
 echo. >> %SALIDA%
 echo [SERVICIOS] >> %SALIDA%
 echo ======================== >> %SALIDA%
 
-set SERVICIOS=app\Services\CacheService.php app\Services\ImageUploadService.php
+set SERVICIOS=app\Services\CacheService.php
 
 for %%f in (%SERVICIOS%) do (
     if exist %%f (
@@ -77,15 +95,15 @@ for %%f in (%SERVICIOS%) do (
 )
 
 REM -------------------------------
-REM 4. VISTAS
+REM 5. VISTA ADMIN (si existe panel de edición)
 REM -------------------------------
 echo. >> %SALIDA%
-echo [VISTAS] >> %SALIDA%
+echo [VISTA ADMIN] >> %SALIDA%
 echo ======================== >> %SALIDA%
 
-set VISTAS=resources\views\landing\sections\hero.blade.php resources\views\admin\hero\index.blade.php resources\views\admin\layout.blade.php
+set VISTAS_ADMIN=resources\views\admin\stats\index.blade.php resources\views\admin\layout.blade.php
 
-for %%f in (%VISTAS%) do (
+for %%f in (%VISTAS_ADMIN%) do (
     if exist %%f (
         echo Archivo: %%f >> %SALIDA%
         echo ----------------------- >> %SALIDA%
@@ -99,7 +117,7 @@ for %%f in (%VISTAS%) do (
 )
 
 REM -------------------------------
-REM 5. RUTAS
+REM 6. RUTAS
 REM -------------------------------
 echo. >> %SALIDA%
 echo [RUTAS] >> %SALIDA%
@@ -117,13 +135,13 @@ if exist routes\web.php (
 )
 
 REM -------------------------------
-REM 6. MIGRACIONES
+REM 7. MIGRACIONES
 REM -------------------------------
 echo. >> %SALIDA%
 echo [MIGRACIONES] >> %SALIDA%
 echo ======================== >> %SALIDA%
 
-for /r database\migrations %%f in (*setting*) do (
+for /r database\migrations %%f in (*stat*) do (
     echo Archivo: %%f >> %SALIDA%
     echo ----------------------- >> %SALIDA%
     type "%%f" >> %SALIDA%
@@ -132,13 +150,13 @@ for /r database\migrations %%f in (*setting*) do (
 )
 
 REM -------------------------------
-REM 7. SEEDERS
+REM 8. SEEDERS
 REM -------------------------------
 echo. >> %SALIDA%
 echo [SEEDERS] >> %SALIDA%
 echo ======================== >> %SALIDA%
 
-set SEEDERS=database\seeders\SettingSeeder.php database\seeders\DatabaseSeeder.php
+set SEEDERS=database\seeders\StatSeeder.php database\seeders\DatabaseSeeder.php
 
 for %%f in (%SEEDERS%) do (
     if exist %%f (

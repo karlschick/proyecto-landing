@@ -30,3 +30,4 @@ php artisan config:cache
 
 
 call READ\list_hero.bat
+call READ\map_stats.bat

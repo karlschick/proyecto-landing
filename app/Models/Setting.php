@@ -15,6 +15,9 @@ class Setting extends Model
         'site_slogan',
         'logo',
         'favicon',
+        'hero_logo_x',
+        'hero_logo_y',
+        'hero_logo_size',
 
         // Colores
         'primary_color',
@@ -147,6 +150,9 @@ class Setting extends Model
         // Otros tipos
         'hero_overlay_opacity' => 'float',
         'navbar_menu_labels' => 'array',
+        'hero_logo_x'    => 'integer',
+        'hero_logo_y'    => 'integer',
+        'hero_logo_size' => 'integer',
     ];
 
     /**
@@ -168,6 +174,9 @@ class Setting extends Model
             'features_enabled' => true,
             'stats_enabled' => true,
             'navbar_show_shop' => true, // ✅ AGREGADO - Por defecto visible
+            'hero_logo_x'    => 50,
+            'hero_logo_y'    => 50,
+            'hero_logo_size' => 112,
         ]);
     }
 

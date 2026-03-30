@@ -1,6 +1,121 @@
-Mapa de archivos - HERO 
+Mapa de archivos - STATS 
 ======================== 
-Generado: 29/03/2026 22:31:31,81 
+Generado: 30/03/2026  0:21:20,17 
+======================== 
+ 
+[VISTA - STATS] 
+======================== 
+Archivo: resources\views\landing\sections\stats.blade.php 
+----------------------- 
+<section class="py-5 bg-black text-white flex items-center justify-center relative overflow-hidden" style="height: 13vh;">
+  {{-- Efecto de reflejo amarillo en el fondo --}}
+  <div class="stats-shine absolute inset-0 pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+    <div class="flex flex-wrap justify-center items-center gap-8 text-center">
+
+      {{-- Stat 1 --}}
+      <div>
+        <div class="text-4xl md:text-5xl font-bold text-accent mb-2"
+             x-data="{ count: 0 }"
+             x-init="window.addEventListener('scroll', () => {
+                 if ($el.getBoundingClientRect().top < window.innerHeight && count === 0) {
+                     let interval = setInterval(() => {
+                         if (count < 150) { count += 5; $el.textContent = count + '+'; }
+                         else { clearInterval(interval); $el.textContent = '150+'; }
+                     }, 20);
+                 }
+             })">
+          0+
+        </div>
+        <p class="text-gray-400 text-sm md:text-base">Proyectos Completados</p>
+      </div>
+
+      {{-- Stat 2 --}}
+      <div>
+        <div class="text-4xl md:text-5xl font-bold text-accent mb-2"
+             x-data="{ count: 0 }"
+             x-init="window.addEventListener('scroll', () => {
+                 if ($el.getBoundingClientRect().top < window.innerHeight && count === 0) {
+                     let interval = setInterval(() => {
+                         if (count < 95) { count += 5; $el.textContent = count + '%'; }
+                         else { clearInterval(interval); $el.textContent = '95%'; }
+                     }, 30);
+                 }
+             })">
+          0%
+        </div>
+        <p class="text-gray-400 text-sm md:text-base">Satisfacción del Cliente</p>
+      </div>
+
+
+      <div>
+        <div class="text-4xl md:text-5xl font-bold text-accent mb-2"
+             x-data="{ count: 0 }"
+             x-init="window.addEventListener('scroll', () => {
+                 if ($el.getBoundingClientRect().top < window.innerHeight && count === 0) {
+                     let interval = setInterval(() => {
+                         if (count < 10) { count++; $el.textContent = count + '+'; }
+                         else { clearInterval(interval); $el.textContent = '20+'; }
+                     }, 200);
+                 }
+             })">
+          0+
+        </div>
+        <p class="text-gray-400 text-sm md:text-base">Años de Experiencia</p>
+      </div>
+
+      {{-- Stat 4 --}}
+      <div>
+        <div class="text-4xl md:text-5xl font-bold text-accent mb-2"
+             x-data="{ count: 0 }"
+             x-init="window.addEventListener('scroll', () => {
+                 if ($el.getBoundingClientRect().top < window.innerHeight && count === 0) {
+                     let interval = setInterval(() => {
+                         if (count < 50) { count += 2; $el.textContent = count + '+'; }
+                         else { clearInterval(interval); $el.textContent = '2000+'; }
+                     }, 200);
+                 }
+             })">
+          0+
+        </div>
+        <p class="text-gray-400 text-sm md:text-base">Clientes Satisfechos</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+/* Efecto de reflejo amarillo continuo en el fondo */
+@keyframes shine-sweep {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.stats-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 245, 0, 0.1),
+    rgba(245, 245, 0, 0.2),
+    rgba(245, 245, 0, 0.1),
+    transparent
+  );
+  animation: shine-sweep 4s ease-in-out infinite;
+}
+</style>
+ 
 ======================== 
  
 [CONTROLADORES] 
@@ -32,85 +147,7 @@ class LandingController extends Controller
 }
  
 ======================== 
-Archivo: app\Http\Controllers\Admin\HeroController.php 
------------------------ 
-<?php
-
-namespace App\Http\Controllers\Admin;
-
-use App\Http\Controllers\Controller;
-use App\Models\Setting;
-use App\Services\CacheService;
-use App\Services\ImageUploadService;
-use Illuminate\Http\Request;
-
-class HeroController extends Controller
-{
-    protected ImageUploadService $imageService;
-
-    public function __construct(ImageUploadService $imageService)
-    {
-        $this->imageService = $imageService;
-    }
-
-    public function index()
-    {
-        $settings = Setting::getSettings();
-        return view('admin.hero.index', compact('settings'));
-    }
-
-    public function update(Request $request)
-    {
-        $settings = Setting::getSettings();
-
-        $data = $request->only([
-            'hero_background_type',
-            'hero_overlay_opacity',
-            'hero_title',
-            'hero_subtitle',
-            'hero_button_text',
-            'hero_button_url',
-            'hero_logo_x',
-            'hero_logo_y',
-            'hero_logo_size',
-        ]);
-
-        // Booleanos
-        $data['hero_enabled'] = filter_var($request->input('hero_enabled'), FILTER_VALIDATE_BOOLEAN);
-        $data['hero_show_logo_instead'] = filter_var($request->input('hero_show_logo_instead'), FILTER_VALIDATE_BOOLEAN);
-
-        // Imagen seleccionada de la galería
-        if (!$request->hasFile('hero_background_image') && $request->filled('hero_background_image_selected')) {
-            $data['hero_background_image'] = $request->hero_background_image_selected;
-        }
-
-        // Nueva imagen subida
-        if ($request->hasFile('hero_background_image')) {
-            $data['hero_background_image'] = $this->imageService->upload(
-                $request->file('hero_background_image'), 'hero'
-            );
-        }
-
-        // Video seleccionado de la galería
-        if (!$request->hasFile('hero_background_video') && $request->filled('hero_background_video_selected')) {
-            $data['hero_background_video'] = $request->hero_background_video_selected;
-        }
-
-        // Nuevo video subido
-        if ($request->hasFile('hero_background_video')) {
-            $data['hero_background_video'] = $this->imageService->uploadVideo(
-                $request->file('hero_background_video'), 'hero'
-            );
-        }
-
-        $settings->update($data);
-
-        CacheService::clearSettings();
-
-        return redirect()->route('admin.hero.index')->with('success', 'Hero actualizado correctamente.');
-    }
-}
- 
+NO ENCONTRADO: app\Http\Controllers\Admin\StatController.php 
 ======================== 
 Archivo: app\Http\Controllers\Admin\SettingController.php 
 ----------------------- 
@@ -338,6 +375,8 @@ class SettingController extends Controller
 ======================== 
  
 [MODELO] 
+======================== 
+NO ENCONTRADO: app\Models\Stat.php 
 ======================== 
 Archivo: app\Models\Setting.php 
 ----------------------- 
@@ -845,703 +884,10 @@ class CacheService
 }
  
 ======================== 
-Archivo: app\Services\ImageUploadService.php 
------------------------ 
-<?php
-
-namespace App\Services;
-
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-
-class ImageUploadService
-{
-    protected array $config = [
-        'services' => ['max_width' => 800, 'max_height' => 600],
-        'projects' => ['max_width' => 1200, 'max_height' => 800],
-        'testimonials' => ['max_width' => 400, 'max_height' => 400],
-        'gallery' => ['max_width' => 1920, 'max_height' => 1080],
-        'hero' => ['max_width' => 1920, 'max_height' => 1080],
-        'settings' => ['max_width' => 500, 'max_height' => 500],
-    ];
-
-    public function upload(UploadedFile $file, string $directory): string
-    {
-        $this->validateFile($file);
-        $this->ensureDirectoryExists($directory);
-
-        $filename = $this->generateFilename($file);
-        $path = public_html_path("images/{$directory}");
-
-        try {
-            $file->move($path, $filename);
-            Log::info("✅ Imagen subida: images/{$directory}/{$filename}");
-            return "{$directory}/{$filename}";
-        } catch (\Exception $e) {
-            Log::error("❌ Error al subir imagen: " . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function uploadWithResize(UploadedFile $file, string $folder = 'projects'): string
-    {
-        $this->validateFile($file);
-        $config = $this->getConfig($folder) ?? ['max_width' => 1200, 'max_height' => 1200];
-
-        $filename = $this->generateFilename($file);
-        $path = public_html_path("images/{$folder}");
-        $this->ensureDirectoryExists($folder);
-
-        if (class_exists('\Intervention\Image\Facades\Image')) {
-            try {
-                $image = \Intervention\Image\Facades\Image::make($file);
-                $image->resize($config['max_width'], $config['max_height'], function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                $image->save($path . '/' . $filename, 85);
-                Log::info("🖼️ Imagen redimensionada correctamente: {$folder}/{$filename}");
-            } catch (\Exception $e) {
-                Log::warning("⚠️ Error al redimensionar, se guarda original: " . $e->getMessage());
-                $file->move($path, $filename);
-            }
-        } else {
-            $file->move($path, $filename);
-        }
-
-        return "{$folder}/{$filename}";
-    }
-
-    public function uploadVideo(UploadedFile $file, string $directory): string
-    {
-        $this->ensureDirectoryExists($directory, 'videos');
-        $filename = $this->generateFilename($file);
-        $path = public_html_path("videos/{$directory}");
-
-        try {
-            $file->move($path, $filename);
-            Log::info("🎬 Video subido: videos/{$directory}/{$filename}");
-            return "{$directory}/{$filename}";
-        } catch (\Exception $e) {
-            Log::error("❌ Error al subir video: " . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function delete(?string $relativePath, string $type = 'images'): bool
-    {
-        if (!$relativePath) {
-            return false;
-        }
-
-        $possiblePaths = [
-            public_html_path("{$type}/{$relativePath}"),
-            public_html_path("images/{$relativePath}"),
-            public_html_path("videos/{$relativePath}"),
-            public_html_path($relativePath),
-        ];
-
-        foreach ($possiblePaths as $fullPath) {
-            if (File::exists($fullPath)) {
-                try {
-                    File::delete($fullPath);
-                    Log::info("🗑️ Archivo eliminado: {$fullPath}");
-                    return true;
-                } catch (\Exception $e) {
-                    Log::error("❌ Error al eliminar archivo: " . $e->getMessage());
-                }
-            }
-        }
-
-        return false;
-    }
-
-    public function uploadMultiple(array $files, string $folder = 'images'): array
-    {
-        $uploadedFiles = [];
-
-        foreach ($files as $file) {
-            if ($file instanceof UploadedFile) {
-                $uploadedFiles[] = $this->upload($file, $folder);
-            }
-        }
-
-        return $uploadedFiles;
-    }
-
-    protected function ensureDirectoryExists(string $directory, string $type = 'images'): void
-    {
-        $directory = trim($directory, '/');
-        $path = public_html_path("{$type}/{$directory}");
-
-        if (!File::exists($path)) {
-            File::makeDirectory($path, 0755, true);
-            Log::info("📁 Directorio creado: {$path}");
-        }
-    }
-
-    protected function generateFilename(UploadedFile $file): string
-    {
-        $extension = $file->getClientOriginalExtension();
-        return time() . '_' . Str::random(10) . '.' . strtolower($extension);
-    }
-
-    public function getConfig(string $directory): ?array
-    {
-        return $this->config[$directory] ?? null;
-    }
-
-    protected function validateFile(UploadedFile $file): void
-    {
-        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mov', 'avi'];
-        $ext = strtolower($file->getClientOriginalExtension());
-
-        if (!in_array($ext, $allowed)) {
-            throw new \Exception("Tipo de archivo no permitido: {$ext}");
-        }
-
-        if ($file->getSize() > 5 * 1024 * 1024) {
-            throw new \Exception('El archivo excede el tamaño máximo permitido (5 MB).');
-        }
-    }
-}
  
+[VISTA ADMIN] 
 ======================== 
- 
-[VISTAS] 
-======================== 
-Archivo: resources\views\landing\sections\hero.blade.php 
------------------------ 
-{{-- Hero Section --}}
-<section class="relative text-white overflow-hidden flex items-end"
-         style="height: 80vh;">
-
-    <!-- Background dinámico -->
-    @if($settings->hero_background_type === 'video' && $settings->hero_background_video)
-        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
-            <source src="{{ $settings->getHeroBackgroundVideoUrl() }}?v={{ $settings->updated_at?->timestamp ?? time() }}" type="video/mp4">
-        </video>
-        <div class="absolute inset-0 bg-black"
-             style="opacity: {{ $settings->hero_overlay_opacity ?? 0.5 }}"></div>
-
-    @elseif($settings->hero_background_type === 'image' && $settings->hero_background_image)
-        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-             style="background-image: url('{{ $settings->getHeroBackgroundImageUrl() }}?v={{ time() }}')">
-        </div>
-        <div class="absolute inset-0 bg-black"
-             style="opacity: {{ $settings->hero_overlay_opacity ?? 0.5 }}"></div>
-
-    @else
-        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
-            <source src="{{ asset('videos/hero/plantilla1.mp4') }}" type="video/mp4">
-        </video>
-        <div class="absolute inset-0 bg-black" style="opacity: 0.5"></div>
-    @endif
-
-    @php
-        use Illuminate\Support\Str;
-
-        $buttonUrl = $settings->hero_button_url ?? '#productos';
-
-        if (Str::startsWith($buttonUrl, '#')) {
-            $finalUrl = url('/') . '/' . ltrim($buttonUrl, '/');
-        } elseif (Str::startsWith($buttonUrl, ['http://', 'https://'])) {
-            $finalUrl = $buttonUrl;
-        } else {
-            $finalUrl = url($buttonUrl);
-        }
-
-        $logoX    = $settings->hero_logo_x    ?? 50;
-        $logoY    = $settings->hero_logo_y    ?? 50;
-        $logoSize = $settings->hero_logo_size ?? 112;
-    @endphp
-
-    {{-- LOGO con posicion libre - z-index 5 para que el texto quede encima --}}
-    @if($settings->hero_show_logo_instead && $settings->getLogoUrl())
-        <div class="absolute"
-             style="z-index: 5; left: {{ $logoX }}%; top: {{ $logoY }}%; transform: translate(-50%, -50%);">
-            <img src="{{ $settings->getLogoUrl() }}?v={{ time() }}"
-                 alt="{{ $settings->site_name }}"
-                 class="object-contain animate-fade-in"
-                 style="height: {{ $logoSize }}px; max-width: 80vw;">
-        </div>
-    @endif
-
-    <!-- Contenido inferior - z-index 20 siempre encima del logo -->
-    <div class="absolute bottom-0 left-0 right-0"
-         style="z-index: 20; padding-bottom: 5vh; padding-top: 2vh;">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-
-            {{-- TITULO (solo si NO se muestra el logo) --}}
-            @if(!$settings->hero_show_logo_instead)
-                <h1 class="font-bold mb-4 animate-fade-in"
-                    style="color: {{ $settings->hero_title_color ?? '#ffffff' }};
-                           font-family:
-                            @switch($settings->hero_title_font)
-                                @case('montserrat') 'Montserrat', sans-serif; @break
-                                @case('poppins') 'Poppins', sans-serif; @break
-                                @case('roboto') 'Roboto', sans-serif; @break
-                                @case('playfair') 'Playfair Display', serif; @break
-                                @case('oswald') 'Oswald', sans-serif; @break
-                                @case('raleway') 'Raleway', sans-serif; @break
-                                @default inherit;
-                            @endswitch;
-                           font-size: clamp(2rem, 6vw, 4rem);">
-                    {{ $settings->hero_title ?? 'Bienvenido a ' . ($settings->site_name ?? 'Tu landingPage') }}
-                </h1>
-            @endif
-
-            {{-- Eslogan --}}
-            @if($settings->site_slogan)
-                <p class="text-lg md:text-xl text-white/80 mb-2 font-medium">
-                    {{ $settings->site_slogan }}
-                </p>
-            @endif
-
-            {{-- Subtitulo --}}
-            <p class="text-xl md:text-2xl text-white/90 mb-3 max-w-3xl mx-auto">
-                {{ $settings->hero_subtitle ?? '' }}
-            </p>
-
-            {{-- Boton --}}
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ $finalUrl }}"
-                   class="hero-button inline-block bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold relative overflow-hidden transition-all duration-300">
-                    <span class="relative z-10">{{ $settings->hero_button_text ?? 'Ver Productos' }}</span>
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<style>
-@keyframes fade-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in {
-    animation: fade-in 1.5s ease forwards;
-}
-.hero-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(245, 245, 0, 0.6), transparent);
-    transition: left 0.5s ease;
-}
-.hero-button:hover::before {
-    left: 100%;
-}
-.hero-button:hover {
-    background-color: rgba(245, 245, 0, 0.15);
-    border-color: rgb(245, 245, 0);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(245, 245, 0, 0.4);
-}
-</style>
- 
-======================== 
-Archivo: resources\views\admin\hero\index.blade.php 
------------------------ 
-@extends('admin.layout')
-
-@section('title', 'Editor Hero')
-@section('page-title', 'Editor de Hero')
-
-@section('content')
-<div class="max-w-4xl">
-    <div class="bg-white rounded-lg shadow p-6">
-        <form action="{{ route('admin.hero.update') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            @method('PUT')
-
-            <div x-data="{
-                heroBackgroundType: '{{ old('hero_background_type', $settings->hero_background_type ?? 'color') }}',
-                overlayOpacity: {{ old('hero_overlay_opacity', $settings->hero_overlay_opacity ?? 0.5) }},
-                selectedImage: '{{ old('hero_background_image_selected', $settings->hero_background_image ?? '') }}'
-            }" class="space-y-6">
-
-                <!-- Activar Hero -->
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" name="hero_enabled" id="hero_enabled" value="1"
-                           {{ $settings->hero_enabled ? 'checked' : '' }}
-                           class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
-                    <label for="hero_enabled" class="text-base font-semibold text-gray-800">Hero Activo</label>
-                </div>
-
-                <!-- Mostrar Logo en vez de título -->
-                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                    <input type="hidden" name="hero_show_logo_instead" value="0">
-                    <input type="checkbox" name="hero_show_logo_instead" id="hero_show_logo_instead" value="1"
-                        {{ $settings->hero_show_logo_instead ? 'checked' : '' }}
-                        class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                        onchange="document.getElementById('logo-positioner').style.display = this.checked ? 'block' : 'none'">
-                    <label for="hero_show_logo_instead" class="text-sm font-medium text-gray-800">
-                        Mostrar Logo en vez del Título
-                    </label>
-                </div>
-
-                <!-- Posicionador de Logo (JS puro, sin Alpine) -->
-                <div id="logo-positioner" class="border-2 border-blue-200 rounded-xl p-5 bg-blue-50 space-y-4"
-                     style="{{ $settings->hero_show_logo_instead ? '' : 'display:none' }}">
-                    <h4 class="font-semibold text-blue-800 text-base">Posición del Logo en el Hero</h4>
-                    <p class="text-sm text-gray-600">Arrastra el logo dentro del preview, o usa los sliders.</p>
-
-                    <div id="hero-preview"
-                         class="relative w-full rounded-lg overflow-hidden border-2 border-blue-300 cursor-crosshair select-none"
-                         style="height: 240px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
-                        <div class="absolute inset-0 bg-black" style="opacity: 0.4;"></div>
-                        <div class="absolute inset-0 pointer-events-none" style="opacity:0.15;">
-                            <div class="absolute top-0 bottom-0 border-l border-white" style="left:33.3%"></div>
-                            <div class="absolute top-0 bottom-0 border-l border-white" style="left:66.6%"></div>
-                            <div class="absolute left-0 right-0 border-t border-white" style="top:33.3%"></div>
-                            <div class="absolute left-0 right-0 border-t border-white" style="top:66.6%"></div>
-                            <div class="absolute top-0 bottom-0 border-l border-yellow-300" style="left:50%;opacity:0.6"></div>
-                            <div class="absolute left-0 right-0 border-t border-yellow-300" style="top:50%;opacity:0.6"></div>
-                        </div>
-                        <img id="logo-preview-img"
-                             src="{{ $settings->getLogoUrl() }}"
-                             class="absolute object-contain drop-shadow-lg pointer-events-none"
-                             style="height:{{ round(($settings->hero_logo_size ?? 112) * 0.35) }}px; max-width:200px; left:{{ $settings->hero_logo_x ?? 50 }}%; top:{{ $settings->hero_logo_y ?? 50 }}%; transform:translate(-50%,-50%);">
-                        <div id="logo-coords" class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-mono">
-                            X: {{ $settings->hero_logo_x ?? 50 }}% / Y: {{ $settings->hero_logo_y ?? 50 }}%
-                        </div>
-                        <div class="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">Arrastra para posicionar</div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="flex justify-between text-sm font-medium text-gray-700">
-                            <span>Posición Horizontal</span>
-                            <span id="lbl-x" class="font-bold text-blue-600">{{ $settings->hero_logo_x ?? 50 }}%</span>
-                        </label>
-                        <input id="slider-x" type="range" min="0" max="100" step="1"
-                               value="{{ $settings->hero_logo_x ?? 50 }}"
-                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                               oninput="updateLogoPos()">
-                        <div class="flex justify-between text-xs text-gray-400"><span>Izquierda</span><span>Centro</span><span>Derecha</span></div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="flex justify-between text-sm font-medium text-gray-700">
-                            <span>Posición Vertical</span>
-                            <span id="lbl-y" class="font-bold text-blue-600">{{ $settings->hero_logo_y ?? 50 }}%</span>
-                        </label>
-                        <input id="slider-y" type="range" min="0" max="100" step="1"
-                               value="{{ $settings->hero_logo_y ?? 50 }}"
-                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                               oninput="updateLogoPos()">
-                        <div class="flex justify-between text-xs text-gray-400"><span>Arriba</span><span>Centro</span><span>Abajo</span></div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="flex justify-between text-sm font-medium text-gray-700">
-                            <span>Tamaño del Logo</span>
-                            <span id="lbl-size" class="font-bold text-blue-600">{{ $settings->hero_logo_size ?? 112 }}px</span>
-                        </label>
-                        <input id="slider-size" type="range" min="40" max="300" step="4"
-                               value="{{ $settings->hero_logo_size ?? 112 }}"
-                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                               oninput="updateLogoPos()">
-                        <div class="flex justify-between text-xs text-gray-400"><span>40px</span><span>112px</span><span>300px</span></div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium text-gray-700">Posiciones rápidas</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button type="button" onclick="setLogoPreset(50,25)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Arriba</button>
-                            <button type="button" onclick="setLogoPreset(50,50)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Centro</button>
-                            <button type="button" onclick="setLogoPreset(50,70)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Abajo</button>
-                            <button type="button" onclick="setLogoPreset(20,50)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Izquierda</button>
-                            <button type="button" onclick="setLogoPreset(50,30)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Default</button>
-                            <button type="button" onclick="setLogoPreset(80,50)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Derecha</button>
-                        </div>
-                    </div>
-
-                    <input type="hidden" name="hero_logo_x"    id="input-logo-x"    value="{{ $settings->hero_logo_x ?? 50 }}">
-                    <input type="hidden" name="hero_logo_y"    id="input-logo-y"    value="{{ $settings->hero_logo_y ?? 50 }}">
-                    <input type="hidden" name="hero_logo_size" id="input-logo-size" value="{{ $settings->hero_logo_size ?? 112 }}">
-                </div>
-
-                <!-- Tipo de fondo -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <label class="block text-sm font-semibold text-gray-800 mb-3">Tipo de Fondo</label>
-                    <div class="grid grid-cols-3 gap-3">
-                        <label class="flex items-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition"
-                               :class="heroBackgroundType === 'color' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'">
-                            <input type="radio" name="hero_background_type" value="color" x-model="heroBackgroundType" class="w-4 h-4 text-blue-600">
-                            <div>
-                                <div class="font-medium text-sm">Color Sólido</div>
-                                <div class="text-xs text-gray-500">Gradiente</div>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition"
-                               :class="heroBackgroundType === 'image' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'">
-                            <input type="radio" name="hero_background_type" value="image" x-model="heroBackgroundType" class="w-4 h-4 text-blue-600">
-                            <div>
-                                <div class="font-medium text-sm">Imagen</div>
-                                <div class="text-xs text-gray-500">Foto de fondo</div>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition"
-                               :class="heroBackgroundType === 'video' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'">
-                            <input type="radio" name="hero_background_type" value="video" x-model="heroBackgroundType" class="w-4 h-4 text-blue-600">
-                            <div>
-                                <div class="font-medium text-sm">Video</div>
-                                <div class="text-xs text-gray-500">Video de fondo</div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Imagen -->
-                <div x-show="heroBackgroundType === 'image'" class="bg-gray-50 p-4 rounded-lg border border-gray-200" x-transition>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Imagen de Fondo</label>
-
-                    @if($settings->hero_background_image)
-                        <div class="mb-3">
-                            <img src="{{ $settings->getHeroBackgroundImageUrl() }}" alt="Hero Background" class="h-32 object-cover rounded-lg shadow">
-                            <p class="text-xs text-gray-600 mt-1">Imagen actual: {{ $settings->hero_background_image }}</p>
-                        </div>
-                    @endif
-
-                    @php
-                        $heroImagesPath = public_html_path('images/hero');
-                        $heroImages = [];
-                        if (is_dir($heroImagesPath)) {
-                            $files = glob($heroImagesPath . '/*.{jpg,jpeg,png,webp,gif}', GLOB_BRACE);
-                            foreach ($files as $file) {
-                                $heroImages[] = 'hero/' . basename($file);
-                            }
-                        }
-                    @endphp
-
-                    @if(count($heroImages) > 0)
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Imágenes guardadas ({{ count($heroImages) }}) — haz clic para seleccionar
-                            </label>
-                            <div class="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
-                                @foreach($heroImages as $img)
-                                    <div class="relative cursor-pointer group" @click="selectedImage = '{{ $img }}'">
-                                        <img src="{{ asset('images/' . $img) }}" alt="{{ basename($img) }}"
-                                             class="w-full h-20 object-cover rounded-lg border-2 transition"
-                                             :class="selectedImage === '{{ $img }}' ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200 group-hover:border-blue-300'">
-                                        @if($settings->hero_background_image === $img)
-                                            <span class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 rounded">Actual</span>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                            <input type="hidden" name="hero_background_image_selected" :value="selectedImage">
-                            <p class="text-xs text-gray-500 mt-1" x-show="selectedImage">
-                                Seleccionada: <span x-text="selectedImage" class="font-medium text-blue-600"></span>
-                            </p>
-                        </div>
-                    @endif
-
-                    <label class="block text-sm font-medium text-gray-700 mb-1">O subir nueva imagen</label>
-                    <input type="file" name="hero_background_image" accept="image/jpeg,image/png,image/jpg,image/webp"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WEBP. Máx: 5MB. Recomendado: 1920x1080px</p>
-                </div>
-
-                <!-- Video -->
-                <div x-show="heroBackgroundType === 'video'" class="bg-gray-50 p-4 rounded-lg border border-gray-200" x-transition>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Video de Fondo</label>
-                    @if($settings->hero_background_video)
-                        <div class="mb-3">
-                            <video class="h-32 object-cover rounded-lg shadow" controls>
-                                <source src="{{ $settings->getHeroBackgroundVideoUrl() }}" type="video/mp4">
-                            </video>
-                            <p class="text-xs text-gray-600 mt-1">Video actual: {{ $settings->hero_background_video }}</p>
-                        </div>
-                    @endif
-
-                    @php
-                        $heroVideosPath = public_html_path('videos/hero');
-                        $heroVideos = [];
-                        if (is_dir($heroVideosPath)) {
-                            $files = glob($heroVideosPath . '/*.{mp4,webm,ogg}', GLOB_BRACE);
-                            foreach ($files as $file) {
-                                $heroVideos[] = 'hero/' . basename($file);
-                            }
-                        }
-                    @endphp
-
-                    @if(count($heroVideos) > 0)
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Videos guardados ({{ count($heroVideos) }}) — haz clic para seleccionar
-                            </label>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white"
-                                x-data="{ selectedVideo: '{{ $settings->hero_background_video ?? '' }}' }">
-                                @foreach($heroVideos as $vid)
-                                    <div class="relative cursor-pointer group" @click="selectedVideo = '{{ $vid }}'">
-                                        <video class="w-full h-24 object-cover rounded-lg border-2 transition"
-                                            :class="selectedVideo === '{{ $vid }}' ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200 group-hover:border-blue-300'"
-                                            muted preload="metadata">
-                                            <source src="{{ asset('videos/' . $vid) }}" type="video/mp4">
-                                        </video>
-                                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <div class="bg-black bg-opacity-40 rounded-full p-2">
-                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M8 5v14l11-7z"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        @if($settings->hero_background_video === $vid)
-                                            <span class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 rounded">Actual</span>
-                                        @endif
-                                    </div>
-                                @endforeach
-                                <input type="hidden" name="hero_background_video_selected" :value="selectedVideo">
-                                <p class="text-xs text-gray-500 mt-1 col-span-full" x-show="selectedVideo">
-                                    Seleccionado: <span x-text="selectedVideo" class="font-medium text-blue-600"></span>
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-
-                    <label class="block text-sm font-medium text-gray-700 mb-1">O subir nuevo video</label>
-                    <input type="file" name="hero_background_video" accept="video/mp4,video/webm,video/ogg"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Formatos: MP4, WEBM, OGG. Máx: 50MB.</p>
-                </div>
-
-                <!-- Opacidad -->
-                <div x-show="heroBackgroundType === 'image' || heroBackgroundType === 'video'" class="bg-gray-50 p-4 rounded-lg border border-gray-200" x-transition>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Opacidad del Overlay:
-                        <span x-text="Math.round(overlayOpacity * 100) + '%'" class="font-bold text-blue-600"></span>
-                    </label>
-                    <input type="range" name="hero_overlay_opacity" x-model="overlayOpacity" min="0" max="1" step="0.05"
-                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                    <div class="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>Transparente (0%)</span>
-                        <span>Oscuro (100%)</span>
-                    </div>
-                </div>
-
-                <!-- Textos -->
-                <div class="border-t pt-4 space-y-3">
-                    <h4 class="font-semibold text-gray-800">Textos del Hero</h4>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Título Principal</label>
-                        <input type="text" name="hero_title" value="{{ old('hero_title', $settings->hero_title) }}"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Subtítulo</label>
-                        <textarea name="hero_subtitle" rows="2"
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">{{ old('hero_subtitle', $settings->hero_subtitle) }}</textarea>
-                    </div>
-                    <div class="grid md:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Texto del Botón</label>
-                            <input type="text" name="hero_button_text" value="{{ old('hero_button_text', $settings->hero_button_text) }}"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">URL del Botón</label>
-                            <input type="text" name="hero_button_url" value="{{ old('hero_button_url', $settings->hero_button_url) }}"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botones -->
-                <div class="flex items-center justify-between pt-4 border-t">
-                    <a href="{{ route('admin.dashboard') }}" class="text-gray-600 hover:text-gray-800 font-medium">
-                        ← Volver al Dashboard
-                    </a>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition">
-                        Guardar Cambios
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-(function() {
-    var preview  = document.getElementById('hero-preview');
-    var imgEl    = document.getElementById('logo-preview-img');
-    var coordsEl = document.getElementById('logo-coords');
-    var sliderX  = document.getElementById('slider-x');
-    var sliderY  = document.getElementById('slider-y');
-    var sliderS  = document.getElementById('slider-size');
-    var inputX   = document.getElementById('input-logo-x');
-    var inputY   = document.getElementById('input-logo-y');
-    var inputS   = document.getElementById('input-logo-size');
-    var lblX     = document.getElementById('lbl-x');
-    var lblY     = document.getElementById('lbl-y');
-    var lblSize  = document.getElementById('lbl-size');
-
-    function updateLogoPos() {
-        var x    = parseInt(sliderX.value);
-        var y    = parseInt(sliderY.value);
-        var size = parseInt(sliderS.value);
-        imgEl.style.left      = x + '%';
-        imgEl.style.top       = y + '%';
-        imgEl.style.height    = Math.round(size * 0.35) + 'px';
-        coordsEl.textContent  = 'X: ' + x + '% / Y: ' + y + '%';
-        lblX.textContent      = x + '%';
-        lblY.textContent      = y + '%';
-        lblSize.textContent   = size + 'px';
-        inputX.value          = x;
-        inputY.value          = y;
-        inputS.value          = size;
-    }
-
-    window.updateLogoPos = updateLogoPos;
-
-    window.setLogoPreset = function(x, y) {
-        sliderX.value = x;
-        sliderY.value = y;
-        updateLogoPos();
-    };
-
-    var dragging = false;
-    preview.addEventListener('mousedown',  startDrag);
-    preview.addEventListener('touchstart', startDrag, { passive: false });
-
-    function startDrag(e) {
-        dragging = true;
-        moveLogo(e);
-        window.addEventListener('mousemove', moveLogo);
-        window.addEventListener('mouseup',   stopDrag);
-        window.addEventListener('touchmove', moveLogo, { passive: false });
-        window.addEventListener('touchend',  stopDrag);
-    }
-
-    function stopDrag() {
-        dragging = false;
-        window.removeEventListener('mousemove', moveLogo);
-        window.removeEventListener('mouseup',   stopDrag);
-        window.removeEventListener('touchmove', moveLogo);
-        window.removeEventListener('touchend',  stopDrag);
-    }
-
-    function moveLogo(e) {
-        if (!dragging) return;
-        var rect    = preview.getBoundingClientRect();
-        var clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        var clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        sliderX.value = Math.round(Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width)  * 100)));
-        sliderY.value = Math.round(Math.min(100, Math.max(0, ((clientY - rect.top)  / rect.height) * 100)));
-        updateLogoPos();
-        if (e.preventDefault) e.preventDefault();
-    }
-})();
-</script>
-@endsection
- 
+NO ENCONTRADO: resources\views\admin\stats\index.blade.php 
 ======================== 
 Archivo: resources\views\admin\layout.blade.php 
 ----------------------- 
@@ -2122,327 +1468,10 @@ Route::fallback(function () {
  
 [MIGRACIONES] 
 ======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_01_031905_create_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('settings', function (Blueprint $table) {
-            $table->id();
-
-            // Identidad
-            $table->string('site_name')->nullable();
-            $table->string('site_slogan')->nullable();
-            $table->string('logo')->nullable();
-            $table->string('favicon')->nullable();
-
-            // Colores
-            $table->string('primary_color')->nullable();
-            $table->string('secondary_color')->nullable();
-            $table->string('accent_color')->nullable();
-
-            // Redes Sociales
-            $table->boolean('facebook_enabled')->default(false);
-            $table->string('facebook_url')->nullable();
-            $table->boolean('instagram_enabled')->default(false);
-            $table->string('instagram_url')->nullable();
-            $table->boolean('twitter_enabled')->default(false);
-            $table->string('twitter_url')->nullable();
-            $table->boolean('linkedin_enabled')->default(false);
-            $table->string('linkedin_url')->nullable();
-            $table->boolean('whatsapp_enabled')->default(false);
-            $table->string('whatsapp_number')->nullable();
-
-            // Contacto
-            $table->boolean('show_email')->default(true);
-            $table->string('contact_email')->nullable();
-            $table->boolean('show_phone')->default(true);
-            $table->string('contact_phone')->nullable();
-            $table->boolean('show_address')->default(true);
-            $table->text('contact_address')->nullable();
-            $table->boolean('show_map')->default(false);
-            $table->text('google_maps_url')->nullable();
-
-            // Hero Section
-            $table->boolean('hero_enabled')->default(true);
-            $table->string('hero_title')->nullable();
-            $table->text('hero_subtitle')->nullable();
-            $table->string('hero_button_text')->nullable();
-            $table->string('hero_button_url')->nullable();
-
-            // Hero Background
-            $table->enum('hero_background_type', ['color', 'image', 'video'])->default('color');
-            $table->string('hero_background_image')->nullable();
-            $table->string('hero_background_video')->nullable();
-            $table->decimal('hero_overlay_opacity', 3, 2)->default(0.50);
-
-            // About Section
-            $table->boolean('about_enabled')->default(true);
-            $table->string('about_title')->nullable();
-            $table->text('about_description')->nullable();
-            $table->string('about_image')->nullable();
-
-            // Secciones
-            $table->boolean('services_enabled')->default(true);
-            $table->boolean('products_enabled')->default(true);
-            $table->boolean('testimonials_enabled')->default(true);
-            $table->boolean('gallery_enabled')->default(true);
-            $table->boolean('contact_enabled')->default(true);
-
-            // Footer
-            $table->boolean('show_social_footer')->default(true);
-            $table->text('footer_text')->nullable();
-
-            // WhatsApp
-            $table->boolean('show_whatsapp_button')->default(true);
-            $table->string('whatsapp_button_message')->nullable();
-
-            // SEO
-            $table->text('meta_description')->nullable();
-            $table->text('meta_keywords')->nullable();
-            $table->string('google_analytics_id')->nullable();
-            $table->string('facebook_pixel_id')->nullable();
-
-            // Otros
-            $table->string('notification_email')->nullable();
-            $table->text('business_hours')->nullable();
-
-            $table->timestamps();
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('settings');
-    }
-};
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_04_000001_add_hero_customization_to_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            // Color del título del hero
-            $table->string('hero_title_color')->nullable()->default('#ffffff');
-
-            // Fuente del título del hero
-            $table->string('hero_title_font')->nullable()->default('default');
-
-            // Mostrar logo en lugar del texto principal
-            $table->boolean('hero_show_logo_instead')->default(false);
-        });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->dropColumn([
-                'hero_title_color',
-                'hero_title_font',
-                'hero_show_logo_instead',
-            ]);
-        });
-    }
-};
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_04_051605_add_navbar_settings_to_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-{
-    Schema::table('settings', function (Blueprint $table) {
-        $table->string('navbar_bg_color')->nullable()->default('#ffffff');
-        $table->string('navbar_text_color')->nullable()->default('#000000');
-        $table->boolean('navbar_show_logo')->default(true);
-        $table->boolean('navbar_show_title')->default(true);
-        $table->boolean('navbar_show_slogan')->default(true);
-        $table->json('navbar_menu_labels')->nullable(); // para guardar nombres de links
-    });
-}
-
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            //
-        });
-    }
-};
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_08_230219_add_section_controls_to_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            // Verificar si las columnas no existen antes de agregarlas
-            if (!Schema::hasColumn('settings', 'cta_enabled')) {
-                $table->boolean('cta_enabled')->default(true)->after('hero_enabled');
-            }
-            if (!Schema::hasColumn('settings', 'about_enabled')) {
-                $table->boolean('about_enabled')->default(true)->after('cta_enabled');
-            }
-            if (!Schema::hasColumn('settings', 'features_enabled')) {
-                $table->boolean('features_enabled')->default(true)->after('about_enabled');
-            }
-            if (!Schema::hasColumn('settings', 'stats_enabled')) {
-                $table->boolean('stats_enabled')->default(true)->after('features_enabled');
-            }
-            if (!Schema::hasColumn('settings', 'shop_enabled')) {
-                $table->boolean('shop_enabled')->default(true)->after('products_enabled');
-            }
-
-            // NUEVO: Control para mostrar enlace "Tienda" en navbar
-            if (!Schema::hasColumn('settings', 'navbar_show_shop')) {
-                $table->boolean('navbar_show_shop')->default(true)->after('navbar_show_slogan');
-            }
-        });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            $columns = ['cta_enabled', 'about_enabled', 'features_enabled', 'stats_enabled', 'shop_enabled', 'navbar_show_shop'];
-
-            foreach ($columns as $column) {
-                if (Schema::hasColumn('settings', $column)) {
-                    $table->dropColumn($column);
-                }
-            }
-        });
-    }
-};
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_10_000001_add_hero_logo_position_to_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->integer('hero_logo_x')->default(50);
-            $table->integer('hero_logo_y')->default(50);
-            $table->integer('hero_logo_size')->default(112);
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->dropColumn(['hero_logo_x', 'hero_logo_y', 'hero_logo_size']);
-        });
-    }
-};
- 
-======================== 
  
 [SEEDERS] 
 ======================== 
-Archivo: database\seeders\SettingSeeder.php 
------------------------ 
-<?php
-
-namespace Database\Seeders;
-
-use Illuminate\Database\Seeder;
-use App\Models\Setting;
-
-class SettingSeeder extends Seeder
-{
-    public function run(): void
-    {
-        Setting::create([
-            'site_name' => 'Mi Landing Page',
-            'site_slogan' => 'Tu solución perfecta',
-            'primary_color' => '#3B82F6',
-            'secondary_color' => '#8B5CF6',
-            'accent_color' => '#10B981',
-            'contact_email' => 'contacto@ejemplo.com',
-            'favicon' => 'favicon.ico',
-            'hero_enabled' => true,
-            'hero_title' => 'Bienvenido a Tu LandingPage',
-            'hero_subtitle' => 'Ofrecemos las mejores soluciones para tu negocio',
-            'hero_button_text' => 'Comenzar',
-            'hero_button_url' => '#contacto',
-            'hero_background_type' => 'color',
-            'hero_overlay_opacity' => 0.5,
-            'about_enabled' => true,
-            'services_enabled' => true,
-            'products_enabled' => true,
-            'testimonials_enabled' => true,
-            'gallery_enabled' => true,
-            'contact_enabled' => true,
-            'show_social_footer' => true,
-            'show_whatsapp_button' => true,
-            'whatsapp_button_message' => 'Hola, quiero más información',
-            'navbar_bg_color' => '#000000',
-            'navbar_text_color' => '#ffffff',
-            'hero_show_logo_instead' => true,
-            'hero_show_logo_instead' => true,
-            'hero_logo_x'    => 50,
-            'hero_logo_y'    => 50,
-            'hero_logo_size' => 112,
-        ]);
-    }
-}
- 
+NO ENCONTRADO: database\seeders\StatSeeder.php 
 ======================== 
 Archivo: database\seeders\DatabaseSeeder.php 
 ----------------------- 

@@ -34,6 +34,9 @@ class HeroController extends Controller
             'hero_subtitle',
             'hero_button_text',
             'hero_button_url',
+            'hero_logo_x',
+            'hero_logo_y',
+            'hero_logo_size',
         ]);
 
         // Booleanos

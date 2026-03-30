@@ -23,16 +23,100 @@
                            class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
                     <label for="hero_enabled" class="text-base font-semibold text-gray-800">Hero Activo</label>
                 </div>
+
                 <!-- Mostrar Logo en vez de título -->
                 <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
                     <input type="hidden" name="hero_show_logo_instead" value="0">
                     <input type="checkbox" name="hero_show_logo_instead" id="hero_show_logo_instead" value="1"
                         {{ $settings->hero_show_logo_instead ? 'checked' : '' }}
-                        class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                        class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        onchange="document.getElementById('logo-positioner').style.display = this.checked ? 'block' : 'none'">
                     <label for="hero_show_logo_instead" class="text-sm font-medium text-gray-800">
                         Mostrar Logo en vez del Título
                     </label>
                 </div>
+
+                <!-- Posicionador de Logo (JS puro, sin Alpine) -->
+                <div id="logo-positioner" class="border-2 border-blue-200 rounded-xl p-5 bg-blue-50 space-y-4"
+                     style="{{ $settings->hero_show_logo_instead ? '' : 'display:none' }}">
+                    <h4 class="font-semibold text-blue-800 text-base">Posición del Logo en el Hero</h4>
+                    <p class="text-sm text-gray-600">Arrastra el logo dentro del preview, o usa los sliders.</p>
+
+                    <div id="hero-preview"
+                         class="relative w-full rounded-lg overflow-hidden border-2 border-blue-300 cursor-crosshair select-none"
+                         style="height: 240px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+                        <div class="absolute inset-0 bg-black" style="opacity: 0.4;"></div>
+                        <div class="absolute inset-0 pointer-events-none" style="opacity:0.15;">
+                            <div class="absolute top-0 bottom-0 border-l border-white" style="left:33.3%"></div>
+                            <div class="absolute top-0 bottom-0 border-l border-white" style="left:66.6%"></div>
+                            <div class="absolute left-0 right-0 border-t border-white" style="top:33.3%"></div>
+                            <div class="absolute left-0 right-0 border-t border-white" style="top:66.6%"></div>
+                            <div class="absolute top-0 bottom-0 border-l border-yellow-300" style="left:50%;opacity:0.6"></div>
+                            <div class="absolute left-0 right-0 border-t border-yellow-300" style="top:50%;opacity:0.6"></div>
+                        </div>
+                        <img id="logo-preview-img"
+                             src="{{ $settings->getLogoUrl() }}"
+                             class="absolute object-contain drop-shadow-lg pointer-events-none"
+                             style="height:{{ round(($settings->hero_logo_size ?? 112) * 0.35) }}px; max-width:200px; left:{{ $settings->hero_logo_x ?? 50 }}%; top:{{ $settings->hero_logo_y ?? 50 }}%; transform:translate(-50%,-50%);">
+                        <div id="logo-coords" class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-mono">
+                            X: {{ $settings->hero_logo_x ?? 50 }}% / Y: {{ $settings->hero_logo_y ?? 50 }}%
+                        </div>
+                        <div class="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">Arrastra para posicionar</div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="flex justify-between text-sm font-medium text-gray-700">
+                            <span>Posición Horizontal</span>
+                            <span id="lbl-x" class="font-bold text-blue-600">{{ $settings->hero_logo_x ?? 50 }}%</span>
+                        </label>
+                        <input id="slider-x" type="range" min="0" max="100" step="1"
+                               value="{{ $settings->hero_logo_x ?? 50 }}"
+                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                               oninput="updateLogoPos()">
+                        <div class="flex justify-between text-xs text-gray-400"><span>Izquierda</span><span>Centro</span><span>Derecha</span></div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="flex justify-between text-sm font-medium text-gray-700">
+                            <span>Posición Vertical</span>
+                            <span id="lbl-y" class="font-bold text-blue-600">{{ $settings->hero_logo_y ?? 50 }}%</span>
+                        </label>
+                        <input id="slider-y" type="range" min="0" max="100" step="1"
+                               value="{{ $settings->hero_logo_y ?? 50 }}"
+                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                               oninput="updateLogoPos()">
+                        <div class="flex justify-between text-xs text-gray-400"><span>Arriba</span><span>Centro</span><span>Abajo</span></div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="flex justify-between text-sm font-medium text-gray-700">
+                            <span>Tamaño del Logo</span>
+                            <span id="lbl-size" class="font-bold text-blue-600">{{ $settings->hero_logo_size ?? 112 }}px</span>
+                        </label>
+                        <input id="slider-size" type="range" min="40" max="300" step="4"
+                               value="{{ $settings->hero_logo_size ?? 112 }}"
+                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                               oninput="updateLogoPos()">
+                        <div class="flex justify-between text-xs text-gray-400"><span>40px</span><span>112px</span><span>300px</span></div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Posiciones rápidas</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" onclick="setLogoPreset(50,25)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Arriba</button>
+                            <button type="button" onclick="setLogoPreset(50,50)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Centro</button>
+                            <button type="button" onclick="setLogoPreset(50,70)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Abajo</button>
+                            <button type="button" onclick="setLogoPreset(20,50)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Izquierda</button>
+                            <button type="button" onclick="setLogoPreset(50,30)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Default</button>
+                            <button type="button" onclick="setLogoPreset(80,50)" class="py-2 text-xs bg-white border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition">Derecha</button>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="hero_logo_x"    id="input-logo-x"    value="{{ $settings->hero_logo_x ?? 50 }}">
+                    <input type="hidden" name="hero_logo_y"    id="input-logo-y"    value="{{ $settings->hero_logo_y ?? 50 }}">
+                    <input type="hidden" name="hero_logo_size" id="input-logo-size" value="{{ $settings->hero_logo_size ?? 112 }}">
+                </div>
+
                 <!-- Tipo de fondo -->
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <label class="block text-sm font-semibold text-gray-800 mb-3">Tipo de Fondo</label>
@@ -89,7 +173,7 @@
                     @if(count($heroImages) > 0)
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                📁 Imágenes guardadas ({{ count($heroImages) }}) — haz clic para seleccionar
+                                Imágenes guardadas ({{ count($heroImages) }}) — haz clic para seleccionar
                             </label>
                             <div class="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
                                 @foreach($heroImages as $img)
@@ -105,7 +189,7 @@
                             </div>
                             <input type="hidden" name="hero_background_image_selected" :value="selectedImage">
                             <p class="text-xs text-gray-500 mt-1" x-show="selectedImage">
-                                ✅ Seleccionada: <span x-text="selectedImage" class="font-medium text-blue-600"></span>
+                                Seleccionada: <span x-text="selectedImage" class="font-medium text-blue-600"></span>
                             </p>
                         </div>
                     @endif
@@ -142,7 +226,7 @@
                     @if(count($heroVideos) > 0)
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                📁 Videos guardados ({{ count($heroVideos) }}) — haz clic para seleccionar
+                                Videos guardados ({{ count($heroVideos) }}) — haz clic para seleccionar
                             </label>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white"
                                 x-data="{ selectedVideo: '{{ $settings->hero_background_video ?? '' }}' }">
@@ -167,7 +251,7 @@
                                 @endforeach
                                 <input type="hidden" name="hero_background_video_selected" :value="selectedVideo">
                                 <p class="text-xs text-gray-500 mt-1 col-span-full" x-show="selectedVideo">
-                                    ✅ Seleccionado: <span x-text="selectedVideo" class="font-medium text-blue-600"></span>
+                                    Seleccionado: <span x-text="selectedVideo" class="font-medium text-blue-600"></span>
                                 </p>
                             </div>
                         </div>
@@ -233,4 +317,77 @@
         </form>
     </div>
 </div>
+
+<script>
+(function() {
+    var preview  = document.getElementById('hero-preview');
+    var imgEl    = document.getElementById('logo-preview-img');
+    var coordsEl = document.getElementById('logo-coords');
+    var sliderX  = document.getElementById('slider-x');
+    var sliderY  = document.getElementById('slider-y');
+    var sliderS  = document.getElementById('slider-size');
+    var inputX   = document.getElementById('input-logo-x');
+    var inputY   = document.getElementById('input-logo-y');
+    var inputS   = document.getElementById('input-logo-size');
+    var lblX     = document.getElementById('lbl-x');
+    var lblY     = document.getElementById('lbl-y');
+    var lblSize  = document.getElementById('lbl-size');
+
+    function updateLogoPos() {
+        var x    = parseInt(sliderX.value);
+        var y    = parseInt(sliderY.value);
+        var size = parseInt(sliderS.value);
+        imgEl.style.left      = x + '%';
+        imgEl.style.top       = y + '%';
+        imgEl.style.height    = Math.round(size * 0.35) + 'px';
+        coordsEl.textContent  = 'X: ' + x + '% / Y: ' + y + '%';
+        lblX.textContent      = x + '%';
+        lblY.textContent      = y + '%';
+        lblSize.textContent   = size + 'px';
+        inputX.value          = x;
+        inputY.value          = y;
+        inputS.value          = size;
+    }
+
+    window.updateLogoPos = updateLogoPos;
+
+    window.setLogoPreset = function(x, y) {
+        sliderX.value = x;
+        sliderY.value = y;
+        updateLogoPos();
+    };
+
+    var dragging = false;
+    preview.addEventListener('mousedown',  startDrag);
+    preview.addEventListener('touchstart', startDrag, { passive: false });
+
+    function startDrag(e) {
+        dragging = true;
+        moveLogo(e);
+        window.addEventListener('mousemove', moveLogo);
+        window.addEventListener('mouseup',   stopDrag);
+        window.addEventListener('touchmove', moveLogo, { passive: false });
+        window.addEventListener('touchend',  stopDrag);
+    }
+
+    function stopDrag() {
+        dragging = false;
+        window.removeEventListener('mousemove', moveLogo);
+        window.removeEventListener('mouseup',   stopDrag);
+        window.removeEventListener('touchmove', moveLogo);
+        window.removeEventListener('touchend',  stopDrag);
+    }
+
+    function moveLogo(e) {
+        if (!dragging) return;
+        var rect    = preview.getBoundingClientRect();
+        var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        sliderX.value = Math.round(Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width)  * 100)));
+        sliderY.value = Math.round(Math.min(100, Math.max(0, ((clientY - rect.top)  / rect.height) * 100)));
+        updateLogoPos();
+        if (e.preventDefault) e.preventDefault();
+    }
+})();
+</script>
 @endsection

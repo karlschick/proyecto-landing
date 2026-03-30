@@ -4,29 +4,23 @@
 
     <!-- Background dinámico -->
     <?php if($settings->hero_background_type === 'video' && $settings->hero_background_video): ?>
-        <!-- Video de fondo -->
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
             <source src="<?php echo e($settings->getHeroBackgroundVideoUrl()); ?>?v=<?php echo e($settings->updated_at?->timestamp ?? time()); ?>" type="video/mp4">
         </video>
-        <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-black"
              style="opacity: <?php echo e($settings->hero_overlay_opacity ?? 0.5); ?>"></div>
 
     <?php elseif($settings->hero_background_type === 'image' && $settings->hero_background_image): ?>
-        <!-- Imagen de fondo -->
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
              style="background-image: url('<?php echo e($settings->getHeroBackgroundImageUrl()); ?>?v=<?php echo e(time()); ?>')">
         </div>
-        <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-black"
              style="opacity: <?php echo e($settings->hero_overlay_opacity ?? 0.5); ?>"></div>
 
     <?php else: ?>
-        <!-- Video por defecto -->
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
             <source src="<?php echo e(asset('videos/hero/plantilla1.mp4')); ?>" type="video/mp4">
         </video>
-        <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-black" style="opacity: 0.5"></div>
     <?php endif; ?>
 
@@ -35,7 +29,6 @@
 
         $buttonUrl = $settings->hero_button_url ?? '#productos';
 
-        // Detectar tipo de URL y construir correctamente
         if (Str::startsWith($buttonUrl, '#')) {
             $finalUrl = url('/') . '/' . ltrim($buttonUrl, '/');
         } elseif (Str::startsWith($buttonUrl, ['http://', 'https://'])) {
@@ -43,19 +36,30 @@
         } else {
             $finalUrl = url($buttonUrl);
         }
+
+        $logoX    = $settings->hero_logo_x    ?? 50;
+        $logoY    = $settings->hero_logo_y    ?? 50;
+        $logoSize = $settings->hero_logo_size ?? 112;
     ?>
 
-    <!-- Contenido en el 25% inferior (imagen visible 75%) -->
-<div class="relative z-10 w-full"
-     style="padding-bottom: 5vh; padding-top: 2vh; height: 35%; display: flex; flex-direction: column; justify-content: center;">
+    
+    <?php if($settings->hero_show_logo_instead && $settings->getLogoUrl()): ?>
+        <div class="absolute"
+             style="z-index: 5; left: <?php echo e($logoX); ?>%; top: <?php echo e($logoY); ?>%; transform: translate(-50%, -50%);">
+            <img src="<?php echo e($settings->getLogoUrl()); ?>?v=<?php echo e(time()); ?>"
+                 alt="<?php echo e($settings->site_name); ?>"
+                 class="object-contain animate-fade-in"
+                 style="height: <?php echo e($logoSize); ?>px; max-width: 80vw;">
+        </div>
+    <?php endif; ?>
+
+    <!-- Contenido inferior - z-index 20 siempre encima del logo -->
+    <div class="absolute bottom-0 left-0 right-0"
+         style="z-index: 20; padding-bottom: 5vh; padding-top: 2vh;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
             
-            <?php if($settings->hero_show_logo_instead && $settings->getLogoUrl()): ?>
-                <img src="<?php echo e($settings->getLogoUrl()); ?>?v=<?php echo e(time()); ?>"
-                     alt="<?php echo e($settings->site_name); ?>"
-                     class="mx-auto mb-4 h-20 md:h-28 object-contain animate-fade-in">
-            <?php else: ?>
+            <?php if(!$settings->hero_show_logo_instead): ?>
                 <h1 class="font-bold mb-4 animate-fade-in"
                     style="color: <?php echo e($settings->hero_title_color ?? '#ffffff'); ?>;
                            font-family:
@@ -100,16 +104,13 @@
 </section>
 
 <style>
-/* Pequeña animación para que aparezca suave */
 @keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in {
-    animation: fade-in 5.5s ease forwards;
+    animation: fade-in 1.5s ease forwards;
 }
-
-/* Efecto de reflejo amarillo en el botón */
 .hero-button::before {
     content: '';
     position: absolute;
@@ -120,11 +121,9 @@
     background: linear-gradient(90deg, transparent, rgba(245, 245, 0, 0.6), transparent);
     transition: left 0.5s ease;
 }
-
 .hero-button:hover::before {
     left: 100%;
 }
-
 .hero-button:hover {
     background-color: rgba(245, 245, 0, 0.15);
     border-color: rgb(245, 245, 0);
