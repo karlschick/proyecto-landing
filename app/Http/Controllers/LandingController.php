@@ -9,15 +9,16 @@ class LandingController extends Controller
 {
     public function index()
     {
-        $settings = CacheService::settings();
-        $services = CacheService::services();
-        $projects = CacheService::projects();
+        $settings     = CacheService::settings();
+        $services     = CacheService::services();
+        $projects     = CacheService::projects();
         $testimonials = CacheService::testimonials();
-        $gallery = CacheService::gallery();
-        $products = CacheService::products(); // 👈 añadimos esto
+        $gallery      = CacheService::gallery();
+        $products     = CacheService::products();
+        $stats        = CacheService::stats(); // ← AGREGADO
 
         return view('landing.index', compact(
-            'settings', 'services', 'projects', 'testimonials', 'gallery', 'products'
+            'settings', 'services', 'projects', 'testimonials', 'gallery', 'products', 'stats'
         ));
     }
 }

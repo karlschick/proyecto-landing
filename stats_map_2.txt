@@ -1,0 +1,437 @@
+Mapa de archivos - STATS (Parte 2) 
+======================== 
+Generado: 30/03/2026  1:00:11,86 
+======================== 
+ 
+[VISTA ADMIN - FORM PARTIAL] 
+======================== 
+Archivo: resources\views\admin\stats\_form.blade.php 
+----------------------- 
+{{--
+    Partial compartido entre modal crear y modal editar.
+    Ubicación: resources/views/admin/stats/_form.blade.php
+--}}
+
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Etiqueta <span class="text-red-500">*</span></label>
+    <input type="text" name="label" placeholder="Proyectos Completados"
+           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+           required maxlength="100">
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Valor mostrado <span class="text-red-500">*</span>
+        </label>
+        <input type="text" name="value" placeholder="150+"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+               required maxlength="20">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Target (número) <span class="text-red-500">*</span>
+        </label>
+        <input type="number" name="target" placeholder="150" min="0"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+               required>
+    </div>
+</div>
+
+<div class="grid grid-cols-3 gap-3">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Sufijo</label>
+        <input type="text" name="suffix" placeholder="+" maxlength="5"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+        <p class="text-xs text-gray-400 mt-1">ej: +, %, K+</p>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Velocidad (ms)</label>
+        <input type="number" name="duration" placeholder="20" min="1" max="1000"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+               required>
+        <p class="text-xs text-gray-400 mt-1">menor = más rápido</p>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Paso</label>
+        <input type="number" name="step" placeholder="5" min="1"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+               required>
+        <p class="text-xs text-gray-400 mt-1">incremento/tick</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
+        <input type="number" name="order" placeholder="1" min="0"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+    </div>
+    <div class="flex items-end pb-2">
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="is_active" value="1" checked
+                   class="w-4 h-4 rounded text-primary focus:ring-primary/50">
+            <span class="text-sm text-gray-700">Activo</span>
+        </label>
+    </div>
+</div>
+ 
+======================== 
+ 
+[CONTROLADORES] 
+======================== 
+Archivo: app\Http\Controllers\LandingController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\CacheService;
+use Illuminate\Http\Request;
+
+class LandingController extends Controller
+{
+    public function index()
+    {
+        $settings     = CacheService::settings();
+        $services     = CacheService::services();
+        $projects     = CacheService::projects();
+        $testimonials = CacheService::testimonials();
+        $gallery      = CacheService::gallery();
+        $products     = CacheService::products();
+        $stats        = CacheService::stats(); // ← AGREGADO
+
+        return view('landing.index', compact(
+            'settings', 'services', 'projects', 'testimonials', 'gallery', 'products', 'stats'
+        ));
+    }
+}
+ 
+======================== 
+Archivo: app\Http\Controllers\Admin\StatController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Stat;
+use App\Services\CacheService;
+use Illuminate\Http\Request;
+
+class StatController extends Controller
+{
+    public function index()
+    {
+        $stats = Stat::ordered()->get();
+        return view('admin.stats.index', compact('stats'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'label'    => 'required|string|max:100',
+            'value'    => 'required|string|max:20',
+            'target'   => 'required|integer|min:0',
+            'suffix'   => 'nullable|string|max:5',
+            'duration' => 'required|integer|min:1|max:1000',
+            'step'     => 'required|integer|min:1',
+            'order'    => 'nullable|integer|min:0',
+        ]);
+
+        $validated['is_active'] = true;
+        $validated['order']     = $validated['order'] ?? Stat::max('order') + 1;
+
+        Stat::create($validated);
+
+        CacheService::clearStats();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Estadística creada correctamente.');
+    }
+
+    public function update(Request $request, Stat $stat)
+    {
+        $validated = $request->validate([
+            'label'    => 'required|string|max:100',
+            'value'    => 'required|string|max:20',
+            'target'   => 'required|integer|min:0',
+            'suffix'   => 'nullable|string|max:5',
+            'duration' => 'required|integer|min:1|max:1000',
+            'step'     => 'required|integer|min:1',
+            'order'    => 'nullable|integer|min:0',
+            'is_active'=> 'nullable|boolean',
+        ]);
+
+        $validated['is_active'] = filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN);
+
+        $stat->update($validated);
+
+        CacheService::clearStats();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Estadística actualizada correctamente.');
+    }
+
+    public function destroy(Stat $stat)
+    {
+        $stat->delete();
+
+        CacheService::clearStats();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Estadística eliminada.');
+    }
+
+    public function toggleActive(Stat $stat)
+    {
+        $stat->update(['is_active' => !$stat->is_active]);
+
+        CacheService::clearStats();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Estado actualizado.');
+    }
+
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'order'   => 'required|array',
+            'order.*' => 'integer|exists:stats,id',
+        ]);
+
+        foreach ($request->order as $position => $id) {
+            Stat::where('id', $id)->update(['order' => $position + 1]);
+        }
+
+        CacheService::clearStats();
+
+        return response()->json(['success' => true]);
+    }
+}
+ 
+======================== 
+ 
+[SERVICIOS] 
+======================== 
+Archivo: app\Services\CacheService.php 
+----------------------- 
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Cache;
+use App\Models\Setting;
+use App\Models\Service;
+use App\Models\Project;
+use App\Models\Testimonial;
+use App\Models\GalleryImage;
+use App\Models\Stat;
+
+class CacheService
+{
+    protected const TTL = 3600; // 1 hora
+    protected const SETTINGS_KEY     = 'site_settings';
+    protected const SERVICES_KEY     = 'active_services';
+    protected const PROJECTS_KEY     = 'active_projects';
+    protected const TESTIMONIALS_KEY = 'featured_testimonials';
+    protected const GALLERY_KEY      = 'active_gallery_images';
+    protected const STATS_KEY        = 'active_stats'; // ← NUEVO
+
+    /**
+     * Obtener settings con caché
+     */
+    public static function settings()
+    {
+        return Cache::remember(self::SETTINGS_KEY, self::TTL, function () {
+            return Setting::getSettings();
+        });
+    }
+
+    /**
+     * Obtener servicios activos con caché
+     */
+    public static function services()
+    {
+        return Cache::remember(self::SERVICES_KEY, self::TTL, function () {
+            return Service::active()->ordered()->get();
+        });
+    }
+
+    /**
+     * Obtener proyectos activos con caché
+     */
+    public static function projects()
+    {
+        return Cache::remember(self::PROJECTS_KEY, self::TTL, function () {
+            return Project::with('category')
+                ->active()
+                ->featured()
+                ->ordered()
+                ->take(6)
+                ->get();
+        });
+    }
+
+    /**
+     * Obtener productos activos con caché
+     */
+    public static function products()
+    {
+        return Cache::remember('active_products', self::TTL, function () {
+            return \App\Models\Product::where('is_active', true)
+                ->orderBy('order')
+                ->take(12)
+                ->get();
+        });
+    }
+
+    /**
+     * Obtener testimonios destacados con caché
+     */
+    public static function testimonials()
+    {
+        return Cache::remember(self::TESTIMONIALS_KEY, self::TTL, function () {
+            return Testimonial::active()
+                ->featured()
+                ->ordered()
+                ->take(6)
+                ->get();
+        });
+    }
+
+    /**
+     * Obtener imágenes de galería con caché
+     */
+    public static function gallery()
+    {
+        return Cache::remember(self::GALLERY_KEY, self::TTL, function () {
+            return GalleryImage::active()->ordered()->take(12)->get();
+        });
+    }
+
+    /**
+     * Obtener stats activos con caché
+     */
+    public static function stats()
+    {
+        return Cache::remember(self::STATS_KEY, self::TTL, function () {
+            return Stat::active()->ordered()->get();
+        });
+    }
+
+    // ─── Métodos clear ────────────────────────────────────────
+
+    public static function clearSettings(): void
+    {
+        Cache::forget(self::SETTINGS_KEY);
+    }
+
+    public static function clearServices(): void
+    {
+        Cache::forget(self::SERVICES_KEY);
+    }
+
+    public static function clearProjects(): void
+    {
+        Cache::forget(self::PROJECTS_KEY);
+    }
+
+    public static function clearTestimonials(): void
+    {
+        Cache::forget(self::TESTIMONIALS_KEY);
+    }
+
+    public static function clearGallery(): void
+    {
+        Cache::forget(self::GALLERY_KEY);
+    }
+
+    public static function clearProducts(): void
+    {
+        Cache::forget('active_products');
+    }
+
+    public static function clearStats(): void
+    {
+        Cache::forget(self::STATS_KEY);
+    }
+
+    /**
+     * Limpiar todo el caché del sitio
+     */
+    public static function clearAll(): void
+    {
+        Cache::forget(self::SETTINGS_KEY);
+        Cache::forget(self::SERVICES_KEY);
+        Cache::forget(self::PROJECTS_KEY);
+        Cache::forget(self::TESTIMONIALS_KEY);
+        Cache::forget(self::GALLERY_KEY);
+        Cache::forget('active_products');
+        Cache::forget(self::STATS_KEY); // ← NUEVO
+
+        \Log::info('All site cache cleared');
+    }
+
+    public static function getTTL(): int
+    {
+        return self::TTL;
+    }
+}
+ 
+======================== 
+ 
+[MODELO] 
+======================== 
+Archivo: app\Models\Stat.php 
+----------------------- 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Stat extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'label',
+        'value',
+        'target',
+        'suffix',
+        'duration',
+        'step',
+        'order',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'target'    => 'integer',
+        'duration'  => 'integer',
+        'step'      => 'integer',
+        'order'     => 'integer',
+    ];
+
+    // ─── Scopes ───────────────────────────────────────────────
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order')->orderBy('id');
+    }
+}
+ 
+======================== 
+ 
+Parte 2 completada. 

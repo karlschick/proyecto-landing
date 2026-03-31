@@ -83,6 +83,24 @@
                         Nosotros
                     </a>
 
+                    <a href="<?php echo e(route('admin.stats.index')); ?>"
+                    class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition mb-1 <?php echo e(request()->routeIs('admin.stats.*') ? 'bg-gray-800 text-white' : ''); ?>">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Estadísticas
+                        <?php
+                            $statsCount = \App\Models\Stat::count();
+                        ?>
+                        <?php if($statsCount > 0): ?>
+                        <span class="ml-auto bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
+                            <?php echo e($statsCount); ?>
+
+                        </span>
+                        <?php endif; ?>
+                    </a>
+
+
                     <a href="<?php echo e(route('admin.services.index')); ?>"
                        class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition mb-1 <?php echo e(request()->routeIs('admin.services.*') ? 'bg-gray-800 text-white' : ''); ?>">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

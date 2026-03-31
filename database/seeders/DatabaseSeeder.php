@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             ProjectSeeder::class,
             TestimonialSeeder::class,
             GallerySeeder::class,
+            StatSeeder::class,
 
             // E-commerce seeders
             ProductCategorySeeder::class,

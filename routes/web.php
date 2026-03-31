@@ -129,6 +129,22 @@ Route::middleware(['auth', 'verified'])
                 Route::post('/{id}/aprobar', [PaymentController::class, 'aprobar'])->name('aprobar');
                 Route::post('/{id}/rechazar', [PaymentController::class, 'rechazar'])->name('rechazar');
             });
+
+            // ── STATS ────────────────────────────────────────────────────
+        Route::prefix('stats')->name('stats.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\StatController::class, 'index'])
+                ->name('index');
+            Route::post('/', [App\Http\Controllers\Admin\StatController::class, 'store'])
+                ->name('store');
+            Route::put('/{stat}', [App\Http\Controllers\Admin\StatController::class, 'update'])
+                ->name('update');
+            Route::delete('/{stat}', [App\Http\Controllers\Admin\StatController::class, 'destroy'])
+                ->name('destroy');
+            Route::patch('/{stat}/toggle', [App\Http\Controllers\Admin\StatController::class, 'toggleActive'])
+                ->name('toggle');
+            Route::post('/reorder', [App\Http\Controllers\Admin\StatController::class, 'reorder'])
+                ->name('reorder');
+        });
     });
 
 /* =============================
