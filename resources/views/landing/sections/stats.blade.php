@@ -1,13 +1,20 @@
 {{--
     resources/views/landing/sections/stats.blade.php
-    Los stats vienen de la variable $stats (colección de App\Models\Stat)
-    pasada desde LandingController.
+    Los stats vienen de $stats (colección de App\Models\Stat)
+    Los colores vienen de $settings->stats_bg_color y stats_number_color
 --}}
 
 @if($stats->isNotEmpty())
-<section class="py-5 bg-black text-white flex items-center justify-center relative overflow-hidden" style="height: 13vh;">
 
-    {{-- Efecto de reflejo amarillo en el fondo --}}
+@php
+    $bgColor     = $settings->stats_bg_color     ?? '#000000';
+    $numberColor = $settings->stats_number_color ?? '#f5f500';
+@endphp
+
+<section class="py-5 text-white flex items-center justify-center relative overflow-hidden"
+         style="height: 13vh; background-color: {{ $bgColor }};">
+
+    {{-- Efecto de reflejo en el fondo --}}
     <div class="stats-shine absolute inset-0 pointer-events-none"></div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
@@ -15,7 +22,8 @@
 
             @foreach($stats as $stat)
             <div>
-                <div class="text-4xl md:text-5xl font-bold text-accent mb-2"
+                <div class="text-4xl md:text-5xl font-bold mb-2"
+                     style="color: {{ $numberColor }};"
                      x-data="{ count: 0, done: false }"
                      x-init="window.addEventListener('scroll', () => {
                          if (!done && $el.getBoundingClientRect().top < window.innerHeight) {

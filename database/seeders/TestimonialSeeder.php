@@ -15,6 +15,7 @@ class TestimonialSeeder extends Seeder
                 'client_position' => 'CEO',
                 'client_company' => 'Tech Solutions',
                 'testimonial' => 'Excelente trabajo, superaron nuestras expectativas. El equipo fue profesional y entregó el proyecto a tiempo. Definitivamente los recomendaría.',
+                'client_photo' => 'testimonials/default-testimonial-1.jpg',
                 'rating' => 5,
                 'is_featured' => true,
                 'is_active' => true,
@@ -25,6 +26,7 @@ class TestimonialSeeder extends Seeder
                 'client_position' => 'Director de Marketing',
                 'client_company' => 'Fashion Store',
                 'testimonial' => 'La tienda online que desarrollaron para nosotros ha incrementado nuestras ventas en un 300%. Altamente recomendados.',
+                'client_photo' => 'testimonials/default-testimonial-2.jpg',
                 'rating' => 5,
                 'is_featured' => true,
                 'is_active' => true,
@@ -35,6 +37,7 @@ class TestimonialSeeder extends Seeder
                 'client_position' => 'Gerente General',
                 'client_company' => 'ABC Corporation',
                 'testimonial' => 'Profesionales, creativos y muy responsables. Nuestro nuevo portal web es exactamente lo que necesitábamos.',
+                'client_photo' => 'testimonials/default-testimonial-3.jpg',
                 'rating' => 5,
                 'is_featured' => true,
                 'is_active' => true,
@@ -45,8 +48,9 @@ class TestimonialSeeder extends Seeder
                 'client_position' => 'Product Manager',
                 'client_company' => 'FoodNow Inc.',
                 'testimonial' => 'La app que desarrollaron funciona perfectamente. Los usuarios están muy satisfechos y hemos recibido excelentes comentarios.',
+                'client_photo' => 'testimonials/default-testimonial-4.jpg',
                 'rating' => 4,
-                'is_featured' => true, // Cambié a true
+                'is_featured' => true,
                 'is_active' => true,
                 'order' => 4,
             ],
@@ -55,15 +59,15 @@ class TestimonialSeeder extends Seeder
                 'client_position' => 'Directora de Innovación',
                 'client_company' => 'Banco Digital',
                 'testimonial' => 'El rediseño de nuestra app ha mejorado significativamente la experiencia de nuestros usuarios. Trabajo impecable.',
+                'client_photo' => 'testimonials/default-testimonial-5.jpg',
                 'rating' => 5,
-                'is_featured' => true, // Cambié a true
+                'is_featured' => true,
                 'is_active' => true,
                 'order' => 5,
             ],
         ];
 
         foreach ($testimonials as $testimonial) {
-            // NO asignamos client_photo, dejamos que sea null para usar las imágenes default
             Testimonial::create($testimonial);
         }
     }

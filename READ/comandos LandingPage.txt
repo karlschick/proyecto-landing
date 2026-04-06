@@ -15,13 +15,13 @@ php artisan db:seed --class=AdminUserSeeder
 
 
 
-Objetivo									Comando
+Objetivo									     Comando
 genera automáticamente una nueva APP_KEY		php artisan key:generate
 Ejecutar todos los seeders registrados			php artisan db:seed
-Ejecutar un seeder específico				php artisan db:seed --class=NombreDelSeeder
-Resetear base y seeders					php artisan migrate:fresh --seed
+Ejecutar un seeder específico				    php artisan db:seed --class=NombreDelSeeder
+Resetear base y seeders					        php artisan migrate:fresh --seed
 Refrescar (rollback + migrate + seed)			php artisan migrate:refresh --seed
-Forzar seeders en producción				php artisan db:seed --force
+Forzar seeders en producción				    php artisan db:seed --force
 
 
 php artisan config:clear
@@ -32,3 +32,29 @@ php artisan config:cache
 call READ\list_hero.bat
 call READ\list_stats.bat
 call READ\list_about.bat
+
+
+Para revisar una sección específica:
+
+"Revisa la sección [nombre] del repo https://github.com/karlschick/proyecto-landing y luego [pregunta o tarea]"
+
+
+Ejemplos concretos para tu proyecto:
+
+"Revisa la sección Hero del repo y dime cómo mejorar el update"
+
+
+"Revisa la sección About del repo y agrega un campo nuevo llamado X"
+
+
+"Revisa HeroController y su vista Blade del repo y encuentra por qué no guarda el video"
+
+
+"Revisa la sección Settings del repo y dime qué campos faltan en el seeder"
+
+
+Si no sabes exactamente qué archivo es:
+
+"En el repo https://github.com/karlschick/proyecto-landing, busca todo lo relacionado con [nombre de sección] y [tarea]"
+
+Yo me encargo de navegar, encontrar los archivos correctos y leerlos.

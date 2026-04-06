@@ -1,6 +1,6 @@
 Mapa de archivos - ABOUT (Parte 1) 
 ======================== 
-Generado: 30/03/2026  1:04:16,23 
+Generado: 30/03/2026 22:58:30,97 
 ======================== 
  
 [VISTA - LANDING ABOUT] 
@@ -47,7 +47,7 @@ Archivo: resources\views\landing\sections\about.blade.php
                  alt="{{ $settings->about_title ?? 'Sobre Nosotros' }}"
                  class="rounded-lg shadow-lg w-full max-w-[400px] h-auto object-contain relative z-10">
           @else
-            <img src="{{ asset('images/settings/about-image.jpg') }}"
+            <img src="{{ asset('images/about/about-image.jpg') }}"
                  alt="Sobre Nosotros"
                  class="rounded-lg shadow-lg w-full max-w-[400px] h-auto object-contain relative z-10">
           @endif
@@ -142,7 +142,7 @@ Archivo: resources\views\admin\about\index.blade.php
         @csrf
         @method('PUT')
 
-        <div class="bg-white rounded-xl shadow p-6 space-y-5">
+        <div class="bg-white rounded-xl shadow p-6 space-y-6">
 
             {{-- Título --}}
             <div>
@@ -155,23 +155,65 @@ Archivo: resources\views\admin\about\index.blade.php
             {{-- Descripción --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
-                <textarea name="about_description" rows="5"
+                <textarea name="about_description" rows="6"
                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('about_description', $settings->about_description) }}</textarea>
+                <p class="text-xs text-gray-400 mt-1">Cada salto de línea se muestra como párrafo separado.</p>
             </div>
 
-            {{-- Imagen --}}
+            {{-- Imagen actual --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Imagen</label>
-                @if($settings->about_image)
-                    <div class="mb-3">
-                        <img src="{{ $settings->getAboutImageUrl() }}" alt="Imagen About"
-                             class="h-40 object-cover rounded-lg shadow">
-                        <p class="text-xs text-gray-500 mt-1">Imagen actual</p>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Imagen de la sección</label>
+
+                {{-- Preview imagen actual --}}
+                <div id="preview-container" class="mb-4 {{ $settings->about_image ? '' : 'hidden' }}">
+                    <p class="text-xs text-gray-500 mb-2">Imagen actual:</p>
+                    <img id="preview-img"
+                         src="{{ $settings->about_image ? $settings->getAboutImageUrl() : '' }}"
+                         alt="Imagen actual"
+                         class="h-48 object-cover rounded-lg shadow border border-gray-200">
+                </div>
+
+                {{-- Input oculto para imagen seleccionada de galería --}}
+                <input type="hidden" name="about_image_selected" id="about_image_selected"
+                       value="{{ $settings->about_image }}">
+
+                {{-- Subir nueva imagen --}}
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Subir nueva imagen</label>
+                    <input type="file" name="about_image" accept="image/jpeg,image/png,image/jpg,image/webp"
+                           id="file-upload"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-400 mt-1">Formatos: JPG, PNG, WEBP. Máx: 5MB.</p>
+                </div>
+
+                {{-- Galería de imágenes existentes en /images/about/ --}}
+                @if(count($galleryImages) > 0)
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">
+                        O elegir de las imágenes existentes en <code class="bg-gray-100 px-1 rounded">images/about/</code>
+                    </label>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-72 overflow-y-auto">
+                        @foreach($galleryImages as $img)
+                        <div class="gallery-item cursor-pointer group relative"
+                             data-value="{{ $img['value'] }}"
+                             data-url="{{ $img['url'] }}"
+                             onclick="selectGalleryImage(this)">
+                            <img src="{{ $img['url'] }}"
+                                 alt="{{ $img['filename'] }}"
+                                 class="w-full h-20 object-cover rounded-lg border-2 border-transparent group-hover:border-blue-400 transition">
+                            <div class="absolute inset-0 rounded-lg border-2 border-transparent pointer-events-none selected-border transition"></div>
+                            <p class="text-xs text-gray-400 mt-1 truncate text-center">{{ $img['filename'] }}</p>
+                        </div>
+                        @endforeach
                     </div>
+                    <p class="text-xs text-gray-400 mt-1">Haz clic en una imagen para seleccionarla. Si subes una imagen nueva, tiene prioridad.</p>
+                </div>
+                @else
+                <div class="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+                    <p class="text-sm text-gray-400">No hay imágenes en <code>public_html/images/about/</code></p>
+                    <p class="text-xs text-gray-400 mt-1">Sube una imagen usando el campo de arriba.</p>
+                </div>
                 @endif
-                <input type="file" name="about_image" accept="image/jpeg,image/png,image/jpg"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG. Máx: 5MB.</p>
             </div>
 
             {{-- Botón --}}
@@ -181,551 +223,71 @@ Archivo: resources\views\admin\about\index.blade.php
                     Guardar cambios
                 </button>
             </div>
+
         </div>
     </form>
 </div>
-@endsection
- 
-======================== 
- 
-[RUTAS] 
-======================== 
-Archivo: routes\web.php 
------------------------ 
-<?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\ServiceController;
-use App\Http\Controllers\Admin\ProjectController;
-use App\Http\Controllers\Admin\TestimonialController;
-use App\Http\Controllers\Admin\GalleryController;
-use App\Http\Controllers\Admin\LeadController as AdminLeadController;
-use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\LandingController;
-use App\Http\Controllers\LeadController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\DownloadController;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
-/* =============================
-   RUTAS PÚBLICAS - LANDING
-============================= */
-
-Route::get('/', [LandingController::class, 'index'])->name('home');
-Route::post('/contacto', [LeadController::class, 'store'])->name('leads.store');
-
-/* =============================
-   AUTENTICACIÓN
-============================= */
-
-require __DIR__ . '/auth.php';
-
-/* =============================
-   REDIRECCIÓN DASHBOARD
-============================= */
-
-Route::get('/dashboard', function () {
-    return redirect()->route('admin.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-/* =============================
-   PANEL ADMIN
-============================= */
-
-Route::middleware(['auth', 'verified'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-        /* SETTINGS */
-        Route::middleware(['admin'])->group(function () {
-            Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-            Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+@push('scripts')
+<script>
+// Marcar imagen activa al cargar
+document.addEventListener('DOMContentLoaded', function () {
+    const currentValue = document.getElementById('about_image_selected').value;
+    if (currentValue) {
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            if (item.dataset.value === currentValue) {
+                markSelected(item);
+            }
         });
+    }
 
-        /* HERO */
-        Route::middleware(['editor'])->group(function () {
-            Route::get('/hero', [App\Http\Controllers\Admin\HeroController::class, 'index'])->name('hero.index');
-            Route::put('/hero', [App\Http\Controllers\Admin\HeroController::class, 'update'])->name('hero.update');
-        });
+    // Preview al seleccionar archivo nuevo
+    document.getElementById('file-upload').addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('preview-img').src = e.target.result;
+                document.getElementById('preview-container').classList.remove('hidden');
+                // Deseleccionar galería
+                document.querySelectorAll('.gallery-item img').forEach(img => {
+                    img.classList.remove('border-blue-500');
+                    img.classList.add('border-transparent');
+                });
+                document.getElementById('about_image_selected').value = '';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+});
 
-        /* ABOUT */
-        Route::middleware(['editor'])->group(function () {
-            Route::get('/about', [App\Http\Controllers\Admin\AboutController::class, 'index'])->name('about.index');
-            Route::put('/about', [App\Http\Controllers\Admin\AboutController::class, 'update'])->name('about.update');
-        });
-
-        /* SERVICIOS, PROYECTOS, ETC */
-        Route::middleware(['editor'])->group(function () {
-            Route::resource('services', ServiceController::class);
-            Route::resource('projects', ProjectController::class);
-            Route::resource('testimonials', TestimonialController::class);
-            Route::resource('gallery', GalleryController::class);
-
-            Route::post('gallery/upload-multiple', [GalleryController::class, 'uploadMultiple'])
-                ->name('gallery.upload-multiple');
-        });
-
-        /* LEADS */
-        Route::middleware(['editor'])
-            ->prefix('leads')
-            ->name('leads.')
-            ->group(function () {
-                Route::get('/', [AdminLeadController::class, 'index'])->name('index');
-                Route::get('/{lead}', [AdminLeadController::class, 'show'])->name('show');
-                Route::delete('/{lead}', [AdminLeadController::class, 'destroy'])->middleware('admin')->name('destroy');
-                Route::put('/{lead}/status', [AdminLeadController::class, 'updateStatus'])->name('update-status');
-                Route::put('/{lead}/notes', [AdminLeadController::class, 'updateNotes'])->name('update-notes');
-                Route::post('/mark-read-bulk', [AdminLeadController::class, 'markAsReadBulk'])->name('mark-read-bulk');
-                Route::get('/export/csv', [AdminLeadController::class, 'export'])->name('export');
-            });
-
-        /* PRODUCTS */
-        Route::middleware(['editor'])->group(function () {
-            Route::resource('categories', App\Http\Controllers\Admin\ProductCategoryController::class);
-            Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
-            Route::put('products/{product}/stock', [App\Http\Controllers\Admin\ProductController::class, 'updateStock'])
-                ->name('products.update-stock');
-        });
-
-        /* ADMIN ORDERS */
-        Route::middleware(['editor'])
-            ->prefix('orders')
-            ->name('orders.')
-            ->group(function () {
-                Route::get('/', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('index');
-                Route::get('/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('show');
-                Route::put('/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('update-status');
-                Route::post('/{order}/cancel', [App\Http\Controllers\Admin\OrderController::class, 'cancel'])->name('cancel');
-                Route::get('/export/csv', [App\Http\Controllers\Admin\OrderController::class, 'export'])->name('export');
-            });
-
-        /* ADMIN PAGOS - GESTIÓN DE COMPROBANTES */
-        Route::middleware(['editor'])
-            ->prefix('payments')
-            ->name('payments.')
-            ->group(function () {
-                Route::get('/', [PaymentController::class, 'adminIndex'])->name('index');
-                Route::get('/pending', [PaymentController::class, 'pending'])->name('pending');
-                Route::post('/{payment}/verify', [PaymentController::class, 'verify'])->name('verify');
-                Route::post('/{payment}/reject', [PaymentController::class, 'reject'])->name('reject');
-                Route::post('/{id}/aprobar', [PaymentController::class, 'aprobar'])->name('aprobar');
-                Route::post('/{id}/rechazar', [PaymentController::class, 'rechazar'])->name('rechazar');
-            });
-
-            // ── STATS ────────────────────────────────────────────────────
-        Route::prefix('stats')->name('stats.')->group(function () {
-            Route::get('/', [App\Http\Controllers\Admin\StatController::class, 'index'])
-                ->name('index');
-            Route::post('/', [App\Http\Controllers\Admin\StatController::class, 'store'])
-                ->name('store');
-            Route::put('/{stat}', [App\Http\Controllers\Admin\StatController::class, 'update'])
-                ->name('update');
-            Route::delete('/{stat}', [App\Http\Controllers\Admin\StatController::class, 'destroy'])
-                ->name('destroy');
-            Route::patch('/{stat}/toggle', [App\Http\Controllers\Admin\StatController::class, 'toggleActive'])
-                ->name('toggle');
-            Route::post('/reorder', [App\Http\Controllers\Admin\StatController::class, 'reorder'])
-                ->name('reorder');
-        });
+function selectGalleryImage(el) {
+    // Limpiar selección anterior
+    document.querySelectorAll('.gallery-item img').forEach(img => {
+        img.classList.remove('border-blue-500');
+        img.classList.add('border-transparent');
     });
 
-/* =============================
-   PERFIL USUARIO
-============================= */
+    // Marcar la seleccionada
+    markSelected(el);
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+    // Actualizar hidden input y preview
+    document.getElementById('about_image_selected').value = el.dataset.value;
+    document.getElementById('preview-img').src = el.dataset.url;
+    document.getElementById('preview-container').classList.remove('hidden');
 
-/* =============================
-   TIENDA
-============================= */
-
-Route::prefix('tienda')->name('shop.')->group(function () {
-    Route::get('/', [App\Http\Controllers\ShopController::class, 'index'])->name('index');
-    Route::get('/producto/{product:slug}', [App\Http\Controllers\ShopController::class, 'show'])->name('show');
-});
-
-/* =============================
-   CARRITO
-============================= */
-
-Route::prefix('carrito')->name('cart.')->group(function () {
-    Route::get('/', [App\Http\Controllers\CartController::class, 'index'])->name('index');
-    Route::post('/agregar/{product}', [App\Http\Controllers\CartController::class, 'add'])->name('add');
-    Route::put('/actualizar/{cartItem}', [App\Http\Controllers\CartController::class, 'update'])->name('update');
-    Route::delete('/eliminar/{cartItem}', [App\Http\Controllers\CartController::class, 'remove'])->name('remove');
-    Route::delete('/vaciar', [App\Http\Controllers\CartController::class, 'clear'])->name('clear');
-    Route::get('/cantidad', [App\Http\Controllers\CartController::class, 'count'])->name('count');
-});
-
-/* =============================
-   CHECKOUT - FLUJO PRINCIPAL
-============================= */
-
-Route::prefix('checkout')->name('checkout.')->group(function () {
-    Route::get('/', [CheckoutController::class, 'index'])->name('index');
-    Route::post('/procesar', [CheckoutController::class, 'process'])->name('process');
-});
-
-/* =============================
-   CONFIRMACIÓN Y PAGOS
-============================= */
-
-Route::get('/orden/confirmacion/{order}', [CheckoutController::class, 'confirmation'])
-    ->name('orders.confirmation');
-
-/* =============================
-   INSTRUCCIONES DE PAGO SEGÚN MÉTODO
-============================= */
-
-Route::get('/orden/{order}/pago/breb', [PaymentController::class, 'showInstructionsBreb'])
-    ->name('payment.instructions.breb');
-
-Route::get('/orden/{order}/pago/transferencia', [PaymentController::class, 'showInstructionsTransfer'])
-    ->name('payment.instructions.transfer');
-
-Route::get('/orden/{order}/pago/qr', [PaymentController::class, 'showInstructionsQr'])
-    ->name('payment.instructions.qr');
-
-Route::get('/orden/{order}/pago/tarjeta', [PaymentController::class, 'showInstructionsCard'])
-    ->name('payment.instructions.card');
-
-/* =============================
-   SUBIR COMPROBANTE DE PAGO
-============================= */
-
-Route::get('/orden/{order}/subir-comprobante', [PaymentController::class, 'showUploadForm'])
-    ->name('payment.upload-form');
-
-Route::post('/orden/{order}/comprobante', [PaymentController::class, 'subirComprobante'])
-    ->name('payment.upload');
-
-Route::get('/orden/{order}/confirmacion', [PaymentController::class, 'confirmation'])
-    ->name('payment.confirmation');
-
-/* =============================
-   DESCARGAS
-============================= */
-
-Route::get('/descargas/{token}', [DownloadController::class, 'show'])->name('downloads.show');
-Route::get('/descargar/{token}', [DownloadController::class, 'download'])->name('downloads.file');
-
-/* =============================
-   PÁGINAS LEGALES
-============================= */
-
-Route::get('/terminos-y-condiciones', [App\Http\Controllers\LegalController::class, 'terms'])->name('legal.terms');
-Route::get('/politica-de-privacidad', [App\Http\Controllers\LegalController::class, 'privacy'])->name('legal.privacy');
-
-/* =============================
-   ARCHIVOS PÚBLICOS
-============================= */
-
-Route::get('/images/{any}', function ($any) {
-    $path = public_path('images/' . $any);
-
-    if (!file_exists($path)) {
-        abort(404);
-    }
-
-    return response()->file($path);
-})->where('any', '.*');
-
-/* =============================
-   ⚠️ FALLBACK (DEBE IR AL FINAL)
-============================= */
-
-Route::fallback(function () {
-    return view('errors.404');
-});
- 
-======================== 
- 
-[MIGRACIONES] 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_01_031905_create_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('settings', function (Blueprint $table) {
-            $table->id();
-
-            // Identidad
-            $table->string('site_name')->nullable();
-            $table->string('site_slogan')->nullable();
-            $table->string('logo')->nullable();
-            $table->string('favicon')->nullable();
-
-            // Colores
-            $table->string('primary_color')->nullable();
-            $table->string('secondary_color')->nullable();
-            $table->string('accent_color')->nullable();
-
-            // Redes Sociales
-            $table->boolean('facebook_enabled')->default(false);
-            $table->string('facebook_url')->nullable();
-            $table->boolean('instagram_enabled')->default(false);
-            $table->string('instagram_url')->nullable();
-            $table->boolean('twitter_enabled')->default(false);
-            $table->string('twitter_url')->nullable();
-            $table->boolean('linkedin_enabled')->default(false);
-            $table->string('linkedin_url')->nullable();
-            $table->boolean('whatsapp_enabled')->default(false);
-            $table->string('whatsapp_number')->nullable();
-
-            // Contacto
-            $table->boolean('show_email')->default(true);
-            $table->string('contact_email')->nullable();
-            $table->boolean('show_phone')->default(true);
-            $table->string('contact_phone')->nullable();
-            $table->boolean('show_address')->default(true);
-            $table->text('contact_address')->nullable();
-            $table->boolean('show_map')->default(false);
-            $table->text('google_maps_url')->nullable();
-
-            // Hero Section
-            $table->boolean('hero_enabled')->default(true);
-            $table->string('hero_title')->nullable();
-            $table->text('hero_subtitle')->nullable();
-            $table->string('hero_button_text')->nullable();
-            $table->string('hero_button_url')->nullable();
-
-            // Hero Background
-            $table->enum('hero_background_type', ['color', 'image', 'video'])->default('color');
-            $table->string('hero_background_image')->nullable();
-            $table->string('hero_background_video')->nullable();
-            $table->decimal('hero_overlay_opacity', 3, 2)->default(0.50);
-
-            // About Section
-            $table->boolean('about_enabled')->default(true);
-            $table->string('about_title')->nullable();
-            $table->text('about_description')->nullable();
-            $table->string('about_image')->nullable();
-
-            // Secciones
-            $table->boolean('services_enabled')->default(true);
-            $table->boolean('products_enabled')->default(true);
-            $table->boolean('testimonials_enabled')->default(true);
-            $table->boolean('gallery_enabled')->default(true);
-            $table->boolean('contact_enabled')->default(true);
-
-            // Footer
-            $table->boolean('show_social_footer')->default(true);
-            $table->text('footer_text')->nullable();
-
-            // WhatsApp
-            $table->boolean('show_whatsapp_button')->default(true);
-            $table->string('whatsapp_button_message')->nullable();
-
-            // SEO
-            $table->text('meta_description')->nullable();
-            $table->text('meta_keywords')->nullable();
-            $table->string('google_analytics_id')->nullable();
-            $table->string('facebook_pixel_id')->nullable();
-
-            // Otros
-            $table->string('notification_email')->nullable();
-            $table->text('business_hours')->nullable();
-
-            $table->timestamps();
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('settings');
-    }
-};
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_04_000001_add_hero_customization_to_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            // Color del título del hero
-            $table->string('hero_title_color')->nullable()->default('#ffffff');
-
-            // Fuente del título del hero
-            $table->string('hero_title_font')->nullable()->default('default');
-
-            // Mostrar logo en lugar del texto principal
-            $table->boolean('hero_show_logo_instead')->default(false);
-        });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->dropColumn([
-                'hero_title_color',
-                'hero_title_font',
-                'hero_show_logo_instead',
-            ]);
-        });
-    }
-};
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_04_051605_add_navbar_settings_to_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-{
-    Schema::table('settings', function (Blueprint $table) {
-        $table->string('navbar_bg_color')->nullable()->default('#ffffff');
-        $table->string('navbar_text_color')->nullable()->default('#000000');
-        $table->boolean('navbar_show_logo')->default(true);
-        $table->boolean('navbar_show_title')->default(true);
-        $table->boolean('navbar_show_slogan')->default(true);
-        $table->json('navbar_menu_labels')->nullable(); // para guardar nombres de links
-    });
+    // Limpiar el file input para que no tenga prioridad
+    document.getElementById('file-upload').value = '';
 }
 
+function markSelected(el) {
+    const img = el.querySelector('img');
+    img.classList.remove('border-transparent');
+    img.classList.add('border-blue-500');
+}
+</script>
+@endpush
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            //
-        });
-    }
-};
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_08_230219_add_section_controls_to_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            // Verificar si las columnas no existen antes de agregarlas
-            if (!Schema::hasColumn('settings', 'cta_enabled')) {
-                $table->boolean('cta_enabled')->default(true)->after('hero_enabled');
-            }
-            if (!Schema::hasColumn('settings', 'about_enabled')) {
-                $table->boolean('about_enabled')->default(true)->after('cta_enabled');
-            }
-            if (!Schema::hasColumn('settings', 'features_enabled')) {
-                $table->boolean('features_enabled')->default(true)->after('about_enabled');
-            }
-            if (!Schema::hasColumn('settings', 'stats_enabled')) {
-                $table->boolean('stats_enabled')->default(true)->after('features_enabled');
-            }
-            if (!Schema::hasColumn('settings', 'shop_enabled')) {
-                $table->boolean('shop_enabled')->default(true)->after('products_enabled');
-            }
-
-            // NUEVO: Control para mostrar enlace "Tienda" en navbar
-            if (!Schema::hasColumn('settings', 'navbar_show_shop')) {
-                $table->boolean('navbar_show_shop')->default(true)->after('navbar_show_slogan');
-            }
-        });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            $columns = ['cta_enabled', 'about_enabled', 'features_enabled', 'stats_enabled', 'shop_enabled', 'navbar_show_shop'];
-
-            foreach ($columns as $column) {
-                if (Schema::hasColumn('settings', $column)) {
-                    $table->dropColumn($column);
-                }
-            }
-        });
-    }
-};
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\database\migrations\2025_11_10_000001_add_hero_logo_position_to_settings_table.php 
------------------------ 
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->integer('hero_logo_x')->default(50);
-            $table->integer('hero_logo_y')->default(50);
-            $table->integer('hero_logo_size')->default(112);
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->dropColumn(['hero_logo_x', 'hero_logo_y', 'hero_logo_size']);
-        });
-    }
-};
+@endsection
  
 ======================== 
  
@@ -745,36 +307,47 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         Setting::create([
-            'site_name' => 'Mi Landing Page',
-            'site_slogan' => 'Tu solución perfecta',
-            'primary_color' => '#3B82F6',
-            'secondary_color' => '#8B5CF6',
-            'accent_color' => '#10B981',
-            'contact_email' => 'contacto@ejemplo.com',
-            'favicon' => 'favicon.ico',
-            'hero_enabled' => true,
-            'hero_title' => 'Bienvenido a Tu LandingPage',
-            'hero_subtitle' => 'Ofrecemos las mejores soluciones para tu negocio',
-            'hero_button_text' => 'Comenzar',
-            'hero_button_url' => '#contacto',
-            'hero_background_type' => 'color',
-            'hero_overlay_opacity' => 0.5,
-            'about_enabled' => true,
-            'services_enabled' => true,
-            'products_enabled' => true,
-            'testimonials_enabled' => true,
-            'gallery_enabled' => true,
-            'contact_enabled' => true,
-            'show_social_footer' => true,
-            'show_whatsapp_button' => true,
-            'whatsapp_button_message' => 'Hola, quiero más información',
-            'navbar_bg_color' => '#000000',
-            'navbar_text_color' => '#ffffff',
-            'hero_show_logo_instead' => true,
-            'hero_show_logo_instead' => true,
-            'hero_logo_x'    => 50,
-            'hero_logo_y'    => 50,
-            'hero_logo_size' => 112,
+            'site_name'                => 'Mi Landing Page',
+            'site_slogan'              => 'Tu solución perfecta',
+            'primary_color'            => '#3B82F6',
+            'secondary_color'          => '#8B5CF6',
+            'accent_color'             => '#10B981',
+            'contact_email'            => 'contacto@ejemplo.com',
+            'favicon'                  => 'favicon.ico',
+
+            // Hero
+            'hero_enabled'             => true,
+            'hero_title'               => 'Bienvenido a Tu LandingPage',
+            'hero_subtitle'            => 'Ofrecemos las mejores soluciones para tu negocio',
+            'hero_button_text'         => 'Comenzar',
+            'hero_button_url'          => '#contacto',
+            'hero_background_type'     => 'color',
+            'hero_overlay_opacity'     => 0.5,
+            'hero_show_logo_instead'   => true,
+            'hero_logo_x'              => 50,
+            'hero_logo_y'              => 50,
+            'hero_logo_size'           => 112,
+
+            // About ← AGREGADO
+            'about_enabled'            => true,
+            'about_title'              => 'Soluciones tecnológicas para tu negocio',
+            'about_description'        => "Somos una empresa especializada en tecnología y servicios IT, comprometida con ofrecer soluciones innovadoras para empresas y personas que buscan optimizar sus procesos digitales.\n\nBrindamos servicios de mantenimiento, instalación de redes, configuración de servidores, diseño web y consultoría tecnológica, adaptándonos a las necesidades específicas de cada cliente.",
+
+            // Secciones
+            'services_enabled'         => true,
+            'products_enabled'         => true,
+            'testimonials_enabled'     => true,
+            'gallery_enabled'          => true,
+            'contact_enabled'          => true,
+
+            // Footer y otros
+            'show_social_footer'       => true,
+            'show_whatsapp_button'     => true,
+            'whatsapp_button_message'  => 'Hola, quiero más información',
+
+            // Navbar
+            'navbar_bg_color'          => '#000000',
+            'navbar_text_color'        => '#ffffff',
         ]);
     }
 }

@@ -131,20 +131,26 @@ Route::middleware(['auth', 'verified'])
             });
 
             // ── STATS ────────────────────────────────────────────────────
-        Route::prefix('stats')->name('stats.')->group(function () {
-            Route::get('/', [App\Http\Controllers\Admin\StatController::class, 'index'])
-                ->name('index');
-            Route::post('/', [App\Http\Controllers\Admin\StatController::class, 'store'])
-                ->name('store');
-            Route::put('/{stat}', [App\Http\Controllers\Admin\StatController::class, 'update'])
-                ->name('update');
-            Route::delete('/{stat}', [App\Http\Controllers\Admin\StatController::class, 'destroy'])
-                ->name('destroy');
-            Route::patch('/{stat}/toggle', [App\Http\Controllers\Admin\StatController::class, 'toggleActive'])
-                ->name('toggle');
-            Route::post('/reorder', [App\Http\Controllers\Admin\StatController::class, 'reorder'])
-                ->name('reorder');
-        });
+            Route::prefix('stats')->name('stats.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\StatController::class, 'index'])
+                    ->name('index');
+                Route::post('/', [App\Http\Controllers\Admin\StatController::class, 'store'])
+                    ->name('store');
+                Route::post('/reorder', [App\Http\Controllers\Admin\StatController::class, 'reorder'])
+                    ->name('reorder');
+
+                // ⚠️ Rutas sin parámetro SIEMPRE antes de /{stat}
+                Route::put('/colors', [App\Http\Controllers\Admin\StatController::class, 'updateColors'])
+                    ->name('update-colors');
+
+                // Rutas con parámetro al final
+                Route::put('/{stat}', [App\Http\Controllers\Admin\StatController::class, 'update'])
+                    ->name('update');
+                Route::delete('/{stat}', [App\Http\Controllers\Admin\StatController::class, 'destroy'])
+                    ->name('destroy');
+                Route::patch('/{stat}/toggle', [App\Http\Controllers\Admin\StatController::class, 'toggleActive'])
+                    ->name('toggle');
+            });
     });
 
 /* =============================

@@ -10,7 +10,7 @@
             <p class="text-sm text-gray-500 mt-1">Administra los contadores de la sección Stats del landing.</p>
         </div>
         <button onclick="document.getElementById('modal-create').classList.remove('hidden')"
-                class="bg-primary hover:bg-primary/90 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
             + Nueva estadística
         </button>
     </div>
@@ -28,6 +28,126 @@
 
         </div>
     <?php endif; ?>
+
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-gray-700">Colores de la sección</h2>
+            <span id="unsaved-badge"
+                  class="hidden text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full">
+                ● Cambios sin guardar
+            </span>
+        </div>
+
+        <form action="<?php echo e(route('admin.stats.update-colors')); ?>" method="POST" id="colors-form">
+            <?php echo csrf_field(); ?>
+            <?php echo method_field('PUT'); ?>
+
+            <div class="flex flex-wrap items-end gap-6">
+
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Fondo de la sección</label>
+                    <div class="flex items-center gap-3">
+                        <input type="color"
+                               name="stats_bg_color"
+                               id="stats_bg_color"
+                               value="<?php echo e($settings->stats_bg_color ?? '#000000'); ?>"
+                               class="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer p-0.5"
+                               oninput="updatePreview(); markUnsaved()"
+                               onchange="updatePreview(); markUnsaved()">
+                        <input type="text"
+                               id="stats_bg_color_text"
+                               value="<?php echo e($settings->stats_bg_color ?? '#000000'); ?>"
+                               maxlength="7"
+                               class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/50"
+                               oninput="syncColor('stats_bg_color', this.value)">
+                    </div>
+                </div>
+
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Color del número</label>
+                    <div class="flex items-center gap-3">
+                        <input type="color"
+                               name="stats_number_color"
+                               id="stats_number_color"
+                               value="<?php echo e($settings->stats_number_color ?? '#f5f500'); ?>"
+                               class="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer p-0.5"
+                               oninput="updatePreview(); markUnsaved()"
+                               onchange="updatePreview(); markUnsaved()">
+                        <input type="text"
+                               id="stats_number_color_text"
+                               value="<?php echo e($settings->stats_number_color ?? '#f5f500'); ?>"
+                               maxlength="7"
+                               class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/50"
+                               oninput="syncColor('stats_number_color', this.value)">
+                    </div>
+                </div>
+
+                
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Preview</label>
+                    <div id="color-preview"
+                         class="rounded-lg px-6 py-3 flex items-center justify-center gap-8 transition-colors"
+                         style="background-color: <?php echo e($settings->stats_bg_color ?? '#000000'); ?>;">
+                        <div class="text-center">
+                            <div id="preview-number" class="text-3xl font-bold"
+                                 style="color: <?php echo e($settings->stats_number_color ?? '#f5f500'); ?>;">150+</div>
+                            <div class="text-xs mt-1" style="color: #9ca3af;">Proyectos</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="preview-number-2" class="text-3xl font-bold"
+                                 style="color: <?php echo e($settings->stats_number_color ?? '#f5f500'); ?>;">95%</div>
+                            <div class="text-xs mt-1" style="color: #9ca3af;">Satisfacción</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            
+            <div class="mt-4">
+                <p class="text-xs text-gray-500 mb-2">Combinaciones rápidas:</p>
+                <div class="flex flex-wrap gap-2">
+                    <?php
+                    $presets = [
+                        ['label' => 'Negro / Amarillo',  'bg' => '#000000', 'num' => '#f5f500'],
+                        ['label' => 'Negro / Blanco',    'bg' => '#000000', 'num' => '#ffffff'],
+                        ['label' => 'Blanco / Negro',    'bg' => '#ffffff', 'num' => '#111111'],
+                        ['label' => 'Azul / Blanco',     'bg' => '#1e3a5f', 'num' => '#ffffff'],
+                        ['label' => 'Gris / Amarillo',   'bg' => '#1f2937', 'num' => '#fbbf24'],
+                        ['label' => 'Verde / Blanco',    'bg' => '#064e3b', 'num' => '#ffffff'],
+                        ['label' => 'Rojo / Blanco',     'bg' => '#7f1d1d', 'num' => '#ffffff'],
+                        ['label' => 'Morado / Amarillo', 'bg' => '#3b0764', 'num' => '#fde047'],
+                    ];
+                    ?>
+                    <?php $__currentLoopData = $presets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $preset): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <button type="button"
+                            onclick="applyPreset('<?php echo e($preset['bg']); ?>', '<?php echo e($preset['num']); ?>')"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-gray-400 text-xs text-gray-600 transition">
+                        <span class="w-3 h-3 rounded-full border border-gray-300 inline-block" style="background: <?php echo e($preset['bg']); ?>;"></span>
+                        <span class="w-3 h-3 rounded-full border border-gray-300 inline-block" style="background: <?php echo e($preset['num']); ?>;"></span>
+                        <?php echo e($preset['label']); ?>
+
+                    </button>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </div>
+            </div>
+
+            
+            <div class="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <p class="text-xs text-gray-400">Los cambios no se aplican al landing hasta que guardes.</p>
+                <button type="submit"
+                        id="save-colors-btn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition">
+                    Guardar colores
+                </button>
+            </div>
+
+        </form>
+    </div>
 
     
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -50,7 +170,11 @@
                     <td class="px-4 py-3 text-gray-500"><?php echo e($stat->order); ?></td>
                     <td class="px-4 py-3 font-medium text-gray-900"><?php echo e($stat->label); ?></td>
                     <td class="px-4 py-3">
-                        <span class="text-accent font-bold text-base"><?php echo e($stat->value); ?></span>
+                        <span class="font-bold text-base"
+                              style="color: <?php echo e($settings->stats_number_color ?? '#f5f500'); ?>; background: <?php echo e($settings->stats_bg_color ?? '#000000'); ?>; padding: 2px 8px; border-radius: 6px;">
+                            <?php echo e($stat->value); ?>
+
+                        </span>
                     </td>
                     <td class="px-4 py-3 text-gray-600"><?php echo e($stat->target); ?></td>
                     <td class="px-4 py-3 text-gray-600"><?php echo e($stat->suffix ?: '—'); ?></td>
@@ -68,12 +192,10 @@
                     </td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            
                             <button onclick='openEdit(<?php echo json_encode($stat, 15, 512) ?>)'
                                     class="text-xs text-blue-600 hover:text-blue-800 font-medium transition">
                                 Editar
                             </button>
-                            
                             <form action="<?php echo e(route('admin.stats.destroy', $stat)); ?>" method="POST"
                                   onsubmit="return confirm('¿Eliminar esta estadística?')">
                                 <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
@@ -99,13 +221,12 @@
     
     <div class="mt-4 bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-xs text-blue-700">
         <strong>Tip animación:</strong>
-        <span class="font-normal">
-            <em>Target</em> = número real al que llega el contador.
-            <em>Sufijo</em> = lo que se muestra tras el número (<code>+</code>, <code>%</code>, etc.).
-            <em>Velocidad</em> = intervalo en ms entre ticks (menor = más rápido).
-            <em>Paso</em> = cuánto incrementa el contador por tick.
-        </span>
+        <em>Target</em> = número real al que llega el contador.
+        <em>Sufijo</em> = lo que se muestra tras el número (<code>+</code>, <code>%</code>, etc.).
+        <em>Velocidad</em> = intervalo en ms entre ticks (menor = más rápido).
+        <em>Paso</em> = cuánto incrementa el contador por tick.
     </div>
+
 </div>
 
 
@@ -122,7 +243,7 @@
                     Cancelar
                 </button>
                 <button type="submit"
-                        class="bg-primary hover:bg-primary/90 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
                     Crear
                 </button>
             </div>
@@ -144,7 +265,7 @@
                     Cancelar
                 </button>
                 <button type="submit"
-                        class="bg-primary hover:bg-primary/90 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
                     Guardar cambios
                 </button>
             </div>
@@ -154,19 +275,70 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
+// ── Estado ────────────────────────────────────────────────────
+let hasUnsavedChanges = false;
+
+function markUnsaved() {
+    if (hasUnsavedChanges) return;
+    hasUnsavedChanges = true;
+    document.getElementById('unsaved-badge').classList.remove('hidden');
+}
+
+// ── Preview en tiempo real ─────────────────────────────────────
+function updatePreview() {
+    const bg  = document.getElementById('stats_bg_color').value;
+    const num = document.getElementById('stats_number_color').value;
+
+    document.getElementById('color-preview').style.backgroundColor = bg;
+    document.getElementById('preview-number').style.color  = num;
+    document.getElementById('preview-number-2').style.color = num;
+
+    document.getElementById('stats_bg_color_text').value     = bg;
+    document.getElementById('stats_number_color_text').value = num;
+}
+
+function syncColor(id, value) {
+    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+        document.getElementById(id).value = value;
+        updatePreview();
+        markUnsaved();
+    }
+}
+
+function applyPreset(bg, num) {
+    document.getElementById('stats_bg_color').value          = bg;
+    document.getElementById('stats_number_color').value      = num;
+    document.getElementById('stats_bg_color_text').value     = bg;
+    document.getElementById('stats_number_color_text').value = num;
+    updatePreview();
+    markUnsaved();
+}
+
+// ── Advertir si sale con cambios sin guardar ──────────────────
+window.addEventListener('beforeunload', function (e) {
+    if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+// ── Limpiar flag al guardar el form de colores ────────────────
+document.getElementById('colors-form').addEventListener('submit', function () {
+    hasUnsavedChanges = false;
+});
+
+// ── Modal editar ──────────────────────────────────────────────
 function openEdit(stat) {
     const form = document.getElementById('form-edit');
     form.action = `/admin/stats/${stat.id}`;
-
-    form.querySelector('[name="label"]').value    = stat.label;
-    form.querySelector('[name="value"]').value    = stat.value;
-    form.querySelector('[name="target"]').value   = stat.target;
-    form.querySelector('[name="suffix"]').value   = stat.suffix ?? '';
-    form.querySelector('[name="duration"]').value = stat.duration;
-    form.querySelector('[name="step"]').value     = stat.step;
-    form.querySelector('[name="order"]').value    = stat.order;
+    form.querySelector('[name="label"]').value       = stat.label;
+    form.querySelector('[name="value"]').value       = stat.value;
+    form.querySelector('[name="target"]').value      = stat.target;
+    form.querySelector('[name="suffix"]').value      = stat.suffix ?? '';
+    form.querySelector('[name="duration"]').value    = stat.duration;
+    form.querySelector('[name="step"]').value        = stat.step;
+    form.querySelector('[name="order"]').value       = stat.order;
     form.querySelector('[name="is_active"]').checked = stat.is_active;
-
     document.getElementById('modal-edit').classList.remove('hidden');
 }
 </script>

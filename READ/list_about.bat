@@ -2,8 +2,11 @@
 REM -----------------------------------------------
 REM Script BAT - Mapa completo de ABOUT (Nosotros)
 REM Genera dos archivos para evitar truncado:
-REM   about_map.txt   → vista landing, vista admin, rutas, migraciones, seeders
+REM   about_map.txt   → vistas landing + admin, seeders
 REM   about_map_2.txt → controladores, servicios, modelo Setting
+REM
+REM NOTA: rutas y migraciones se omiten por ser archivos
+REM grandes que causan truncado. Usar list_hero.bat si se necesitan.
 REM -----------------------------------------------
 
 REM ===============================================
@@ -54,40 +57,7 @@ if exist resources\views\admin\about\index.blade.php (
 )
 
 REM -------------------------------
-REM 3. RUTAS
-REM -------------------------------
-echo. >> %SALIDA%
-echo [RUTAS] >> %SALIDA%
-echo ======================== >> %SALIDA%
-
-if exist routes\web.php (
-    echo Archivo: routes\web.php >> %SALIDA%
-    echo ----------------------- >> %SALIDA%
-    type "routes\web.php" >> %SALIDA%
-    echo. >> %SALIDA%
-    echo ======================== >> %SALIDA%
-) else (
-    echo NO ENCONTRADO: routes\web.php >> %SALIDA%
-    echo ======================== >> %SALIDA%
-)
-
-REM -------------------------------
-REM 4. MIGRACIONES (settings)
-REM -------------------------------
-echo. >> %SALIDA%
-echo [MIGRACIONES] >> %SALIDA%
-echo ======================== >> %SALIDA%
-
-for /r database\migrations %%f in (*setting*) do (
-    echo Archivo: %%f >> %SALIDA%
-    echo ----------------------- >> %SALIDA%
-    type "%%f" >> %SALIDA%
-    echo. >> %SALIDA%
-    echo ======================== >> %SALIDA%
-)
-
-REM -------------------------------
-REM 5. SEEDERS
+REM 3. SEEDERS
 REM -------------------------------
 echo. >> %SALIDA%
 echo [SEEDERS] >> %SALIDA%
@@ -130,7 +100,7 @@ echo. >> %SALIDA2%
 echo [CONTROLADORES] >> %SALIDA2%
 echo ======================== >> %SALIDA2%
 
-set CONTROLADORES=app\Http\Controllers\LandingController.php app\Http\Controllers\Admin\AboutController.php app\Http\Controllers\Admin\SettingController.php
+set CONTROLADORES=app\Http\Controllers\LandingController.php app\Http\Controllers\Admin\AboutController.php
 
 for %%f in (%CONTROLADORES%) do (
     if exist %%f (
@@ -168,7 +138,7 @@ for %%f in (%SERVICIOS%) do (
 )
 
 REM -------------------------------
-REM 3. MODELO
+REM 3. MODELO Setting
 REM -------------------------------
 echo. >> %SALIDA2%
 echo [MODELO] >> %SALIDA2%
@@ -191,7 +161,7 @@ echo Parte 2 completada. >> %SALIDA2%
 echo.
 echo ================================
 echo Listo. Se generaron dos archivos:
-echo   - about_map.txt   (vistas, rutas, migraciones, seeders)
-echo   - about_map_2.txt (controladores, servicios, modelo Setting)
+echo   - about_map.txt   (vistas landing+admin, seeders)
+echo   - about_map_2.txt (controladores, servicios, modelo)
 echo ================================
 pause

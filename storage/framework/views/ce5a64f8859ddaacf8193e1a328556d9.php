@@ -15,19 +15,17 @@
             </p>
         </div>
 
-        <?php
+            <?php
             $testimonials = \App\Models\Testimonial::active()->ordered()->get();
-
             $defaultImages = [
-                1 => asset('images/settings/default-testimonial-1.jpg'),
-                2 => asset('images/settings/default-testimonial-2.jpg'),
-                3 => asset('images/settings/default-testimonial-3.jpg'),
-                4 => asset('images/settings/default-testimonial-4.jpg'),
-                5 => asset('images/settings/default-testimonial-5.jpg'),
+                1 => asset('images/testimonials/default-testimonial-1.jpg'),
+                2 => asset('images/testimonials/default-testimonial-2.jpg'),
+                3 => asset('images/testimonials/default-testimonial-3.jpg'),
+                4 => asset('images/testimonials/default-testimonial-4.jpg'),
+                5 => asset('images/testimonials/default-testimonial-5.jpg'),
             ];
-
             $testimonialCount = $testimonials->count();
-        ?>
+            ?>
 
         <?php if($testimonialCount > 0): ?>
             

@@ -18,6 +18,15 @@
             <label for="hero_enabled" class="text-sm font-medium text-gray-800">Mostrar Hero</label>
         </div>
 
+                <!-- Stats Section -->
+        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <input type="hidden" name="stats_enabled" value="0">
+            <input type="checkbox" name="stats_enabled" id="stats_enabled" value="1"
+                   {{ ($settings->stats_enabled ?? false) ? 'checked' : '' }}
+                   class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+            <label for="stats_enabled" class="text-sm font-medium text-gray-800">Mostrar Estadísticas</label>
+        </div>
+
         <!-- About Section Toggle -->
         <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
             <input type="hidden" name="about_enabled" value="0">
@@ -27,14 +36,6 @@
             <label for="about_enabled" class="text-sm font-medium text-gray-800">Mostrar Sección Acerca de</label>
         </div>
 
-        <!-- Stats Section -->
-        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <input type="hidden" name="stats_enabled" value="0">
-            <input type="checkbox" name="stats_enabled" id="stats_enabled" value="1"
-                   {{ ($settings->stats_enabled ?? false) ? 'checked' : '' }}
-                   class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
-            <label for="stats_enabled" class="text-sm font-medium text-gray-800">Mostrar Estadísticas</label>
-        </div>
 
         <!-- Features Section -->
         <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">

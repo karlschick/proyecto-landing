@@ -40,7 +40,7 @@
                  alt="<?php echo e($settings->about_title ?? 'Sobre Nosotros'); ?>"
                  class="rounded-lg shadow-lg w-full max-w-[400px] h-auto object-contain relative z-10">
           <?php else: ?>
-            <img src="<?php echo e(asset('images/settings/about-image.jpg')); ?>"
+            <img src="<?php echo e(asset('images/about/about-image.jpg')); ?>"
                  alt="Sobre Nosotros"
                  class="rounded-lg shadow-lg w-full max-w-[400px] h-auto object-contain relative z-10">
           <?php endif; ?>

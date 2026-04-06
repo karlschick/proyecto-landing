@@ -72,6 +72,8 @@ class Setting extends Model
         'about_enabled',
         'features_enabled',
         'stats_enabled',
+        'stats_bg_color',
+        'stats_number_color',
         'services_enabled',
         'products_enabled',
         'shop_enabled', // ✅ Agregado para completitud
@@ -263,20 +265,26 @@ class Setting extends Model
     public function getAboutImageUrl()
     {
         if ($this->about_image) {
-            $imagePath = public_html_path('images/' . $this->about_image);
-            if (file_exists($imagePath)) {
+            // 1️⃣ Ruta principal: images/about/
+            if (file_exists(public_html_path('images/about/' . basename($this->about_image)))) {
+                return asset('images/about/' . basename($this->about_image));
+            }
+
+            // 2️⃣ Ruta con prefijo completo (about/archivo.jpg)
+            if (file_exists(public_html_path('images/' . $this->about_image))) {
                 return asset('images/' . $this->about_image);
             }
 
-            $publicPath = public_html_path($this->about_image);
-            if (file_exists($publicPath)) {
-                return asset($this->about_image);
+            // 3️⃣ Legacy: images/settings/
+            if (file_exists(public_html_path('images/settings/' . basename($this->about_image)))) {
+                return asset('images/settings/' . basename($this->about_image));
             }
 
             \Log::warning('Imagen About no encontrada: ' . $this->about_image);
         }
 
-        return asset('images/about-image.jpg');
+        // 4️⃣ Imagen por defecto
+        return asset('images/about/about-image.jpg');
     }
 
     /**
