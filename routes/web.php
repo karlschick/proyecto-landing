@@ -259,6 +259,52 @@ Route::get('/images/{any}', function ($any) {
 })->where('any', '.*');
 
 /* =============================
+   RUTAS FUTURAS POR ROL
+   (descomentar cuando se implementen)
+============================= */
+
+// ── INVESTIGADORES ──────────────────────────────────────────
+// Route::middleware(['auth', 'researcher'])->prefix('investigaciones')->name('research.')->group(function () {
+//     Route::get('/', ...)->name('index');
+//     Route::get('/crear', ...)->name('create');
+//     Route::post('/', ...)->name('store');
+//     Route::get('/{id}/editar', ...)->name('edit');
+//     Route::put('/{id}', ...)->name('update');
+//     Route::delete('/{id}', ...)->name('destroy');
+// });
+
+// ── COLUMNISTAS ──────────────────────────────────────────────
+// Route::middleware(['auth', 'columnist'])->prefix('columnas')->name('columns.')->group(function () {
+//     Route::get('/', ...)->name('index');
+//     Route::get('/crear', ...)->name('create');
+//     Route::post('/', ...)->name('store');
+//     Route::get('/{id}/editar', ...)->name('edit');
+//     Route::put('/{id}', ...)->name('update');
+//     Route::delete('/{id}', ...)->name('destroy');
+// });
+
+// ── VENDEDORES (MARKETPLACE) ─────────────────────────────────
+// Route::middleware(['auth', 'seller'])->prefix('mis-productos')->name('seller.')->group(function () {
+//     Route::get('/', ...)->name('index');
+//     Route::get('/crear', ...)->name('create');
+//     Route::post('/', ...)->name('store');
+//     Route::get('/{id}/editar', ...)->name('edit');
+//     Route::put('/{id}', ...)->name('update');
+//     Route::delete('/{id}', ...)->name('destroy');
+// });
+
+// ── CLIENTES / COMPRADORES ───────────────────────────────────
+// Route::middleware(['auth', 'customer'])->prefix('mis-pedidos')->name('customer.')->group(function () {
+//     Route::get('/', ...)->name('index');
+//     Route::get('/{id}', ...)->name('show');
+// });
+
+// ── USUARIOS REGISTRADOS ─────────────────────────────────────
+// Route::middleware(['auth', 'user'])->prefix('mi-cuenta')->name('account.')->group(function () {
+//     Route::get('/', ...)->name('index');
+// });
+
+/* =============================
    ⚠️ FALLBACK (DEBE IR AL FINAL)
 ============================= */
 
