@@ -6,14 +6,18 @@ npm run dev
 
 php artisan serve
 -----------------------------------------
-boora todos los datos de base de datos con migrate
+
+-------------------------------------
+user admin:    skuboxit@gmail.com     	pass:  password
+user editor:   editor@landing.com	pass:  password
+-------------------------------------
 
 -----------------------------------------
 crea  los datos de base de datos con migrate de seeder
 
 php artisan db:seed --class=AdminUserSeeder
 
-
+php artisan tinker
 
 Objetivo									     Comando
 genera automáticamente una nueva APP_KEY		php artisan key:generate

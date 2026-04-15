@@ -125,9 +125,10 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                         <div class="flex items-center h-[42px]">
+                            <input type="hidden" name="is_active" value="0">  {{-- ← AGREGAR ESTA LÍNEA --}}
                             <input type="checkbox" name="is_active" id="is_active" value="1"
-                                   {{ old('is_active', $service->is_active) ? 'checked' : '' }}
-                                   class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                {{ old('is_active', $service->is_active) ? 'checked' : '' }}
+                                class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
                             <label for="is_active" class="ml-2 text-gray-700">Servicio Activo</label>
                         </div>
                     </div>

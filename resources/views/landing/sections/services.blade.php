@@ -3,23 +3,12 @@
     <h2 class="text-3xl md:text-4xl font-bold mb-12 text-gray-900">NUESTROS SERVICIOS</h2>
     <p class="text-gray-900 max-w-2xl mx-auto mb-12">    </p>
 
-    @php
-        $services = \App\Services\CacheService::services();
-        $serviceCount = $services->count();
+@php $serviceCount = $services->count(); @endphp
 
-        $gridClasses = match(true) {
-            $serviceCount == 1 => 'flex justify-center',
-            $serviceCount == 2 => 'grid md:grid-cols-2 gap-10 max-w-4xl mx-auto',
-            $serviceCount == 3 => 'grid md:grid-cols-3 gap-10',
-            $serviceCount == 4 => 'grid md:grid-cols-2 lg:grid-cols-4 gap-10',
-            $serviceCount == 5 => 'grid md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center',
-            default => 'grid md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center'
-        };
-    @endphp
+@if($serviceCount > 0)
+    <div class="services-grid">
 
-    @if($serviceCount > 0)
-        <div class="{{ $gridClasses }}">
-            @foreach($services as $service)
+        @foreach($services as $service)
                 <div class="perspective">
                     <div class="service-card w-full h-80">
                         <div class="card-inner">
@@ -70,6 +59,7 @@
                     </div>
                 </div>
             @endforeach
+
         </div>
     @else
         <div class="text-center py-12">
@@ -108,7 +98,6 @@
     -webkit-transform: rotateY(180deg);
 }
 
-/* Caras */
 .card-front,
 .card-back {
     position: absolute;
@@ -130,5 +119,12 @@
     transform: rotateY(180deg);
     -webkit-transform: rotateY(180deg);
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+/* Grid fallback para servicios */
+#servicios .services-grid {
+    display: grid;
+    gap: 2.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 </style>
