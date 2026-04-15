@@ -1,0 +1,4352 @@
+Listado de archivos 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\helpers.php 
+----------------------- 
+<?php
+
+if (!function_exists('public_html_path')) {
+    function public_html_path(string $path = ''): string
+    {
+        return base_path('public_html') . ($path ? DIRECTORY_SEPARATOR . $path : '');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Console\Commands\ClearSiteCache.php 
+----------------------- 
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use App\Services\CacheService;
+
+class ClearSiteCache extends Command
+{
+    /**
+     * The name and signature of the console command.
+     */
+    protected $signature = 'cache:clear-site';
+
+    /**
+     * The console command description.
+     */
+    protected $description = 'Clear all site-specific cache (settings, services, projects, etc.)';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
+    {
+        $this->info('Clearing site cache...');
+
+        CacheService::clearAll();
+
+        $this->info('✓ Site cache cleared successfully!');
+
+        return Command::SUCCESS;
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Foundation\Application.php 
+----------------------- 
+<?php
+
+namespace App\Foundation;
+
+use Illuminate\Foundation\Application as BaseApplication;
+
+class Application extends BaseApplication
+{
+    public function __construct($basePath = null)
+    {
+        parent::__construct($basePath);
+        $this->publicPath = $basePath . '/public_html';
+        $this->instance('path.public', $this->publicPath());
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\CartController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use App\Models\CartItem;
+use App\Services\CartService;
+use Illuminate\Http\Request;
+
+class CartController extends Controller
+{
+    protected CartService $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
+
+    public function index()
+    {
+        $cart = $this->cartService->getCart();
+        $cart->load('items.product');
+
+        return view('landing.cart.index', compact('cart'));
+    }
+
+    public function add(Request $request, Product $product)
+    {
+        $request->validate([
+            'quantity' => 'required|integer|min:1|max:999',
+        ]);
+
+        try {
+            $this->cartService->addItem($product, $request->quantity);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Producto agregado al carrito',
+                    'cart_count' => $this->cartService->getItemCount(),
+                ]);
+            }
+
+            return redirect()
+                ->back()
+                ->with('success', 'Producto agregado al carrito exitosamente.');
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
+
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function update(Request $request, CartItem $cartItem)
+    {
+        $request->validate([
+            'quantity' => 'required|integer|min:0|max:999',
+        ]);
+
+        try {
+            $this->cartService->updateQuantity($cartItem, $request->quantity);
+
+            if ($request->expectsJson()) {
+                $cart = $this->cartService->getCart();
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cantidad actualizada',
+                    'cart_count' => $this->cartService->getItemCount(),
+                    'item_subtotal' => $cartItem->getSubtotal(),
+                    'cart_subtotal' => $cart->getSubtotal(),
+                    'cart_total' => $cart->getTotal(),
+                ]);
+            }
+
+            return redirect()
+                ->back()
+                ->with('success', 'Cantidad actualizada.');
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
+
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function remove(CartItem $cartItem)
+    {
+        try {
+            $this->cartService->removeItem($cartItem);
+
+            return redirect()
+                ->back()
+                ->with('success', 'Producto eliminado del carrito.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function clear()
+    {
+        $this->cartService->clear();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Carrito vaciado.');
+    }
+
+    public function count()
+    {
+        return response()->json([
+            'count' => $this->cartService->getItemCount(),
+        ]);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\CheckoutController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\CartService;
+use App\Services\OrderService;
+use App\Services\PaymentService;
+use App\Http\Requests\CheckoutRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+class CheckoutController extends Controller
+{
+    protected CartService $cartService;
+    protected OrderService $orderService;
+    protected PaymentService $paymentService;
+
+    public function __construct(
+        CartService $cartService,
+        OrderService $orderService,
+        PaymentService $paymentService
+    ) {
+        $this->cartService  = $cartService;
+        $this->orderService = $orderService;
+        $this->paymentService = $paymentService;
+    }
+
+    /**
+     * Vista del checkout
+     */
+    public function index()
+    {
+        $cart = $this->cartService->getCart()->load('items.product.category');
+
+        if ($cart->isEmpty()) {
+            return redirect()
+                ->route('shop.index')
+                ->with('error', 'Tu carrito está vacío.');
+        }
+
+        $estimatedShipping = $cart->hasOnlyDigitalProducts() ? 0 : 20000;
+
+        return view('landing.checkout.index', compact('cart', 'estimatedShipping'));
+    }
+
+    /**
+     * Procesar checkout
+     */
+public function process(CheckoutRequest $request)
+{
+    $cart = $this->cartService->getCart()->load('items.product.category');
+
+    if ($cart->isEmpty()) {
+        return redirect()
+            ->route('shop.index')
+            ->with('error', 'Tu carrito está vacío.');
+    }
+
+    try {
+        $shippingData = [];
+        $shippingCost = 0;
+
+        if (!$cart->hasOnlyDigitalProducts()) {
+            $shippingData = [
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'address_line_1' => $request->address_line_1,
+                'address_line_2' => $request->address_line_2,
+                'city' => $request->city,
+                'state' => $request->state,
+                'postal_code' => $request->postal_code,
+                'country' => $request->country ?? 'Colombia',
+                'notes' => $request->notes,
+            ];
+            $shippingCost = $this->calculateShipping($request->city);
+        } else {
+            $shippingData = [
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'country' => 'Colombia',
+            ];
+        }
+
+        // Crear orden
+        $order = $this->orderService->createFromCart(
+            $cart,
+            $shippingData,
+            $shippingCost
+        );
+
+        Log::info('Orden creada', [
+            'order_id' => $order->id,
+            'payment_method' => $request->payment_method,
+            'total' => $order->total
+        ]);
+
+        // Crear el pago y preparar redirección
+        $redirect = $this->redirectToPaymentMethod($order, $request->payment_method);
+
+        // ✅ Vaciar carrito DESPUÉS de que todo salió bien
+        $cart->clear();
+
+        return $redirect;
+
+    } catch (\Exception $e) {
+        Log::error('Error en checkout: ' . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return back()
+            ->with('error', 'Error al procesar la orden: ' . $e->getMessage())
+            ->withInput();
+    }
+}
+
+    /**
+     * Redirigir a la página específica según el método de pago
+     */
+    protected function redirectToPaymentMethod($order, string $paymentMethod)
+{
+    // Crear el registro de pago
+    $payment = $this->paymentService->processPayment(
+        $order,
+        $paymentMethod,
+        []
+    );
+
+    switch ($paymentMethod) {
+        case 'manual_breb':
+            return redirect()
+                ->route('payment.instructions.breb', $order->id)
+                ->with('success', 'Orden creada. Sigue las instrucciones para pagar con Bre-b.');
+
+        case 'manual_transfer':
+            return redirect()
+                ->route('payment.instructions.transfer', $order->id)
+                ->with('success', 'Orden creada. Sigue las instrucciones para la transferencia bancaria.');
+
+        case 'manual_qr':
+            return redirect()
+                ->route('payment.instructions.qr', $order->id)
+                ->with('success', 'Completa el pago escaneando el código QR.');
+
+        case 'card':
+            return redirect()
+                ->route('payment.instructions.card', $order->id)
+                ->with('success', 'Orden creada. Procede con el pago con tarjeta.');
+
+        case 'cash_on_delivery':
+            return redirect()
+                ->route('payment.confirmation', $order->id)
+                ->with('success', 'Orden creada. Pagarás contra entrega.');
+
+        default:
+            return redirect()
+                ->route('payment.confirmation', $order->id)
+                ->with('warning', 'Orden creada con método de pago pendiente de configuración.');
+    }
+}
+
+    /**
+     * Confirmación de orden
+     */
+    public function confirmation($order)
+    {
+        $order = \App\Models\Order::with(['items.product', 'shippingAddress', 'payment'])
+            ->findOrFail($order);
+
+        return view('landing.orders.confirmation', compact('order'));
+    }
+
+    /**
+     * Costo de envío dinámico
+     */
+    protected function calculateShipping(string $city = null): float
+    {
+        if (!$city) return 0;
+
+        $mainCities = ['Bogotá', 'Medellín', 'Cali', 'Barranquilla'];
+
+        return in_array($city, $mainCities) ? 15000 : 25000;
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Controller.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+abstract class Controller
+{
+    //
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\DownloadController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ProductDownload;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class DownloadController extends Controller
+{
+    /**
+     * Mostrar página de descarga con información
+     */
+    public function show(string $token)
+    {
+        $download = ProductDownload::with(['product', 'order'])
+            ->where('download_token', $token)
+            ->firstOrFail();
+
+        // Verificar si puede descargar
+        if (!$download->canDownload()) {
+            return view('landing.downloads.expired', compact('download'));
+        }
+
+        return view('landing.downloads.show', compact('download'));
+    }
+
+    /**
+     * Descargar archivo
+     */
+    public function download(string $token, Request $request)
+    {
+        $download = ProductDownload::with('product')
+            ->where('download_token', $token)
+            ->firstOrFail();
+
+        // Verificar si puede descargar
+        if (!$download->canDownload()) {
+            if ($download->expires_at && $download->expires_at->isPast()) {
+                return redirect()
+                    ->route('downloads.show', $token)
+                    ->with('error', 'Este link de descarga ha expirado.');
+            }
+
+            return redirect()
+                ->route('downloads.show', $token)
+                ->with('error', 'Has alcanzado el límite de descargas para este producto.');
+        }
+
+        $product = $download->product;
+
+        // Verificar que el archivo existe
+        if (!$product->hasFile()) {
+            return redirect()
+                ->route('downloads.show', $token)
+                ->with('error', 'El archivo no está disponible. Contacta a soporte.');
+        }
+
+        // Incrementar contador de descargas
+        $download->incrementDownload($request->ip());
+
+        // Log de descarga
+        \Log::info('Descarga de producto', [
+            'download_id' => $download->id,
+            'product_id' => $product->id,
+            'order_id' => $download->order_id,
+            'ip' => $request->ip(),
+            'remaining' => $download->getRemainingDownloads()
+        ]);
+
+        // Descargar archivo
+        return Storage::download(
+            $product->file_path,
+            $product->slug . '.pdf',
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $product->slug . '.pdf"'
+            ]
+        );
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\LandingContactController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Mail\LandingContactMail;
+use App\Models\Setting;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+
+class LandingContactController extends Controller
+{
+    public function send(Request $request)
+    {
+        // Validación
+        $data = $request->validate([
+            'name'    => 'required|string|max:120',
+            'email'   => 'required|email',
+            'phone'   => 'nullable|string|max:30',
+            'message' => 'required|string|max:2000',
+        ]);
+
+        // Obtener email de destino desde configuración
+        $settings = Setting::getSettings();
+        $to = $settings->notification_email ?? $settings->contact_email;
+
+        if (!$to) {
+            return back()->with('error', 'El sitio no tiene configurado un email de destino.');
+        }
+
+        // Enviar correo
+        try {
+            Mail::to($to)->send(new LandingContactMail($data));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error enviando correo: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Tu mensaje fue enviado correctamente.');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\LandingController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\CacheService;
+use Illuminate\Http\Request;
+
+class LandingController extends Controller
+{
+    public function index()
+    {
+        $settings     = CacheService::settings();
+        $services     = CacheService::services();
+        $projects     = CacheService::projects();
+        $testimonials = CacheService::testimonials();
+        $gallery      = CacheService::gallery();
+        $products     = CacheService::products();
+        $stats        = CacheService::stats(); // ← AGREGADO
+
+        return view('landing.index', compact(
+            'settings', 'services', 'projects', 'testimonials', 'gallery', 'products', 'stats'
+        ));
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\LeadController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Lead;
+use App\Models\User;
+use App\Http\Requests\LeadRequest;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+
+class LeadController extends Controller
+{
+    /**
+     * Guardar nuevo lead y enviar emails directos (SIN notificaciones)
+     */
+    public function store(LeadRequest $request)
+    {
+        $key = 'contact-form:' . $request->ip();
+        $maxAttempts = config('app.env') === 'production' ? 3 : 100;
+
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($key);
+            return redirect('/#contacto')->with('error', "Demasiados intentos. Por favor espera {$seconds} segundos.");
+        }
+
+        set_time_limit(120);
+
+        try {
+            // Crear el lead
+            $lead = Lead::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'subject' => $request->subject,
+                'message' => $request->message,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'status' => 'nuevo',
+            ]);
+
+            RateLimiter::hit($key, 3600);
+            Log::info('✅ Lead creado', ['lead_id' => $lead->id, 'email' => $lead->email]);
+
+            // ✅ 1. EMAIL AL CLIENTE (Confirmación)
+            try {
+                Mail::send('emails.lead-confirmation', ['lead' => $lead], function ($message) use ($lead) {
+                    $message->to($lead->email, $lead->name)
+                            ->subject('✅ Hemos recibido tu mensaje - ' . config('app.name'));
+                });
+                Log::info('✅ Email enviado al cliente', ['email' => $lead->email]);
+            } catch (\Exception $e) {
+                Log::error('❌ Error email cliente: ' . $e->getMessage());
+            }
+
+            // ✅ 2. EMAIL A ADMINISTRADORES (Notificación)
+            try {
+                // Obtener email de notificación
+                $settings = DB::table('settings')
+                    ->select('notification_email', 'contact_email')
+                    ->first();
+
+                $adminEmail = $settings->notification_email ?? $settings->contact_email;
+
+                if ($adminEmail) {
+                    Mail::send('emails.new-lead', ['lead' => $lead], function ($message) use ($lead, $adminEmail) {
+                        $message->to($adminEmail)
+                                ->replyTo($lead->email, $lead->name)
+                                ->subject('🔔 Nuevo Contacto desde ' . config('app.name'));
+                    });
+                    Log::info('✅ Email enviado a admin', ['email' => $adminEmail]);
+                }
+
+                // Notificar a otros admins del sistema
+                $admins = User::where('role', 'admin')
+                    ->whereNotNull('email')
+                    ->pluck('email')
+                    ->toArray();
+
+                foreach ($admins as $adminEmail) {
+                    try {
+                        Mail::send('emails.new-lead', ['lead' => $lead], function ($message) use ($lead, $adminEmail) {
+                            $message->to($adminEmail)
+                                    ->replyTo($lead->email, $lead->name)
+                                    ->subject('🔔 Nuevo Contacto desde ' . config('app.name'));
+                        });
+                    } catch (\Exception $e) {
+                        Log::error('❌ Error email admin: ' . $e->getMessage());
+                    }
+                }
+
+                Log::info('✅ Emails enviados a admins', ['count' => count($admins)]);
+
+            } catch (\Exception $e) {
+                Log::error('❌ Error enviando emails a admins: ' . $e->getMessage());
+            }
+
+            return redirect('/#contacto')->with('success', '¡Mensaje enviado correctamente! Te contactaremos pronto.');
+
+        } catch (\Exception $e) {
+            Log::error('❌ Error crítico al crear lead', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect('/#contacto')
+                ->with('error', 'Hubo un error al enviar tu mensaje. Por favor intenta nuevamente.')
+                ->withInput();
+        }
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\LegalController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class LegalController extends Controller
+{
+    public function terms()
+    {
+        return view('legal.terms');
+    }
+
+    public function privacy()
+    {
+        return view('legal.privacy');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\PaymentController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\Product;
+use App\Models\OrderItem;
+use App\Models\ShippingAddress;
+use App\Services\PaymentService;
+use App\Mail\PaymentApproved;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+
+class PaymentController extends Controller
+{
+    protected $paymentService;
+
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
+
+    // ============================================
+    // FLUJO PÚBLICO - CLIENTE
+    // ============================================
+
+    /**
+     * Paso 1: Mostrar productos
+     */
+    public function index()
+    {
+        $products = Product::where('is_active', true)->get();
+
+        // Productos de ejemplo si no hay en BD
+        if ($products->isEmpty()) {
+            $products = collect([
+                (object)[
+                    'id' => 1,
+                    'name' => 'Curso Completo de Laravel',
+                    'description' => 'Aprende Laravel desde cero hasta nivel avanzado.',
+                    'type' => 'digital',
+                    'price' => 150000,
+                    'image' => '💻',
+                    'sku' => 'CURSO-LARAVEL-001'
+                ],
+                (object)[
+                    'id' => 2,
+                    'name' => 'Proteína Whey Premium 2kg',
+                    'description' => 'Proteína de suero de leche de alta calidad.',
+                    'type' => 'physical',
+                    'price' => 150000,
+                    'image' => '💪',
+                    'sku' => 'PROT-WP-2KG'
+                ],
+                (object)[
+                    'id' => 3,
+                    'name' => 'Consultoría Personalizada',
+                    'description' => 'Servicio de consultoría para tu negocio.',
+                    'type' => 'service',
+                    'price' => 200000,
+                    'image' => '🛠️',
+                    'sku' => 'SERV-CONSULT'
+                ]
+            ]);
+        }
+
+        return view('payment.product', compact('products'));
+    }
+
+    /**
+     * Paso 2: Seleccionar método de pago (POST)
+     */
+    public function selectPaymentMethod(Request $request)
+    {
+        $validated = $request->validate([
+            'product_type' => 'required|in:digital,physical,service',
+            'product_id' => 'required',
+        ]);
+
+        session([
+            'checkout_product_type' => $validated['product_type'],
+            'checkout_product_id' => $validated['product_id'],
+        ]);
+
+        return view('payment.select-method', [
+            'product_type' => $validated['product_type']
+        ]);
+    }
+
+    /**
+     * Paso 2b: Mostrar página de selección de método (GET)
+     */
+    public function showSelectMethodPage()
+    {
+        $productType = session('checkout_product_type');
+        $productId = session('checkout_product_id');
+
+        if (!$productType || !$productId) {
+            return redirect()->route('payment.index')
+                ->with('error', 'Por favor selecciona un producto primero.');
+        }
+
+        return view('payment.select-method', [
+            'product_type' => $productType
+        ]);
+    }
+
+    /**
+     * Paso 3: Redirigir a formulario específico según método
+     */
+    public function showCheckoutForm(Request $request)
+    {
+        $validated = $request->validate([
+            'payment_method' => 'required|in:manual_breb,manual_transfer,manual_qr,card',
+        ]);
+
+        $productType = session('checkout_product_type');
+        $paymentMethod = $validated['payment_method'];
+
+        session(['checkout_payment_method' => $paymentMethod]);
+
+        $viewData = [
+            'product_type' => $productType,
+            'payment_method' => $paymentMethod,
+            'needs_shipping' => $productType === 'physical'
+        ];
+
+        // Redirigir a vista específica según método
+        switch ($paymentMethod) {
+            case 'manual_breb':
+                return view('payment.methods.breb', $viewData);
+
+            case 'manual_transfer':
+                return view('payment.methods.transfer', $viewData);
+
+            case 'manual_qr':
+                return view('payment.methods.qr', $viewData);
+
+            case 'card':
+                return view('payment.methods.card', $viewData);
+
+            default:
+                return view('payment.checkout-form', $viewData);
+        }
+    }
+
+    /**
+     * Paso 4: Crear orden
+     */
+    public function createOrder(Request $request)
+    {
+        $rules = [
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email',
+            'phone' => 'required|string',
+            'quantity' => 'required|integer|min:1',
+            'payment_method' => 'required|in:manual_breb,manual_transfer,manual_qr,card',
+        ];
+
+        // Validar dirección solo para productos físicos
+        if ($request->product_type === 'physical') {
+            $rules['address'] = 'required|string';
+            $rules['city'] = 'required|string';
+        }
+
+        $validated = $request->validate($rules);
+
+        try {
+            DB::beginTransaction();
+
+            // Obtener producto
+            $product = Product::find(session('checkout_product_id'));
+            $productPrice = $product ? $product->price : 150000;
+            $productName = $product ? $product->name : "Producto";
+            $productType = $request->product_type ?? session('checkout_product_type');
+
+            $quantity = $validated['quantity'];
+            $subtotal = $productPrice * $quantity;
+
+            // Envío solo para productos físicos
+            $shippingCost = $productType === 'physical' ? 15000 : 0;
+            $total = $subtotal + $shippingCost;
+
+            // Crear orden
+            $order = Order::create([
+                'order_number' => 'ORD-' . strtoupper(uniqid()),
+                'status' => 'pending',
+                'product_type' => $productType,
+                'subtotal' => $subtotal,
+                'tax' => 0,
+                'shipping_cost' => $shippingCost,
+                'total' => $total,
+                'currency' => 'COP',
+            ]);
+
+            // Crear item de la orden
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $product ? $product->id : null,
+                'product_name' => $productName,
+                'product_sku' => $product ? $product->sku : 'PROD-' . uniqid(),
+                'quantity' => $quantity,
+                'price' => $productPrice,
+                'subtotal' => $subtotal,
+            ]);
+
+            // Crear dirección de envío/contacto
+            $addressData = [
+                'order_id' => $order->id,
+                'full_name' => $validated['full_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'country' => 'Colombia',
+            ];
+
+            if ($productType === 'physical') {
+                $addressData['address_line_1'] = $validated['address'];
+                $addressData['city'] = $validated['city'];
+            }
+
+            ShippingAddress::create($addressData);
+
+            // Crear registro de pago
+            $payment = $this->paymentService->createPayment(
+                $order,
+                $validated['payment_method']
+            );
+
+            DB::commit();
+
+            // Limpiar sesión
+            session()->forget(['checkout_product_type', 'checkout_product_id', 'checkout_payment_method']);
+
+            return redirect()->route('payment.instructions', $order->id)
+                ->with('success', 'Orden creada exitosamente.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creando orden: ' . $e->getMessage());
+            return back()->with('error', 'Error: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Paso 5: Instrucciones de pago
+     */
+    public function showInstructions($orderId)
+    {
+        $order = Order::with(['items', 'shippingAddress', 'payment'])->findOrFail($orderId);
+
+        // Obtener información del método de pago
+        $paymentInfo = $this->paymentService->getPaymentInfo($order->payment->method);
+
+        return view('payment.instructions', compact('order', 'paymentInfo'));
+    }
+
+    /**
+     * Paso 6: Formulario para subir comprobante
+     * Vista ubicada en: resources/views/payment/instructions/upload.blade.php
+     */
+    public function showUploadForm($orderId)
+    {
+        $order = Order::with('payment')->findOrFail($orderId);
+
+        return view('payment.instructions.upload', compact('order'));
+    }
+
+    /**
+     * Paso 6b: Procesar subida de comprobante
+     */
+    public function subirComprobante(Request $request, $paymentId)
+    {
+        $payment = Payment::with('order')->findOrFail($paymentId);
+
+        $request->validate([
+            'receipt' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'payment_reference' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            // Actualizar referencia si se proporciona
+            if ($request->filled('payment_reference')) {
+                $payment->update(['reference' => $request->payment_reference]);
+            }
+
+            // Subir comprobante
+            $path = $this->paymentService->uploadReceipt($payment, $request->file('receipt'));
+
+            // Actualizar estado del pago
+            $payment->update(['status' => 'pending']);
+
+            Log::info('Comprobante subido', [
+                'payment_id' => $payment->id,
+                'order_number' => $payment->order->order_number,
+                'path' => $path
+            ]);
+
+            return redirect()->route('payment.confirmation', $payment->order->id)
+                ->with('success', 'Comprobante enviado correctamente. Revisaremos tu pago pronto.');
+
+        } catch (\Exception $e) {
+            Log::error('Error subiendo comprobante: ' . $e->getMessage());
+            return back()->with('error', 'Error al subir el comprobante: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Paso 7: Confirmación de pago enviado
+     */
+    public function confirmation($orderId)
+    {
+        $order = Order::with(['items', 'payment', 'shippingAddress'])->findOrFail($orderId);
+
+        return view('payment.instructions.confirmation', compact('order')); // ← corregido
+    }
+
+    // ============================================
+    // PANEL DE ADMINISTRACIÓN
+    // ============================================
+
+    /**
+     * Listar todos los pagos
+     */
+    public function adminIndex()
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión para acceder al panel de administración.');
+        }
+
+        $payments = Payment::with(['order.items', 'order.shippingAddress'])
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.payments.index', compact('payments'));
+    }
+
+    /**
+     * Listar pagos pendientes de QR Daviplata
+     */
+    public function pending()
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión.');
+        }
+
+        $payments = Payment::with(['order.items', 'order.shippingAddress'])
+            ->where('payment_method', 'qr_payment')
+            ->where('status', 'pending')
+            ->latest()
+            ->paginate(10);
+
+        return view('admin.payments.pending', compact('payments'));
+    }
+
+    /**
+     * Verificar/Aprobar pago QR
+     */
+    public function verify(Request $request, Payment $payment)
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión.');
+        }
+
+        $request->validate([
+            'transaction_reference' => 'required|string|max:255',
+            'notes' => 'nullable|string'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Actualizar pago
+            $payment->update([
+                'status' => 'approved',
+                'transaction_reference' => $request->transaction_reference,
+                'admin_notes' => $request->notes,
+                'verified_at' => now(),
+                'verified_by' => auth()->id()
+            ]);
+
+            // Actualizar orden
+            $payment->order->update(['status' => 'paid']);
+
+            DB::commit();
+
+            Log::info('Pago QR verificado', [
+                'payment_id' => $payment->id,
+                'order_number' => $payment->order->order_number,
+                'verified_by' => auth()->user()->name
+            ]);
+
+            return redirect()->route('admin.payments.pending')
+                ->with('success', '✅ Pago verificado y aprobado exitosamente');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error verificando pago: ' . $e->getMessage());
+            return back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Rechazar pago QR
+     */
+    public function reject(Request $request, Payment $payment)
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión.');
+        }
+
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Actualizar pago
+            $payment->update([
+                'status' => 'rejected',
+                'admin_notes' => $request->rejection_reason,
+                'rejected_at' => now(),
+                'rejected_by' => auth()->id()
+            ]);
+
+            // Cancelar orden
+            $payment->order->update(['status' => 'cancelled']);
+
+            DB::commit();
+
+            Log::info('Pago QR rechazado', [
+                'payment_id' => $payment->id,
+                'order_number' => $payment->order->order_number,
+                'reason' => $request->rejection_reason,
+                'rejected_by' => auth()->user()->name
+            ]);
+
+            return redirect()->route('admin.payments.pending')
+                ->with('success', '❌ Pago rechazado correctamente');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error rechazando pago: ' . $e->getMessage());
+            return back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Aprobar pago y enviar email
+     */
+    public function aprobar(Request $request, $id)
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión.');
+        }
+
+        $request->validate([
+            'delivery_link' => 'nullable|url|max:500',
+        ]);
+
+        try {
+            $payment = Payment::with(['order.items', 'order.shippingAddress'])->findOrFail($id);
+            $deliveryLink = $request->input('delivery_link');
+
+            // Guardar link de entrega en la orden
+            if (!empty($deliveryLink)) {
+                $payment->order->delivery_link = $deliveryLink;
+                $payment->order->save();
+            }
+
+            // Aprobar pago
+            $payment->update(['status' => 'approved']);
+            $payment->order->update(['status' => 'paid']);
+
+            // Refrescar datos
+            $payment->refresh();
+            $payment->load(['order.items', 'order.shippingAddress']);
+
+            // Enviar email de confirmación
+            $customerEmail = $payment->order->shippingAddress->email ?? null;
+
+            if ($customerEmail) {
+                Mail::to($customerEmail)->send(new PaymentApproved($payment, $deliveryLink));
+
+                Log::info('Pago aprobado y email enviado', [
+                    'payment_id' => $payment->id,
+                    'order_number' => $payment->order->order_number,
+                    'email' => $customerEmail,
+                    'delivery_link' => $deliveryLink
+                ]);
+            }
+
+            return back()->with('success', '✅ Pago aprobado exitosamente.');
+
+        } catch (\Exception $e) {
+            Log::error('Error aprobando pago: ' . $e->getMessage());
+            return back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Rechazar pago
+     */
+    public function rechazar(Request $request, $id)
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión.');
+        }
+
+        $request->validate(['reason' => 'nullable|string|max:500']);
+
+        try {
+            $payment = Payment::findOrFail($id);
+            $reason = $request->input('reason', 'Pago rechazado por el administrador');
+
+            // Rechazar pago
+            $payment->update([
+                'status' => 'rejected',
+                'admin_notes' => $reason
+            ]);
+
+            $payment->order->update(['status' => 'payment_rejected']);
+
+            Log::info('Pago rechazado', [
+                'payment_id' => $payment->id,
+                'order_number' => $payment->order->order_number,
+                'reason' => $reason,
+                'rejected_by' => auth()->user()->name ?? 'Admin'
+            ]);
+
+            return back()->with('success', '❌ Pago rechazado.');
+
+        } catch (\Exception $e) {
+            Log::error('Error rechazando pago: ' . $e->getMessage());
+            return back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    // ============================================
+    // INSTRUCCIONES POR MÉTODO DE PAGO
+    // ============================================
+
+    /**
+     * Mostrar instrucciones Transferencia Bancaria
+     */
+    public function showInstructionsTransfer($orderId)
+    {
+        $order = Order::with(['payment', 'items.product', 'shippingAddress'])->findOrFail($orderId);
+        $paymentInfo = [
+            'bank' => 'Bancolombia',
+            'account_type' => 'Ahorros',
+            'account_number' => '12345678901',
+            'holder' => 'SkuboxIT SAS',
+            'nit' => '900123456-7'
+        ];
+        return view('payment.instructions.transfer', compact('order', 'paymentInfo'));
+    }
+
+    /**
+     * Mostrar instrucciones QR Daviplata
+     */
+    public function showInstructionsQr($orderId)
+    {
+        $order = Order::with(['payment', 'items.product', 'shippingAddress'])->findOrFail($orderId);
+        $paymentInfo = [
+            'qr_image' => '/images/qr/qrbreb.jpg',
+            'phone' => '+57 311 893 9652',
+            'name' => 'Daviplata'
+        ];
+        return view('payment.instructions.qr', compact('order', 'paymentInfo'));
+    }
+
+    /**
+     * Mostrar instrucciones Tarjeta
+     */
+    public function showInstructionsCard($orderId)
+    {
+        $order = Order::with(['payment', 'items.product', 'shippingAddress'])->findOrFail($orderId);
+        $paymentInfo = [];
+        return view('payment.instructions.card', compact('order', 'paymentInfo'));
+    }
+
+    /**
+     * Mostrar instrucciones Breb
+     */
+    public function showInstructionsBreb($orderId)
+    {
+        $order = Order::with(['payment', 'items.product', 'shippingAddress'])->findOrFail($orderId);
+        $paymentInfo = [
+            'bank'           => 'Breb',
+            'account_type'   => 'Ahorros',
+            'account_number' => 'XXXXXXXXXXXX', // Reemplaza con tu número real
+            'holder'         => 'Tu Nombre o Empresa',
+            'phone'          => '+57 311 893 9652',
+        ];
+        return view('payment.instructions.breb', compact('order', 'paymentInfo'));
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\ProfileController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
+
+class ProfileController extends Controller
+{
+    /**
+     * Display the user's profile form.
+     */
+    public function edit(Request $request): View
+    {
+        return view('profile.edit', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Update the user's profile information.
+     */
+    public function update(ProfileUpdateRequest $request): RedirectResponse
+    {
+        $request->user()->fill($request->validated());
+
+        if ($request->user()->isDirty('email')) {
+            $request->user()->email_verified_at = null;
+        }
+
+        $request->user()->save();
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Delete the user's account.
+     */
+    public function destroy(Request $request): RedirectResponse
+    {
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\ShopController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use App\Models\ProductCategory;
+use Illuminate\Http\Request;
+
+class ShopController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Product::with('category')->active()->inStock();
+
+        // Filtro por categoría
+        if ($request->has('category') && $request->category != '') {
+            $query->where('category_id', $request->category);
+        }
+
+        // Búsqueda
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('short_description', 'like', "%{$search}%");
+            });
+        }
+
+        // Ordenamiento
+        $sortBy = $request->get('sort', 'newest');
+        switch ($sortBy) {
+            case 'price_low':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_high':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'name':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'featured':
+                $query->orderBy('is_featured', 'desc')->orderBy('created_at', 'desc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+        }
+
+        $products = $query->paginate(12);
+        $categories = ProductCategory::active()->withCount('products')->ordered()->get();
+
+        // Productos destacados
+        $featuredProducts = Product::active()
+            ->inStock()
+            ->featured()
+            ->ordered()
+            ->take(4)
+            ->get();
+
+        return view('landing.shop.index', compact('products', 'categories', 'featuredProducts'));
+    }
+
+    public function show(Product $product)
+    {
+        if (!$product->is_active) {
+            abort(404);
+        }
+
+        // Productos relacionados
+        $relatedProducts = Product::active()
+            ->inStock()
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->ordered()
+            ->take(4)
+            ->get();
+
+        return view('landing.shop.show', compact('product', 'relatedProducts'));
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\AboutController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Setting;
+use App\Services\ImageUploadService;
+use App\Services\CacheService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+
+class AboutController extends Controller
+{
+    protected ImageUploadService $imageService;
+
+    public function __construct(ImageUploadService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
+    public function index()
+    {
+        $settings = Setting::getSettings();
+
+        // Leer imágenes existentes en public_html/images/about/
+        $aboutImagesPath = public_html_path('images/about');
+        $galleryImages = [];
+
+        if (File::exists($aboutImagesPath)) {
+            $files = File::files($aboutImagesPath);
+            foreach ($files as $file) {
+                $ext = strtolower($file->getExtension());
+                if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
+                    $galleryImages[] = [
+                        'filename' => $file->getFilename(),
+                        'url'      => asset('images/about/' . $file->getFilename()),
+                        'value'    => 'about/' . $file->getFilename(),
+                    ];
+                }
+            }
+        }
+
+        return view('admin.about.index', compact('settings', 'galleryImages'));
+    }
+
+    public function update(Request $request)
+    {
+        $settings = Setting::getSettings();
+
+        $request->validate([
+            'about_title'            => 'nullable|string|max:255',
+            'about_description'      => 'nullable|string',
+            'about_image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'about_image_selected'   => 'nullable|string',
+        ]);
+
+        $data = $request->only(['about_title', 'about_description']);
+
+        // Si subió una imagen nueva, tiene prioridad
+        if ($request->hasFile('about_image')) {
+            if ($settings->about_image) {
+                $this->imageService->delete($settings->about_image);
+            }
+            $data['about_image'] = $this->imageService->upload($request->file('about_image'), 'about');
+        }
+        // Si eligió una imagen existente de la galería
+        elseif ($request->filled('about_image_selected')) {
+            $data['about_image'] = $request->about_image_selected;
+        }
+
+        $settings->update($data);
+
+        CacheService::clearSettings();
+
+        return redirect()->route('admin.about.index')->with('success', 'Sección Nosotros actualizada correctamente.');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\DashboardController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+class DashboardController extends Controller
+{
+    public function index()
+    {
+        return view('admin.dashboard');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\GalleryController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\GalleryImage;
+use App\Http\Requests\GalleryRequest;
+use App\Services\ImageUploadService;
+use App\Services\CacheService;
+use Illuminate\Http\Request;
+
+class GalleryController extends Controller
+{
+    protected ImageUploadService $imageService;
+
+    public function __construct(ImageUploadService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
+    public function index(Request $request)
+    {
+        $query = GalleryImage::query();
+
+        // Filtrar por categoría
+        if ($request->has('category') && $request->category != '') {
+            $query->where('category', $request->category);
+        }
+
+        // Filtrar por tipo
+        if ($request->has('type') && $request->type != '') {
+            $query->where('type', $request->type);
+        }
+
+        $images = $query->ordered()->paginate(12);
+        $categories = GalleryImage::getCategories();
+
+        return view('admin.gallery.index', compact('images', 'categories'));
+    }
+
+    public function create()
+    {
+        $categories = GalleryImage::getCategories();
+        return view('admin.gallery.create', compact('categories'));
+    }
+
+    public function store(GalleryRequest $request)
+    {
+        $validated = $request->validated();
+
+        // Manejar archivo (imagen o video)
+        if ($request->hasFile('image')) {
+            try {
+                $file = $request->file('image');
+                $extension = strtolower($file->getClientOriginalExtension());
+
+                // Determinar si es video basado en la extensión
+                $videoExtensions = ['mp4', 'mov', 'avi', 'wmv', 'mpeg', 'mpg'];
+                $isVideo = in_array($extension, $videoExtensions);
+
+                // Definir carpeta según el tipo
+                $folder = $isVideo ? 'videos' : 'gallery';
+
+                // Subir archivo
+                $validated['image'] = $this->imageService->upload($file, $folder);
+                $validated['type'] = $isVideo ? 'video' : 'image';
+
+                \Log::info('Archivo subido', [
+                    'filename' => $validated['image'],
+                    'type' => $validated['type'],
+                    'folder' => $folder,
+                    'extension' => $extension
+                ]);
+
+            } catch (\Exception $e) {
+                \Log::error('Error al subir archivo: ' . $e->getMessage());
+                return redirect()
+                    ->back()
+                    ->with('error', 'Error al subir el archivo: ' . $e->getMessage())
+                    ->withInput();
+            }
+        }
+
+        GalleryImage::create($validated);
+        CacheService::clearGallery();
+
+        return redirect()
+            ->route('admin.gallery.index')
+            ->with('success', 'Archivo agregado a la galería exitosamente.');
+    }
+
+    public function edit(GalleryImage $gallery)
+    {
+        $categories = GalleryImage::getCategories();
+        return view('admin.gallery.edit', compact('gallery', 'categories'));
+    }
+
+    public function update(GalleryRequest $request, GalleryImage $gallery)
+    {
+        $validated = $request->validated();
+
+        // Manejar archivo nuevo
+        if ($request->hasFile('image')) {
+            try {
+                // Eliminar archivo anterior
+                if ($gallery->image) {
+                    $oldFolder = $gallery->isVideo() ? 'videos' : 'gallery';
+                    $this->imageService->delete($oldFolder . '/' . $gallery->image);
+                }
+
+                // Subir nuevo archivo
+                $file = $request->file('image');
+                $extension = strtolower($file->getClientOriginalExtension());
+
+                $videoExtensions = ['mp4', 'mov', 'avi', 'wmv', 'mpeg', 'mpg'];
+                $isVideo = in_array($extension, $videoExtensions);
+
+                $folder = $isVideo ? 'videos' : 'gallery';
+                $validated['image'] = $this->imageService->upload($file, $folder);
+                $validated['type'] = $isVideo ? 'video' : 'image';
+
+            } catch (\Exception $e) {
+                \Log::error('Error al actualizar archivo: ' . $e->getMessage());
+                return redirect()
+                    ->back()
+                    ->with('error', 'Error al actualizar el archivo: ' . $e->getMessage())
+                    ->withInput();
+            }
+        }
+
+        $gallery->update($validated);
+        CacheService::clearGallery();
+
+        return redirect()
+            ->route('admin.gallery.index')
+            ->with('success', 'Archivo actualizado exitosamente.');
+    }
+
+    public function destroy(GalleryImage $gallery)
+    {
+        // Eliminar archivo
+        if ($gallery->image) {
+            $folder = $gallery->isVideo() ? 'videos' : 'gallery';
+            $this->imageService->delete($folder . '/' . $gallery->image);
+        }
+
+        $gallery->delete();
+        CacheService::clearGallery();
+
+        return redirect()
+            ->route('admin.gallery.index')
+            ->with('success', 'Archivo eliminado exitosamente.');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\HeroController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Setting;
+use App\Services\CacheService;
+use App\Services\ImageUploadService;
+use Illuminate\Http\Request;
+
+class HeroController extends Controller
+{
+    protected ImageUploadService $imageService;
+
+    public function __construct(ImageUploadService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
+    public function index()
+    {
+        $settings = Setting::getSettings();
+        return view('admin.hero.index', compact('settings'));
+    }
+
+    public function update(Request $request)
+    {
+        $settings = Setting::getSettings();
+
+        $data = $request->only([
+            'hero_background_type',
+            'hero_overlay_opacity',
+            'hero_title',
+            'hero_subtitle',
+            'hero_button_text',
+            'hero_button_url',
+            'hero_logo_x',
+            'hero_logo_y',
+            'hero_logo_size',
+        ]);
+
+        // Booleanos
+        $data['hero_enabled'] = filter_var($request->input('hero_enabled'), FILTER_VALIDATE_BOOLEAN);
+        $data['hero_show_logo_instead'] = filter_var($request->input('hero_show_logo_instead'), FILTER_VALIDATE_BOOLEAN);
+
+        // Imagen seleccionada de la galería
+        if (!$request->hasFile('hero_background_image') && $request->filled('hero_background_image_selected')) {
+            $data['hero_background_image'] = $request->hero_background_image_selected;
+        }
+
+        // Nueva imagen subida
+        if ($request->hasFile('hero_background_image')) {
+            $data['hero_background_image'] = $this->imageService->upload(
+                $request->file('hero_background_image'), 'hero'
+            );
+        }
+
+        // Video seleccionado de la galería
+        if (!$request->hasFile('hero_background_video') && $request->filled('hero_background_video_selected')) {
+            $data['hero_background_video'] = $request->hero_background_video_selected;
+        }
+
+        // Nuevo video subido
+        if ($request->hasFile('hero_background_video')) {
+            $data['hero_background_video'] = $this->imageService->uploadVideo(
+                $request->file('hero_background_video'), 'hero'
+            );
+        }
+
+        $settings->update($data);
+
+        CacheService::clearSettings();
+
+        return redirect()->route('admin.hero.index')->with('success', 'Hero actualizado correctamente.');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\LeadController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Lead;
+use Illuminate\Http\Request;
+
+class LeadController extends Controller
+{
+    /**
+     * Listar todos los leads
+     */
+    public function index(Request $request)
+    {
+        $query = Lead::query();
+
+        // Filtro por estado
+        if ($request->has('status') && $request->status != '') {
+            $query->byStatus($request->status);
+        }
+
+        // Filtro por leído/no leído
+        if ($request->has('read') && $request->read != '') {
+            if ($request->read == 'unread') {
+                $query->unread();
+            } elseif ($request->read == 'read') {
+                $query->read();
+            }
+        }
+
+        // Búsqueda
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('message', 'like', "%{$search}%");
+            });
+        }
+
+        $leads = $query->recent()->paginate(20);
+
+        // Estadísticas
+        $stats = [
+            'total' => Lead::count(),
+            'nuevos' => Lead::byStatus('nuevo')->count(),
+            'no_leidos' => Lead::unread()->count(),
+            'contactados' => Lead::byStatus('contactado')->count(),
+            'convertidos' => Lead::byStatus('convertido')->count(),
+        ];
+
+        return view('admin.leads.index', compact('leads', 'stats'));
+    }
+
+    /**
+     * Ver detalle de un lead
+     */
+    public function show(Lead $lead)
+    {
+        // Marcar como leído automáticamente
+        $lead->markAsRead();
+
+        return view('admin.leads.show', compact('lead'));
+    }
+
+    /**
+     * Actualizar estado de un lead
+     */
+    public function updateStatus(Request $request, Lead $lead)
+    {
+        $request->validate([
+            'status' => 'required|in:nuevo,contactado,calificado,convertido,descartado',
+        ]);
+
+        $lead->update(['status' => $request->status]);
+
+        if ($request->status === 'contactado') {
+            $lead->markAsContacted();
+        }
+
+        return redirect()
+            ->back()
+            ->with('success', 'Estado actualizado correctamente.');
+    }
+
+    /**
+     * Actualizar notas del admin
+     */
+    public function updateNotes(Request $request, Lead $lead)
+    {
+        $request->validate([
+            'admin_notes' => 'nullable|string|max:2000',
+        ]);
+
+        $lead->update(['admin_notes' => $request->admin_notes]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Notas actualizadas correctamente.');
+    }
+
+    /**
+     * Eliminar un lead
+     */
+    public function destroy(Lead $lead)
+    {
+        $lead->delete();
+
+        return redirect()
+            ->route('admin.leads.index')
+            ->with('success', 'Lead eliminado correctamente.');
+    }
+
+    /**
+     * Marcar múltiples leads como leídos
+     */
+    public function markAsReadBulk(Request $request)
+    {
+        $request->validate([
+            'lead_ids' => 'required|array',
+            'lead_ids.*' => 'exists:leads,id',
+        ]);
+
+        Lead::whereIn('id', $request->lead_ids)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return back()->with('success', 'Leads marcados como leídos.');
+    }
+
+    /**
+     * Exportar leads a CSV
+     */
+    public function export(Request $request)
+    {
+        $query = Lead::query();
+
+        if ($request->has('status') && $request->status != '') {
+            $query->byStatus($request->status);
+        }
+
+        $leads = $query->recent()->get();
+
+        $filename = 'leads_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($leads) {
+            $file = fopen('php://output', 'w');
+
+            // Encabezados
+            fputcsv($file, [
+                'ID', 'Nombre', 'Email', 'Teléfono', 'Asunto',
+                'Mensaje', 'Estado', 'Fecha', 'Leído', 'Contactado'
+            ]);
+
+            // Datos
+            foreach ($leads as $lead) {
+                fputcsv($file, [
+                    $lead->id,
+                    $lead->name,
+                    $lead->email,
+                    $lead->phone,
+                    $lead->subject,
+                    $lead->message,
+                    $lead->getStatusText(),
+                    $lead->created_at->format('Y-m-d H:i:s'),
+                    $lead->read_at ? 'Sí' : 'No',
+                    $lead->contacted_at ? 'Sí' : 'No',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\OrderController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Services\OrderService;
+use Illuminate\Http\Request;
+
+class OrderController extends Controller
+{
+    protected OrderService $orderService;
+
+    public function __construct(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
+    public function index(Request $request)
+    {
+        $query = Order::with(['user', 'items']);
+
+        // Filtros
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('shippingAddress', function($q) use ($search) {
+                      $q->where('full_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->has('date_from') && $request->date_from != '') {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to') && $request->date_to != '') {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $orders = $query->recent()->paginate(20);
+
+        // Estadísticas
+        $stats = [
+            'total' => Order::count(),
+            'pending' => Order::pending()->count(),
+            'paid' => Order::paid()->count(),
+            'processing' => Order::processing()->count(),
+            'shipped' => Order::shipped()->count(),
+            'delivered' => Order::delivered()->count(),
+            'cancelled' => Order::cancelled()->count(),
+            'total_revenue' => Order::paid()->sum('total'),
+        ];
+
+        return view('admin.orders.index', compact('orders', 'stats'));
+    }
+
+    public function show(Order $order)
+    {
+        $order->load(['user', 'items.product', 'shippingAddress', 'payment']);
+
+        return view('admin.orders.show', compact('order'));
+    }
+
+    public function updateStatus(Request $request, Order $order)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,paid,processing,shipped,delivered,cancelled,refunded',
+        ]);
+
+        try {
+            $this->orderService->updateStatus($order, $request->status);
+
+            return redirect()
+                ->back()
+                ->with('success', 'Estado de la orden actualizado correctamente.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Error al actualizar el estado: ' . $e->getMessage());
+        }
+    }
+
+    public function cancel(Order $order)
+    {
+        try {
+            $this->orderService->cancelOrder($order);
+
+            return redirect()
+                ->back()
+                ->with('success', 'Orden cancelada exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Error al cancelar la orden: ' . $e->getMessage());
+        }
+    }
+
+    public function export(Request $request)
+    {
+        $query = Order::with(['user', 'items', 'shippingAddress']);
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('date_from') && $request->date_from != '') {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to') && $request->date_to != '') {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $orders = $query->recent()->get();
+
+        $filename = 'orders_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($orders) {
+            $file = fopen('php://output', 'w');
+
+            // Encabezados
+            fputcsv($file, [
+                'Orden', 'Cliente', 'Email', 'Total', 'Estado',
+                'Fecha', 'Pagado', 'Enviado', 'Entregado'
+            ]);
+
+            // Datos
+            foreach ($orders as $order) {
+                fputcsv($file, [
+                    $order->order_number,
+                    $order->user?->name ?? $order->shippingAddress?->full_name ?? 'N/A',
+                    $order->user?->email ?? $order->shippingAddress?->email ?? 'N/A',
+                    '$' . number_format($order->total, 0, ',', '.'),
+                    $order->getStatusText(),
+                    $order->created_at->format('Y-m-d H:i:s'),
+                    $order->paid_at ? 'Sí' : 'No',
+                    $order->shipped_at ? 'Sí' : 'No',
+                    $order->delivered_at ? 'Sí' : 'No',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\PaymentController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Payment;
+use App\Models\Order;
+use App\Services\OrderService;
+use Illuminate\Http\Request;
+
+class PaymentController extends Controller
+{
+    protected OrderService $orderService;
+
+    public function __construct(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
+    /**
+     * Mostrar pagos pendientes (Daviplata)
+     */
+    public function pending()
+    {
+        $payments = Payment::with(['order.items.product', 'order.shippingAddress'])
+            ->where('status', 'pending')
+            ->where('payment_method', 'qr_payment')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.payments.pending', compact('payments'));
+    }
+
+    /**
+     * Verificar y aprobar pago
+     */
+    public function verify(Payment $payment, Request $request)
+    {
+        $request->validate([
+            'transaction_reference' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            // Actualizar pago
+            $payment->update([
+                'status' => 'completed',
+                'transaction_id' => $request->transaction_reference,
+                'paid_at' => now(),
+                'metadata' => array_merge($payment->metadata ?? [], [
+                    'verified_by' => auth()->id(),
+                    'verified_at' => now()->toDateTimeString(),
+                    'admin_notes' => $request->notes,
+                ]),
+            ]);
+
+            // Actualizar orden
+            $order = $payment->order;
+            $order->update([
+                'status' => 'processing',
+                'payment_status' => 'paid',
+            ]);
+
+            // Generar tokens de descarga y enviar email
+            $this->orderService->processDigitalProducts($order);
+
+            \Log::info('Pago verificado manualmente', [
+                'payment_id' => $payment->id,
+                'order_id' => $order->id,
+                'verified_by' => auth()->user()->email,
+            ]);
+
+            return redirect()
+                ->route('admin.payments.pending')
+                ->with('success', '✅ Pago verificado exitosamente. Se envió el email con los links de descarga.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al verificar pago: ' . $e->getMessage());
+
+            return redirect()
+                ->back()
+                ->with('error', 'Error al verificar el pago: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Rechazar pago
+     */
+    public function reject(Payment $payment, Request $request)
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500',
+        ]);
+
+        try {
+            $payment->update([
+                'status' => 'failed',
+                'metadata' => array_merge($payment->metadata ?? [], [
+                    'rejected_by' => auth()->id(),
+                    'rejected_at' => now()->toDateTimeString(),
+                    'rejection_reason' => $request->rejection_reason,
+                ]),
+            ]);
+
+            $payment->order->update([
+                'status' => 'cancelled',
+                'payment_status' => 'failed',
+            ]);
+
+            \Log::warning('Pago rechazado', [
+                'payment_id' => $payment->id,
+                'order_id' => $payment->order_id,
+                'reason' => $request->rejection_reason,
+                'rejected_by' => auth()->user()->email,
+            ]);
+
+            return redirect()
+                ->route('admin.payments.pending')
+                ->with('success', 'Pago rechazado. La orden ha sido cancelada.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al rechazar pago: ' . $e->getMessage());
+
+            return redirect()
+                ->back()
+                ->with('error', 'Error al rechazar el pago: ' . $e->getMessage());
+        }
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\ProductCategoryController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\ProductCategory;
+use App\Http\Requests\ProductCategoryRequest;
+use App\Services\ImageUploadService;
+use Illuminate\Http\Request;
+
+class ProductCategoryController extends Controller
+{
+    protected ImageUploadService $imageService;
+
+    public function __construct(ImageUploadService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
+    public function index()
+    {
+        $categories = ProductCategory::withCount('products')
+            ->ordered()
+            ->paginate(15);
+
+        return view('admin.categories.index', compact('categories'));
+    }
+
+    public function create()
+    {
+        return view('admin.categories.create');
+    }
+
+    public function store(ProductCategoryRequest $request)
+    {
+        $validated = $request->validated();
+
+        // Manejar imagen
+        if ($request->hasFile('image')) {
+            try {
+                $validated['image'] = $this->imageService->upload(
+                    $request->file('image'),
+                    'categories'
+                );
+            } catch (\Exception $e) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Error al subir la imagen: ' . $e->getMessage())
+                    ->withInput();
+            }
+        }
+
+        ProductCategory::create($validated);
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Categoría creada exitosamente.');
+    }
+
+    public function edit(ProductCategory $category)
+    {
+        return view('admin.categories.edit', compact('category'));
+    }
+
+    public function update(ProductCategoryRequest $request, ProductCategory $category)
+    {
+        $validated = $request->validated();
+
+        // Manejar imagen
+        if ($request->hasFile('image')) {
+            try {
+                // Eliminar imagen anterior
+                if ($category->image) {
+                    $this->imageService->delete('categories/' . $category->image);
+                }
+
+                $validated['image'] = $this->imageService->upload(
+                    $request->file('image'),
+                    'categories'
+                );
+            } catch (\Exception $e) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Error al actualizar la imagen: ' . $e->getMessage())
+                    ->withInput();
+            }
+        }
+
+        $category->update($validated);
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Categoría actualizada exitosamente.');
+    }
+
+    public function destroy(ProductCategory $category)
+    {
+        // Verificar si tiene productos
+        if ($category->products()->count() > 0) {
+            return redirect()
+                ->back()
+                ->with('error', 'No se puede eliminar una categoría con productos asociados.');
+        }
+
+        // Eliminar imagen
+        if ($category->image) {
+            $this->imageService->delete('categories/' . $category->image);
+        }
+
+        $category->delete();
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Categoría eliminada exitosamente.');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\ProductController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Http\Requests\ProductRequest;
+use App\Services\ImageUploadService;
+use App\Services\CacheService; // 🔹 añadido
+use Illuminate\Http\Request;
+
+class ProductController extends Controller
+{
+    protected ImageUploadService $imageService;
+
+    public function __construct(ImageUploadService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
+    public function index(Request $request)
+    {
+        $query = Product::with('category');
+
+        // Filtros
+        if ($request->has('category') && $request->category != '') {
+            $query->where('category_id', $request->category);
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('is_active', $request->status === 'active');
+        }
+
+        if ($request->has('stock') && $request->stock != '') {
+            if ($request->stock === 'in_stock') {
+                $query->inStock();
+            } elseif ($request->stock === 'low_stock') {
+                $query->where('track_quantity', true)
+                      ->where('quantity', '>', 0)
+                      ->where('quantity', '<=', 10);
+            } elseif ($request->stock === 'out_of_stock') {
+                $query->where('track_quantity', true)
+                      ->where('quantity', '<=', 0);
+            }
+        }
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('sku', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $products = $query->ordered()->paginate(20);
+        $categories = ProductCategory::active()->ordered()->get();
+
+        return view('admin.products.index', compact('products', 'categories'));
+    }
+
+    public function create()
+    {
+        $categories = ProductCategory::active()->ordered()->get();
+        return view('admin.products.create', compact('categories'));
+    }
+
+    public function store(ProductRequest $request)
+    {
+        $validated = $request->validated();
+
+        // Manejar imagen destacada
+        if ($request->hasFile('featured_image')) {
+            try {
+                $validated['featured_image'] = $this->imageService->upload(
+                    $request->file('featured_image'),
+                    'products'
+                );
+            } catch (\Exception $e) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Error al subir la imagen: ' . $e->getMessage())
+                    ->withInput();
+            }
+        }
+
+        // Manejar galería de imágenes
+        if ($request->hasFile('gallery_images')) {
+            $galleryImages = [];
+            foreach ($request->file('gallery_images') as $image) {
+                try {
+                    $galleryImages[] = $this->imageService->upload($image, 'products');
+                } catch (\Exception $e) {
+                    \Log::warning('Error al subir imagen de galería: ' . $e->getMessage());
+                }
+            }
+            $validated['gallery_images'] = $galleryImages;
+        }
+
+        Product::create($validated);
+
+        CacheService::clearProducts(); // 🔹 Limpia caché del shop en landing
+
+        return redirect()
+            ->route('admin.products.index')
+            ->with('success', 'Producto creado exitosamente.');
+    }
+
+    public function edit(Product $product)
+    {
+        $categories = ProductCategory::active()->ordered()->get();
+        return view('admin.products.edit', compact('product', 'categories'));
+    }
+
+    public function update(ProductRequest $request, Product $product)
+    {
+        $validated = $request->validated();
+
+        // Manejar imagen destacada
+        if ($request->hasFile('featured_image')) {
+            try {
+                if ($product->featured_image) {
+                    $this->imageService->delete('products/' . $product->featured_image);
+                }
+
+                $validated['featured_image'] = $this->imageService->upload(
+                    $request->file('featured_image'),
+                    'products'
+                );
+            } catch (\Exception $e) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Error al actualizar la imagen: ' . $e->getMessage())
+                    ->withInput();
+            }
+        }
+
+        // Manejar galería de imágenes
+        if ($request->hasFile('gallery_images')) {
+            if ($product->gallery_images) {
+                foreach ($product->gallery_images as $oldImage) {
+                    $this->imageService->delete('products/' . $oldImage);
+                }
+            }
+
+            $galleryImages = [];
+            foreach ($request->file('gallery_images') as $image) {
+                try {
+                    $galleryImages[] = $this->imageService->upload($image, 'products');
+                } catch (\Exception $e) {
+                    \Log::warning('Error al subir imagen de galería: ' . $e->getMessage());
+                }
+            }
+            $validated['gallery_images'] = $galleryImages;
+        }
+
+        // Marca si el checkbox fue seleccionado
+        $validated['is_digital'] = $request->has('is_digital');
+
+        // Actualizar el producto con todos los datos validados + is_digital
+        $product->update($validated);
+
+        // Limpiar caché (tu lógica original)
+        CacheService::clearProducts();
+
+        return redirect()
+            ->route('admin.products.index')
+            ->with('success', 'Producto actualizado exitosamente.');
+
+
+    }
+
+    public function destroy(Product $product)
+    {
+        // Verificar si tiene órdenes
+        if ($product->orderItems()->count() > 0) {
+            return redirect()
+                ->back()
+                ->with('error', 'No se puede eliminar un producto con órdenes asociadas.');
+        }
+
+        // Eliminar imágenes
+        if ($product->featured_image) {
+            $this->imageService->delete('products/' . $product->featured_image);
+        }
+
+        if ($product->gallery_images) {
+            foreach ($product->gallery_images as $image) {
+                $this->imageService->delete('products/' . $image);
+            }
+        }
+
+        $product->delete();
+
+        CacheService::clearProducts(); // 🔹 limpia caché al eliminar
+
+        return redirect()
+            ->route('admin.products.index')
+            ->with('success', 'Producto eliminado exitosamente.');
+    }
+
+    public function updateStock(Request $request, Product $product)
+    {
+        $request->validate([
+            'quantity' => 'required|integer|min:0',
+        ]);
+
+        $product->update(['quantity' => $request->quantity]);
+
+        CacheService::clearProducts(); // 🔹 también actualiza el shop
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stock actualizado',
+            'quantity' => $product->quantity,
+        ]);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\ProjectController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Project;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+class ProjectController extends Controller
+{
+    public function index()
+    {
+        $projects = Project::orderBy('order', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('admin.projects.index', compact('projects'));
+    }
+
+    public function create()
+    {
+        return view('admin.projects.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'order' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $slug = Str::slug($validated['title']);
+        $count = 1;
+        while (Project::where('slug', $slug)->exists()) {
+            $slug = Str::slug($validated['title']) . '-' . $count;
+            $count++;
+        }
+
+        $validated['slug'] = $slug;
+        $validated['is_active'] = $request->has('is_active') ? 1 : 0;
+        $validated['is_featured'] = 0;
+        $validated['order'] = $validated['order'] ?? 0;
+
+        if ($request->hasFile('featured_image')) {
+            $image = $request->file('featured_image');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            $destinationPath = public_html_path('images/projects');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $filename);
+            $validated['featured_image'] = 'projects/' . $filename;
+        }
+
+        Project::create($validated);
+
+        return redirect()->route('admin.projects.index')
+            ->with('success', 'Proyecto creado exitosamente.');
+    }
+
+    public function edit(Project $project)
+    {
+        return view('admin.projects.edit', compact('project'));
+    }
+
+    public function update(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'order' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        if ($validated['title'] !== $project->title) {
+            $slug = Str::slug($validated['title']);
+            $count = 1;
+            while (Project::where('slug', $slug)->where('id', '!=', $project->id)->exists()) {
+                $slug = Str::slug($validated['title']) . '-' . $count;
+                $count++;
+            }
+            $validated['slug'] = $slug;
+        }
+
+        $validated['is_active'] = $request->has('is_active') ? 1 : 0;
+        $validated['order'] = $validated['order'] ?? 0;
+
+        // Si seleccionó una imagen existente y no subió una nueva
+        if (!$request->hasFile('featured_image') && $request->filled('image_selected')) {
+            $validated['featured_image'] = $request->image_selected;
+        }
+
+        if ($request->hasFile('featured_image')) {
+            if ($project->featured_image) {
+                $oldImagePath = public_html_path('images/' . $project->featured_image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            $image = $request->file('featured_image');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            $destinationPath = public_html_path('images/projects');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $filename);
+            $validated['featured_image'] = 'projects/' . $filename;
+        }
+
+        $project->update($validated);
+
+        return redirect()->route('admin.projects.index')
+            ->with('success', 'Proyecto actualizado exitosamente.');
+    }
+
+    public function destroy(Project $project)
+    {
+        try {
+            if ($project->featured_image) {
+                $imagePath = public_html_path('images/' . $project->featured_image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+
+            $project->delete();
+
+            return redirect()->route('admin.projects.index')
+                ->with('success', 'Proyecto eliminado exitosamente.');
+
+        } catch (\Exception $e) {
+            return redirect()->route('admin.projects.index')
+                ->with('error', 'Error al eliminar el proyecto: ' . $e->getMessage());
+        }
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\ServiceController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Service;
+use App\Http\Requests\ServiceRequest;
+use App\Services\CacheService;
+use Illuminate\Support\Str;
+
+class ServiceController extends Controller
+{
+    public function index()
+    {
+        $services = Service::ordered()->paginate(10);
+        return view('admin.services.index', compact('services'));
+    }
+
+    public function create()
+    {
+        return view('admin.services.create');
+    }
+
+    public function store(ServiceRequest $request)
+    {
+        $validated = $request->validated();
+        $validated['slug'] = $this->generateUniqueSlug($validated['title']);
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            $destinationPath = public_html_path('images/services');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $filename);
+            $validated['image'] = 'services/' . $filename;
+        }
+
+        Service::create($validated);
+        CacheService::clearServices();
+
+        return redirect()->route('admin.services.index')->with('success', 'Servicio creado exitosamente.');
+    }
+
+    public function edit(Service $service)
+    {
+        return view('admin.services.edit', compact('service'));
+    }
+
+    public function update(ServiceRequest $request, Service $service)
+    {
+        $validated = $request->validated();
+
+        if ($request->title !== $service->title) {
+            $validated['slug'] = $this->generateUniqueSlug($validated['title'], $service->id);
+        }
+
+        // Si seleccionó una imagen existente y no subió una nueva
+        if (!$request->hasFile('image') && $request->filled('image_selected')) {
+            $validated['image'] = $request->image_selected;
+        }
+
+        if ($request->hasFile('image')) {
+            if ($service->image) {
+                $oldImagePath = public_html_path('images/' . $service->image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            $image = $request->file('image');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            $destinationPath = public_html_path('images/services');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $filename);
+            $validated['image'] = 'services/' . $filename;
+        }
+
+        $service->update($validated);
+        CacheService::clearServices();
+
+        return redirect()->route('admin.services.index')->with('success', 'Servicio actualizado exitosamente.');
+    }
+
+    public function destroy(Service $service)
+    {
+        try {
+            if ($service->image) {
+                $imagePath = public_html_path('images/' . $service->image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+
+            $service->delete();
+            CacheService::clearServices();
+
+            return redirect()->route('admin.services.index')->with('success', 'Servicio eliminado exitosamente.');
+
+        } catch (\Exception $e) {
+            return redirect()->route('admin.services.index')->with('error', 'Error al eliminar el servicio: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generar slug único
+     */
+    protected function generateUniqueSlug(string $title, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while ($this->slugExists($slug, $excludeId)) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Verificar si el slug existe
+     */
+    protected function slugExists(string $slug, ?int $excludeId = null): bool
+    {
+        $query = Service::where('slug', $slug);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\SettingController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Setting;
+use App\Services\ImageUploadService;
+use App\Services\CacheService;
+use Illuminate\Http\Request;
+
+class SettingController extends Controller
+{
+    protected ImageUploadService $imageService;
+
+    public function __construct(ImageUploadService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
+    public function index()
+    {
+        $settings = Setting::getSettings();
+        return view('admin.settings.index', compact('settings'));
+    }
+
+    public function update(Request $request)
+    {
+        $settings = Setting::getSettings();
+
+        // Validación
+        $validated = $request->validate([
+            'site_name' => 'required|string|max:255',
+            'site_slogan' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'favicon' => 'nullable|mimes:ico,png,x-icon,vnd.microsoft.icon|max:1024',
+
+            // Colores
+            'primary_color' => 'nullable|string|max:7',
+            'secondary_color' => 'nullable|string|max:7',
+            'accent_color' => 'nullable|string|max:7',
+
+            // Navbar
+            'navbar_bg_color' => 'nullable|string|max:7',
+            'navbar_text_color' => 'nullable|string|max:7',
+            'navbar_show_logo' => 'nullable',
+            'navbar_show_title' => 'nullable',
+            'navbar_show_slogan' => 'nullable',
+            'navbar_show_shop' => 'nullable',
+            'navbar_menu_labels' => 'nullable|array',
+
+            // Redes Sociales
+            'facebook_url' => 'nullable|url',
+            'instagram_url' => 'nullable|url',
+            'twitter_url' => 'nullable|url',
+            'linkedin_url' => 'nullable|url',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'whatsapp_button_message' => 'nullable|string|max:255',
+
+            // Contacto
+            'contact_email' => 'nullable|email',
+            'contact_phone' => 'nullable|string|max:20',
+            'contact_address' => 'nullable|string',
+            'google_maps_url' => 'nullable|string',
+            'notification_email' => 'nullable|email',
+            'business_hours' => 'nullable|string',
+
+            // Hero
+            'hero_title' => 'nullable|string',
+            'hero_subtitle' => 'nullable|string',
+            'hero_button_text' => 'nullable|string|max:50',
+            'hero_button_url' => 'nullable|string|max:255',
+
+            // Hero Background
+            'hero_background_type' => 'nullable|in:color,image,video', // ← CAMBIADO
+            'hero_background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'hero_background_video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:51200',
+            'hero_overlay_opacity' => 'nullable|numeric|min:0|max:1',
+            'hero_title_color' => 'nullable|string|max:7',
+            'hero_title_font' => 'nullable|string|max:50',
+            'hero_show_logo_instead' => 'boolean',
+
+            // About
+            'about_title' => 'nullable|string|max:255',
+            'about_description' => 'nullable|string',
+            'about_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+
+            // Footer
+            'footer_text' => 'nullable|string',
+
+            // SEO
+            'meta_description' => 'nullable|string|max:160',
+            'meta_keywords' => 'nullable|string',
+            'google_analytics_id' => 'nullable|string|max:50',
+            'facebook_pixel_id' => 'nullable|string|max:50',
+        ]);
+
+        // Checkboxes (booleanos)
+        $checkboxFields = [
+            'facebook_enabled',
+            'instagram_enabled',
+            'twitter_enabled',
+            'linkedin_enabled',
+            'whatsapp_enabled',
+            'show_email',
+            'show_phone',
+            'show_address',
+            'show_map',
+            'hero_enabled',
+            'about_enabled',
+            'services_enabled',
+            'products_enabled',
+            'testimonials_enabled',
+            'gallery_enabled',
+            'contact_enabled',
+            'cta_enabled',
+            'features_enabled',
+            'stats_enabled',
+            'shop_enabled',
+            'show_social_footer',
+            'show_whatsapp_button',
+            'navbar_show_logo',
+            'navbar_show_title',
+            'navbar_show_slogan',
+            'navbar_show_shop',
+            'hero_show_logo_instead',
+        ];
+
+        foreach ($checkboxFields as $field) {
+            $validated[$field] = filter_var($request->input($field), FILTER_VALIDATE_BOOLEAN);
+        }
+
+        // Manejar JSON del menú del navbar
+        if ($request->has('navbar_menu_labels')) {
+            $validated['navbar_menu_labels'] = json_encode($request->navbar_menu_labels);
+        }
+
+        // ← NUEVO: Valor por defecto para hero_background_type
+        $validated['hero_background_type'] = $request->input(
+            'hero_background_type',
+            $settings->hero_background_type ?? 'color'
+        );
+
+        try {
+            // Manejar subida de Logo
+            if ($request->hasFile('logo')) {
+                if ($settings->logo) {
+                    $this->imageService->delete($settings->logo);
+                }
+                $validated['logo'] = $this->imageService->upload($request->file('logo'), 'settings');
+            }
+
+            // Manejar subida de Favicon
+            if ($request->hasFile('favicon')) {
+                if ($settings->favicon) {
+                    $this->imageService->delete($settings->favicon);
+                }
+                $validated['favicon'] = $this->imageService->upload($request->file('favicon'), 'settings');
+            }
+
+            // Manejar subida de Imagen About
+            if ($request->hasFile('about_image')) {
+                if ($settings->about_image) {
+                    $this->imageService->delete($settings->about_image);
+                }
+                $validated['about_image'] = $this->imageService->upload($request->file('about_image'), 'settings');
+            }
+
+            // Manejar subida de imagen de fondo Hero
+            if ($request->hasFile('hero_background_image')) {
+                if ($settings->hero_background_image) {
+                    $this->imageService->delete('hero/' . $settings->hero_background_image);
+                }
+                $validated['hero_background_image'] = $this->imageService->upload($request->file('hero_background_image'), 'hero');
+            }
+
+            // Si seleccionó una imagen existente y no subió una nueva
+            if (!$request->hasFile('hero_background_image') && $request->filled('hero_background_image_selected')) {
+                $validated['hero_background_image'] = $request->hero_background_image_selected;
+            }
+
+            // Manejar subida de video de fondo Hero
+            if ($request->hasFile('hero_background_video')) {
+                if ($settings->hero_background_video) {
+                    $this->imageService->delete('hero/' . $settings->hero_background_video, 'videos');
+                }
+                $validated['hero_background_video'] = $this->imageService->uploadVideo($request->file('hero_background_video'), 'hero');
+            }
+
+            // Guardar cambios
+            $settings->update($validated);
+
+            // Refrescar instancia desde la base de datos
+            $settings->refresh();
+
+            // Limpiar caché
+            CacheService::clearSettings();
+            CacheService::clearAll();
+
+            \Log::info('Settings actualizados correctamente', [
+                'cta_enabled' => $validated['cta_enabled'],
+                'features_enabled' => $validated['features_enabled'],
+                'stats_enabled' => $validated['stats_enabled'],
+                'shop_enabled' => $validated['shop_enabled'],
+                'navbar_show_shop' => $validated['navbar_show_shop'],
+            ]);
+
+            return redirect()
+                ->route('admin.settings.index')
+                ->with('success', 'Configuración actualizada correctamente.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar settings: ' . $e->getMessage());
+
+            return redirect()
+                ->back()
+                ->with('error', 'Error al guardar la configuración: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\StatController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Stat;
+use App\Models\Setting;
+use App\Services\CacheService;
+use Illuminate\Http\Request;
+
+class StatController extends Controller
+{
+    public function index()
+    {
+        $stats    = Stat::ordered()->get();
+        $settings = Setting::getSettings();
+        return view('admin.stats.index', compact('stats', 'settings'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'label'    => 'required|string|max:100',
+            'value'    => 'required|string|max:20',
+            'target'   => 'required|integer|min:0',
+            'suffix'   => 'nullable|string|max:5',
+            'duration' => 'required|integer|min:1|max:1000',
+            'step'     => 'required|integer|min:1',
+            'order'    => 'nullable|integer|min:0',
+        ]);
+
+        $validated['is_active'] = true;
+        $validated['order']     = $validated['order'] ?? Stat::max('order') + 1;
+        $validated['suffix']    = $validated['suffix'] ?? ''; // evita null en BD
+
+        Stat::create($validated);
+        CacheService::clearStats();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Estadística creada correctamente.');
+    }
+
+    public function update(Request $request, Stat $stat)
+    {
+        $validated = $request->validate([
+            'label'     => 'required|string|max:100',
+            'value'     => 'required|string|max:20',
+            'target'    => 'required|integer|min:0',
+            'suffix'    => 'nullable|string|max:5',
+            'duration'  => 'required|integer|min:1|max:1000',
+            'step'      => 'required|integer|min:1',
+            'order'     => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $validated['suffix']    = $validated['suffix'] ?? ''; // evita null en BD
+        $validated['is_active'] = filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN);
+
+        $stat->update($validated);
+        CacheService::clearStats();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Estadística actualizada correctamente.');
+    }
+
+    public function destroy(Stat $stat)
+    {
+        $stat->delete();
+        CacheService::clearStats();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Estadística eliminada.');
+    }
+
+    public function toggleActive(Stat $stat)
+    {
+        $stat->update(['is_active' => !$stat->is_active]);
+        CacheService::clearStats();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Estado actualizado.');
+    }
+
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'order'   => 'required|array',
+            'order.*' => 'integer|exists:stats,id',
+        ]);
+
+        foreach ($request->order as $position => $id) {
+            Stat::where('id', $id)->update(['order' => $position + 1]);
+        }
+
+        CacheService::clearStats();
+
+        return response()->json(['success' => true]);
+    }
+
+    // ── Colores globales de la sección ────────────────────────
+
+    public function updateColors(Request $request)
+    {
+        $request->validate([
+            'stats_bg_color'     => 'required|string|max:7',
+            'stats_number_color' => 'required|string|max:7',
+        ]);
+
+        $settings = Setting::getSettings();
+        $settings->update([
+            'stats_bg_color'     => $request->stats_bg_color,
+            'stats_number_color' => $request->stats_number_color,
+        ]);
+
+        CacheService::clearSettings();
+
+        return redirect()
+            ->route('admin.stats.index')
+            ->with('success', 'Colores actualizados correctamente.');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\TestimonialController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Testimonial;
+use App\Http\Requests\TestimonialRequest;
+use App\Services\CacheService;
+use Illuminate\Support\Str;
+
+class TestimonialController extends Controller
+{
+    public function index()
+    {
+        $testimonials = Testimonial::ordered()->paginate(10);
+        return view('admin.testimonials.index', compact('testimonials'));
+    }
+
+    public function create()
+    {
+        return view('admin.testimonials.create');
+    }
+
+    public function store(TestimonialRequest $request)
+    {
+        $validated = $request->validated();
+
+        if ($request->hasFile('client_photo')) {
+            $image = $request->file('client_photo');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            $destinationPath = public_html_path('images/testimonials');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $filename);
+            $validated['client_photo'] = 'testimonials/' . $filename;
+        }
+
+        Testimonial::create($validated);
+        CacheService::clearTestimonials();
+
+        return redirect()->route('admin.testimonials.index')
+            ->with('success', 'Testimonio creado exitosamente.');
+    }
+
+    public function edit(Testimonial $testimonial)
+    {
+        return view('admin.testimonials.edit', compact('testimonial'));
+    }
+
+    public function update(TestimonialRequest $request, Testimonial $testimonial)
+    {
+        $validated = $request->validated();
+
+        if ($request->hasFile('client_photo')) {
+            if ($testimonial->client_photo) {
+                $oldImagePath = public_html_path('images/' . $testimonial->client_photo);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            $image = $request->file('client_photo');
+            $filename = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+
+            $destinationPath = public_html_path('images/testimonials');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $filename);
+            $validated['client_photo'] = 'testimonials/' . $filename;
+        }
+
+        $testimonial->update($validated);
+        CacheService::clearTestimonials();
+
+        return redirect()->route('admin.testimonials.index')
+            ->with('success', 'Testimonio actualizado exitosamente.');
+    }
+
+    public function destroy(Testimonial $testimonial)
+    {
+        try {
+            if ($testimonial->client_photo) {
+                $imagePath = public_html_path('images/' . $testimonial->client_photo);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+
+            $testimonial->delete();
+            CacheService::clearTestimonials();
+
+            return redirect()->route('admin.testimonials.index')
+                ->with('success', 'Testimonio eliminado exitosamente.');
+
+        } catch (\Exception $e) {
+            return redirect()->route('admin.testimonials.index')
+                ->with('error', 'Error al eliminar el testimonio: ' . $e->getMessage());
+        }
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\AuthenticatedSessionController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+
+class AuthenticatedSessionController extends Controller
+{
+    /**
+     * Display the login view.
+     */
+    public function create(): View
+    {
+        return view('auth.login');
+    }
+
+    /**
+     * Handle an incoming authentication request.
+     */
+    public function store(LoginRequest $request): RedirectResponse
+    {
+        $request->authenticate();
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('dashboard', absolute: false));
+    }
+
+    /**
+     * Destroy an authenticated session.
+     */
+    public function destroy(Request $request): RedirectResponse
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\ConfirmablePasswordController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
+
+class ConfirmablePasswordController extends Controller
+{
+    /**
+     * Show the confirm password view.
+     */
+    public function show(): View
+    {
+        return view('auth.confirm-password');
+    }
+
+    /**
+     * Confirm the user's password.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        if (! Auth::guard('web')->validate([
+            'email' => $request->user()->email,
+            'password' => $request->password,
+        ])) {
+            throw ValidationException::withMessages([
+                'password' => __('auth.password'),
+            ]);
+        }
+
+        $request->session()->put('auth.password_confirmed_at', time());
+
+        return redirect()->intended(route('dashboard', absolute: false));
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\EmailVerificationNotificationController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+
+class EmailVerificationNotificationController extends Controller
+{
+    /**
+     * Send a new email verification notification.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('status', 'verification-link-sent');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\EmailVerificationPromptController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class EmailVerificationPromptController extends Controller
+{
+    /**
+     * Display the email verification prompt.
+     */
+    public function __invoke(Request $request): RedirectResponse|View
+    {
+        return $request->user()->hasVerifiedEmail()
+                    ? redirect()->intended(route('dashboard', absolute: false))
+                    : view('auth.verify-email');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\NewPasswordController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules;
+use Illuminate\View\View;
+
+class NewPasswordController extends Controller
+{
+    /**
+     * Display the password reset view.
+     */
+    public function create(Request $request): View
+    {
+        return view('auth.reset-password', ['request' => $request]);
+    }
+
+    /**
+     * Handle an incoming new password request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        // Here we will attempt to reset the user's password. If it is successful we
+        // will update the password on an actual user model and persist it to the
+        // database. Otherwise we will parse the error and return the response.
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user) use ($request) {
+                $user->forceFill([
+                    'password' => Hash::make($request->password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        // If the password was successfully reset, we will redirect the user back to
+        // the application's home authenticated view. If there is an error we can
+        // redirect them back to where they came from with their error message.
+        return $status == Password::PASSWORD_RESET
+                    ? redirect()->route('login')->with('status', __($status))
+                    : back()->withInput($request->only('email'))
+                        ->withErrors(['email' => __($status)]);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\PasswordController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
+
+class PasswordController extends Controller
+{
+    /**
+     * Update the user's password.
+     */
+    public function update(Request $request): RedirectResponse
+    {
+        $validated = $request->validateWithBag('updatePassword', [
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return back()->with('status', 'password-updated');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\PasswordResetLinkController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
+use Illuminate\View\View;
+
+class PasswordResetLinkController extends Controller
+{
+    /**
+     * Display the password reset link request view.
+     */
+    public function create(): View
+    {
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Handle an incoming password reset link request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        // We will send the password reset link to this user. Once we have attempted
+        // to send the link, we will examine the response then see the message we
+        // need to show to the user. Finally, we'll send out a proper response.
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status == Password::RESET_LINK_SENT
+                    ? back()->with('status', __($status))
+                    : back()->withInput($request->only('email'))
+                        ->withErrors(['email' => __($status)]);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\RegisteredUserController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Illuminate\View\View;
+
+class RegisteredUserController extends Controller
+{
+    /**
+     * Display the registration view.
+     */
+    public function create(): View
+    {
+        return view('auth.register');
+    }
+
+    /**
+     * Handle an incoming registration request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect(route('dashboard', absolute: false));
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\VerifyEmailController.php 
+----------------------- 
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\RedirectResponse;
+
+class VerifyEmailController extends Controller
+{
+    /**
+     * Mark the authenticated user's email address as verified.
+     */
+    public function __invoke(EmailVerificationRequest $request): RedirectResponse
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        }
+
+        if ($request->user()->markEmailAsVerified()) {
+            event(new Verified($request->user()));
+        }
+
+        return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsAdmin.php 
+----------------------- 
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class IsAdmin
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        return $next($request);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsColumnist.php 
+----------------------- 
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class IsColumnist
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'columnist'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        return $next($request);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsCustomer.php 
+----------------------- 
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class IsCustomer
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'customer', 'user'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        return $next($request);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsEditor.php 
+----------------------- 
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class IsEditor
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'editor'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        return $next($request);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsResearcher.php 
+----------------------- 
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class IsResearcher
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'researcher'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        return $next($request);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsSeller.php 
+----------------------- 
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class IsSeller
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'seller'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        return $next($request);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsUser.php 
+----------------------- 
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class IsUser
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!auth()->check()) {
+            abort(403, 'Debes iniciar sesión.');
+        }
+
+        return $next($request);
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Requests\CheckoutRequest.php 
+----------------------- 
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use App\Services\CartService;
+
+class CheckoutRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        $cartService = app(CartService::class);
+        $cart = $cartService->getCart();
+        $cart->load('items.product.category');
+
+        $isDigitalOnly = $cart->hasOnlyDigitalProducts();
+
+        // 🔥 Métodos de pago actualizados: Bre-b, Transferencia, QR, Tarjeta, Contra Entrega
+        $rules = [
+            'full_name'        => ['required', 'string', 'max:255'],
+            'email'            => ['required', 'email', 'max:255'],
+            'phone'            => ['required', 'string', 'max:30'],
+
+            // ✅ Nuevos métodos de pago
+            'payment_method'   => ['required', 'in:manual_breb,manual_transfer,manual_qr,card,cash_on_delivery'],
+
+            'terms_accepted'   => ['required', 'accepted'],
+        ];
+
+        // 🟡 Dirección requerida SOLO para productos físicos
+        if (!$isDigitalOnly) {
+            $rules = array_merge($rules, [
+                'address_line_1' => ['required', 'string', 'max:255'],
+                'address_line_2' => ['nullable', 'string', 'max:255'],
+                'city'           => ['required', 'string', 'max:100'],
+                'state'          => ['nullable', 'string', 'max:100'],
+                'postal_code'    => ['required', 'string', 'max:20'],
+                'country'        => ['required', 'string', 'max:100'],
+                'notes'          => ['nullable', 'string', 'max:500'],
+            ]);
+        }
+        // 🟢 Digital only → permitir nulos
+        else {
+            $rules = array_merge($rules, [
+                'address_line_1' => ['nullable', 'string', 'max:255'],
+                'address_line_2' => ['nullable', 'string', 'max:255'],
+                'city'           => ['nullable', 'string', 'max:100'],
+                'state'          => ['nullable', 'string', 'max:100'],
+                'postal_code'    => ['nullable', 'string', 'max:20'],
+                'country'        => ['nullable', 'string', 'max:100'],
+                'notes'          => ['nullable', 'string', 'max:500'],
+            ]);
+        }
+
+        return $rules;
+    }
+
+    public function messages(): array
+    {
+        return [
+            // Campos generales
+            'full_name.required'      => 'El nombre completo es obligatorio.',
+            'email.required'          => 'El email es obligatorio.',
+            'email.email'             => 'El email debe ser válido.',
+            'phone.required'          => 'El teléfono es obligatorio.',
+
+            // Dirección
+            'address_line_1.required' => 'La dirección es obligatoria.',
+            'city.required'           => 'La ciudad es obligatoria.',
+            'postal_code.required'    => 'El código postal es obligatorio.',
+            'country.required'        => 'El país es obligatorio.',
+
+            // Método de pago
+            'payment_method.required' => 'Debes seleccionar un método de pago.',
+            'payment_method.in'       => 'El método de pago seleccionado no es válido. Los métodos disponibles son: Bre-b, Transferencia, QR, Tarjeta o Contra Entrega.',
+
+            // Términos
+            'terms_accepted.required' => 'Debes aceptar los términos y condiciones.',
+            'terms_accepted.accepted' => 'Debes aceptar los términos y condiciones.',
+        ];
+    }
+
+    /**
+     * Obtener nombres legibles de los métodos de pago (opcional)
+     */
+    public function attributes(): array
+    {
+        return [
+            'full_name'      => 'nombre completo',
+            'email'          => 'correo electrónico',
+            'phone'          => 'teléfono',
+            'address_line_1' => 'dirección',
+            'city'           => 'ciudad',
+            'postal_code'    => 'código postal',
+            'country'        => 'país',
+            'payment_method' => 'método de pago',
+            'terms_accepted' => 'términos y condiciones',
+        ];
+    }
+
+    /**
+     * Validación personalizada adicional (opcional)
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $cartService = app(CartService::class);
+            $cart = $cartService->getCart();
+
+            // Validar que "cash_on_delivery" solo esté disponible para productos físicos
+            if ($this->payment_method === 'cash_on_delivery' && $cart->hasOnlyDigitalProducts()) {
+                $validator->errors()->add(
+                    'payment_method',
+                    'El pago contra entrega solo está disponible para productos físicos.'
+                );
+            }
+
+            // Validar que métodos digitales estén disponibles para productos digitales
+            $digitalMethods = ['manual_breb', 'manual_qr', 'manual_transfer', 'card'];
+            if (in_array($this->payment_method, $digitalMethods) && !$cart->hasOnlyDigitalProducts() && $this->payment_method !== 'manual_transfer' && $this->payment_method !== 'card') {
+                // Permitir transferencia y tarjeta para ambos tipos
+            }
+        });
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Requests\GalleryRequest.php 
+----------------------- 
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class GalleryRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        $rules = [
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'is_active' => 'boolean',
+            'order' => 'nullable|integer|min:0',
+            'type' => 'required|in:image,video',
+        ];
+
+        // Obtener el tipo seleccionado
+        $type = $this->input('type', 'image');
+
+        if ($type === 'video') {
+            // Validación para videos
+            if ($this->isMethod('POST')) {
+                $rules['image'] = 'required|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,video/mpeg|max:102400'; // 100MB
+            } else {
+                $rules['image'] = 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,video/mpeg|max:102400';
+            }
+        } else {
+            // Validación para imágenes
+            if ($this->isMethod('POST')) {
+                $rules['image'] = 'required|image|mimes:jpeg,png,jpg,webp|max:5120';
+            } else {
+                $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120';
+            }
+        }
+
+        return $rules;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'is_active' => $this->boolean('is_active'),
+        ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'image.required' => 'Debes seleccionar una imagen o video.',
+            'image.image' => 'El archivo debe ser una imagen válida.',
+            'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, webp.',
+            'image.mimetypes' => 'El video debe ser de tipo: mp4, mov, avi, wmv.',
+            'image.max' => 'El archivo es demasiado grande. Máx: 5MB para imágenes, 100MB para videos.',
+            'image.file' => 'Debes seleccionar un archivo válido.',
+            'title.max' => 'El título no puede exceder 255 caracteres.',
+            'category.max' => 'La categoría no puede exceder 100 caracteres.',
+            'type.required' => 'Debes seleccionar el tipo de archivo.',
+            'type.in' => 'El tipo debe ser imagen o video.',
+        ];
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Requests\LeadRequest.php 
+----------------------- 
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class LeadRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'subject' => 'nullable|string|max:255',
+            'message' => 'required|string|min:10|max:2000',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre es obligatorio.',
+            'name.max' => 'El nombre no puede exceder 255 caracteres.',
+
+            'email.required' => 'El email es obligatorio.',
+            'email.email' => 'Debes proporcionar un email válido.',
+            'email.max' => 'El email no puede exceder 255 caracteres.',
+
+            'phone.max' => 'El teléfono no puede exceder 20 caracteres.',
+
+            'subject.max' => 'El asunto no puede exceder 255 caracteres.',
+
+            'message.required' => 'El mensaje es obligatorio.',
+            'message.min' => 'El mensaje debe tener al menos 10 caracteres.',
+            'message.max' => 'El mensaje no puede exceder 2000 caracteres.',
+        ];
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Requests\ProductCategoryRequest.php 
+----------------------- 
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class ProductCategoryRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        $categoryId = $this->route('category') ? $this->route('category')->id : null;
+
+        return [
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => $this->isMethod('POST')
+                ? 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+                : 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'is_active' => 'boolean',
+            'order' => 'nullable|integer|min:0',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'is_active' => $this->boolean('is_active', true),
+        ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre de la categoría es obligatorio.',
+            'name.max' => 'El nombre no puede exceder 255 caracteres.',
+            'image.image' => 'El archivo debe ser una imagen.',
+            'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, webp.',
+            'image.max' => 'La imagen no puede ser mayor a 2MB.',
+        ];
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Requests\ProductRequest.php 
+----------------------- 
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class ProductRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        $productId = $this->route('product') ? $this->route('product')->id : null;
+
+        $rules = [
+            'category_id' => 'nullable|exists:product_categories,id',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'short_description' => 'nullable|string|max:500',
+
+            // Precios e inventario
+            'price' => 'required|numeric|min:0',
+            'compare_price' => 'nullable|numeric|min:0|gte:price',
+            'cost' => 'nullable|numeric|min:0',
+            'quantity' => 'required|integer|min:0',
+            'track_quantity' => 'boolean',
+
+            // Características
+            'weight' => 'nullable|numeric|min:0',
+
+            // Imágenes
+            'featured_image' => $this->isMethod('POST')
+                ? 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120'
+                : 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'gallery_images' => 'nullable|array',
+            'gallery_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+
+            // Estado
+            'is_featured' => 'boolean',
+            'is_active' => 'boolean',
+            'order' => 'nullable|integer|min:0',
+
+            // SEO
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'meta_keywords' => 'nullable|string',
+        ];
+
+        // SKU único (excluyendo el producto actual en edición)
+        if ($productId) {
+            $rules['sku'] = 'nullable|string|max:100|unique:products,sku,' . $productId;
+            $rules['barcode'] = 'nullable|string|max:100|unique:products,barcode,' . $productId;
+        } else {
+            $rules['sku'] = 'nullable|string|max:100|unique:products,sku';
+            $rules['barcode'] = 'nullable|string|max:100|unique:products,barcode';
+        }
+
+        return $rules;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'track_quantity' => $this->boolean('track_quantity', true),
+            'is_featured' => $this->boolean('is_featured', false),
+            'is_active' => $this->boolean('is_active', true),
+        ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre del producto es obligatorio.',
+            'description.required' => 'La descripción es obligatoria.',
+            'price.required' => 'El precio es obligatorio.',
+            'price.numeric' => 'El precio debe ser un número.',
+            'price.min' => 'El precio debe ser mayor o igual a 0.',
+            'compare_price.gte' => 'El precio de comparación debe ser mayor o igual al precio de venta.',
+            'quantity.required' => 'La cantidad es obligatoria.',
+            'quantity.integer' => 'La cantidad debe ser un número entero.',
+            'category_id.exists' => 'La categoría seleccionada no existe.',
+            'sku.unique' => 'Este SKU ya está en uso.',
+            'barcode.unique' => 'Este código de barras ya está en uso.',
+            'featured_image.image' => 'La imagen destacada debe ser un archivo de imagen.',
+            'featured_image.max' => 'La imagen destacada no puede ser mayor a 5MB.',
+            'gallery_images.*.image' => 'Todos los archivos de galería deben ser imágenes.',
+            'gallery_images.*.max' => 'Las imágenes de galería no pueden ser mayores a 5MB.',
+        ];
+    }
+}
+ 
+======================== 
+Archivo: D:\htdocs\skubox\landing\app\Http\Requests\ProfileUpdateRequest.php 
+----------------------- 
+<?php
+
+namespace App\Http\Requests;
+
+use App\Models\User;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class ProfileUpdateRequest extends FormRequest
+{
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class)->ignore($this->user()->id),
+            ],
+        ];
+    }
+}
+ 
+======================== 
