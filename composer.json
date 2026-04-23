@@ -1,14 +1,14 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "smartfit5/landing-page",
+    "name": "atory/landing-page",
     "type": "project",
     "description": "aplicacion landing page con dashboard.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "laravel/framework": "^12.0",
-        "laravel/tinker": "^2.10.1",
+        "laravel/framework": "^13.0",
+        "laravel/tinker": "^3.0",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {
