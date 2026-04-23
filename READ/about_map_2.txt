@@ -1,75 +1,5 @@
-Listado de archivos 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\helpers.php 
------------------------ 
-<?php
-
-if (!function_exists('public_html_path')) {
-    function public_html_path(string $path = ''): string
-    {
-        return base_path('public_html') . ($path ? DIRECTORY_SEPARATOR . $path : '');
-    }
-}
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Console\Commands\ClearSiteCache.php 
------------------------ 
-<?php
-
-namespace App\Console\Commands;
-
-use Illuminate\Console\Command;
-use App\Services\CacheService;
-
-class ClearSiteCache extends Command
-{
-    /**
-     * The name and signature of the console command.
-     */
-    protected $signature = 'cache:clear-site';
-
-    /**
-     * The console command description.
-     */
-    protected $description = 'Clear all site-specific cache (settings, services, projects, etc.)';
-
-    /**
-     * Execute the console command.
-     */
-    public function handle()
-    {
-        $this->info('Clearing site cache...');
-
-        CacheService::clearAll();
-
-        $this->info('✓ Site cache cleared successfully!');
-
-        return Command::SUCCESS;
-    }
-}
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Foundation\Application.php 
------------------------ 
-<?php
-
-namespace App\Foundation;
-
-use Illuminate\Foundation\Application as BaseApplication;
-
-class Application extends BaseApplication
-{
-    public function __construct($basePath = null)
-    {
-        parent::__construct($basePath);
-        $this->publicPath = $basePath . '/public_html';
-        $this->instance('path.public', $this->publicPath());
-    }
-}
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\CartController.php 
------------------------ 
+[CONTROLADORES] 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\CartController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -200,9 +130,7 @@ class CartController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\CheckoutController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\CheckoutController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -389,9 +317,7 @@ public function process(CheckoutRequest $request)
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Controller.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Controller.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -401,9 +327,7 @@ abstract class Controller
     //
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\DownloadController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\DownloadController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -486,9 +410,7 @@ class DownloadController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\LandingContactController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\LandingContactController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -529,9 +451,7 @@ class LandingContactController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\LandingController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\LandingController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -557,9 +477,7 @@ class LandingController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\LeadController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\LeadController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -673,9 +591,7 @@ class LeadController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\LegalController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\LegalController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -695,9 +611,7 @@ class LegalController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\PaymentController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\PaymentController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -1306,9 +1220,7 @@ class PaymentController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\ProfileController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\ProfileController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -1370,9 +1282,7 @@ class ProfileController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\ShopController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\ShopController.php 
 <?php
 
 namespace App\Http\Controllers;
@@ -1454,9 +1364,7 @@ class ShopController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\AboutController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\AboutController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -1535,9 +1443,7 @@ class AboutController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\DashboardController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\DashboardController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -1553,9 +1459,7 @@ class DashboardController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\GalleryController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\GalleryController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -1711,9 +1615,7 @@ class GalleryController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\HeroController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\HeroController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -1791,9 +1693,7 @@ class HeroController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\LeadController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\LeadController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -1977,9 +1877,7 @@ class LeadController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\OrderController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\OrderController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -2144,9 +2042,7 @@ class OrderController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\PaymentController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\PaymentController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -2277,9 +2173,7 @@ class PaymentController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\ProductCategoryController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\ProductCategoryController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -2397,9 +2291,7 @@ class ProductCategoryController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\ProductController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\ProductController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -2620,9 +2512,7 @@ class ProductController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\ProjectController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\ProjectController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -2768,9 +2658,7 @@ class ProjectController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\ServiceController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\ServiceController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -2912,9 +2800,7 @@ class ServiceController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\SettingController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\SettingController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -3136,9 +3022,7 @@ class SettingController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\StatController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\StatController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -3265,9 +3149,7 @@ class StatController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Admin\TestimonialController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Admin\TestimonialController.php 
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -3372,9 +3254,7 @@ class TestimonialController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\AuthenticatedSessionController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\AuthenticatedSessionController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3423,9 +3303,7 @@ class AuthenticatedSessionController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\ConfirmablePasswordController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\ConfirmablePasswordController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3467,9 +3345,7 @@ class ConfirmablePasswordController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\EmailVerificationNotificationController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\EmailVerificationNotificationController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3495,9 +3371,7 @@ class EmailVerificationNotificationController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\EmailVerificationPromptController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\EmailVerificationPromptController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3520,9 +3394,7 @@ class EmailVerificationPromptController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\NewPasswordController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\NewPasswordController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3586,9 +3458,7 @@ class NewPasswordController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\PasswordController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\PasswordController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3619,9 +3489,7 @@ class PasswordController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\PasswordResetLinkController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\PasswordResetLinkController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3667,9 +3535,7 @@ class PasswordResetLinkController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\RegisteredUserController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\RegisteredUserController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3721,9 +3587,7 @@ class RegisteredUserController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Controllers\Auth\VerifyEmailController.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Http\Controllers\Auth\VerifyEmailController.php 
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -3752,601 +3616,3338 @@ class VerifyEmailController extends Controller
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsAdmin.php 
------------------------ 
+[SERVICIOS] 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Services\CacheService.php 
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Services;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Cache;
+use App\Models\Setting;
+use App\Models\Service;
+use App\Models\Project;
+use App\Models\Testimonial;
+use App\Models\GalleryImage;
+use App\Models\Stat;
 
-class IsAdmin
+class CacheService
 {
-    public function handle(Request $request, Closure $next): Response
-    {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
-        }
+    protected const TTL = 3600; // 1 hora
+    protected const SETTINGS_KEY     = 'site_settings';
+    protected const SERVICES_KEY     = 'active_services';
+    protected const PROJECTS_KEY     = 'active_projects';
+    protected const TESTIMONIALS_KEY = 'featured_testimonials';
+    protected const GALLERY_KEY      = 'active_gallery_images';
+    protected const STATS_KEY        = 'active_stats'; // ← NUEVO
 
-        return $next($request);
+    /**
+     * Obtener settings con caché
+     */
+    public static function settings()
+    {
+        return Cache::remember(self::SETTINGS_KEY, self::TTL, function () {
+            return Setting::getSettings();
+        });
+    }
+
+    /**
+     * Obtener servicios activos con caché
+     */
+    public static function services()
+    {
+        return Cache::remember(self::SERVICES_KEY, self::TTL, function () {
+            return Service::active()->ordered()->get();
+        });
+    }
+
+    /**
+     * Obtener proyectos activos con caché
+     */
+    public static function projects()
+    {
+        return Cache::remember(self::PROJECTS_KEY, self::TTL, function () {
+            return Project::with('category')
+                ->active()
+                ->featured()
+                ->ordered()
+                ->take(6)
+                ->get();
+        });
+    }
+
+    /**
+     * Obtener productos activos con caché
+     */
+    public static function products()
+    {
+        return Cache::remember('active_products', self::TTL, function () {
+            return \App\Models\Product::where('is_active', true)
+                ->orderBy('order')
+                ->take(12)
+                ->get();
+        });
+    }
+
+    /**
+     * Obtener testimonios destacados con caché
+     */
+    public static function testimonials()
+    {
+        return Cache::remember(self::TESTIMONIALS_KEY, self::TTL, function () {
+            return Testimonial::active()
+                ->featured()
+                ->ordered()
+                ->take(6)
+                ->get();
+        });
+    }
+
+    /**
+     * Obtener imágenes de galería con caché
+     */
+    public static function gallery()
+    {
+        return Cache::remember(self::GALLERY_KEY, self::TTL, function () {
+            return GalleryImage::active()->ordered()->take(12)->get();
+        });
+    }
+
+    /**
+     * Obtener stats activos con caché
+     */
+    public static function stats()
+    {
+        return Cache::remember(self::STATS_KEY, self::TTL, function () {
+            return Stat::active()->ordered()->get();
+        });
+    }
+
+    // ─── Métodos clear ────────────────────────────────────────
+
+    public static function clearSettings(): void
+    {
+        Cache::forget(self::SETTINGS_KEY);
+    }
+
+    public static function clearServices(): void
+    {
+        Cache::forget(self::SERVICES_KEY);
+    }
+
+    public static function clearProjects(): void
+    {
+        Cache::forget(self::PROJECTS_KEY);
+    }
+
+    public static function clearTestimonials(): void
+    {
+        Cache::forget(self::TESTIMONIALS_KEY);
+    }
+
+    public static function clearGallery(): void
+    {
+        Cache::forget(self::GALLERY_KEY);
+    }
+
+    public static function clearProducts(): void
+    {
+        Cache::forget('active_products');
+    }
+
+    public static function clearStats(): void
+    {
+        Cache::forget(self::STATS_KEY);
+    }
+
+    /**
+     * Limpiar todo el caché del sitio
+     */
+    public static function clearAll(): void
+    {
+        Cache::forget(self::SETTINGS_KEY);
+        Cache::forget(self::SERVICES_KEY);
+        Cache::forget(self::PROJECTS_KEY);
+        Cache::forget(self::TESTIMONIALS_KEY);
+        Cache::forget(self::GALLERY_KEY);
+        Cache::forget('active_products');
+        Cache::forget(self::STATS_KEY); // ← NUEVO
+
+        \Log::info('All site cache cleared');
+    }
+
+    public static function getTTL(): int
+    {
+        return self::TTL;
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsColumnist.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Services\CartService.php 
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Services;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use App\Models\Cart;
+use App\Models\CartItem;
+use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
-class IsColumnist
+class CartService
 {
-    public function handle(Request $request, Closure $next): Response
+    /**
+     * Obtener o crear carrito
+     */
+    public function getCart(): Cart
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'columnist'])) {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
+        if (Auth::check()) {
+            $cart = Cart::where('user_id', Auth::id())
+                ->active()
+                ->first();
+        } else {
+            $sessionId = Session::getId();
+            $cart = Cart::where('session_id', $sessionId)
+                ->active()
+                ->first();
         }
 
-        return $next($request);
+        if (!$cart) {
+            $cart = $this->createCart();
+        }
+
+        return $cart;
+    }
+
+    /**
+     * Crear nuevo carrito
+     */
+    protected function createCart(): Cart
+    {
+        return Cart::create([
+            'user_id' => Auth::id(),
+            'session_id' => Session::getId(),
+            'expires_at' => now()->addDays(7),
+        ]);
+    }
+
+    /**
+     * Agregar producto al carrito
+     */
+    public function addItem(Product $product, int $quantity = 1): CartItem
+    {
+        if (!$product->isInStock()) {
+            throw new \Exception('Producto sin stock');
+        }
+
+        if ($product->track_quantity && $product->quantity < $quantity) {
+            throw new \Exception('Cantidad solicitada no disponible');
+        }
+
+        $cart = $this->getCart();
+
+        $cartItem = $cart->items()
+            ->where('product_id', $product->id)
+            ->first();
+
+        if ($cartItem) {
+            $newQuantity = $cartItem->quantity + $quantity;
+
+            if ($product->track_quantity && $product->quantity < $newQuantity) {
+                throw new \Exception('Cantidad solicitada excede el stock disponible');
+            }
+
+            $cartItem->update(['quantity' => $newQuantity]);
+        } else {
+            $cartItem = $cart->items()->create([
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'price' => $product->price,
+            ]);
+        }
+
+        return $cartItem;
+    }
+
+    /**
+     * Actualizar cantidad de un item
+     */
+    public function updateQuantity(CartItem $cartItem, int $quantity): CartItem
+    {
+        if ($quantity <= 0) {
+            $cartItem->delete();
+            return $cartItem;
+        }
+
+        $product = $cartItem->product;
+
+        if ($product->track_quantity && $product->quantity < $quantity) {
+            throw new \Exception('Cantidad solicitada excede el stock disponible');
+        }
+
+        $cartItem->update(['quantity' => $quantity]);
+
+        return $cartItem;
+    }
+
+    /**
+     * Eliminar item del carrito
+     */
+    public function removeItem(CartItem $cartItem): void
+    {
+        $cartItem->delete();
+    }
+
+    /**
+     * Vaciar carrito
+     */
+    public function clear(): void
+    {
+        $cart = $this->getCart();
+        $cart->clear();
+    }
+
+    /**
+     * Contar items en carrito
+     */
+    public function getItemCount(): int
+    {
+        $cart = $this->getCart();
+        return $cart->getTotalItems();
+    }
+
+    /**
+     * Obtener total del carrito
+     */
+    public function getTotal(): float
+    {
+        $cart = $this->getCart();
+        return $cart->getTotal();
+    }
+
+    /**
+     * Verificar si el carrito está vacío
+     */
+    public function isEmpty(): bool
+    {
+        $cart = $this->getCart();
+        return $cart->isEmpty();
+    }
+
+    /**
+     * Migrar carrito de sesión a usuario autenticado
+     */
+    public function migrateCart(): void
+    {
+        if (!Auth::check()) {
+            return;
+        }
+
+        $sessionId = Session::getId();
+        $sessionCart = Cart::where('session_id', $sessionId)
+            ->where('user_id', null)
+            ->first();
+
+        if (!$sessionCart || $sessionCart->isEmpty()) {
+            return;
+        }
+
+        $userCart = Cart::where('user_id', Auth::id())->first();
+
+        if (!$userCart) {
+            // Asignar carrito de sesión al usuario
+            $sessionCart->update(['user_id' => Auth::id()]);
+        } else {
+            // Merge carritos
+            foreach ($sessionCart->items as $item) {
+                $existingItem = $userCart->items()
+                    ->where('product_id', $item->product_id)
+                    ->first();
+
+                if ($existingItem) {
+                    $existingItem->increment('quantity', $item->quantity);
+                } else {
+                    $item->update(['cart_id' => $userCart->id]);
+                }
+            }
+
+            $sessionCart->delete();
+        }
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsCustomer.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Services\DaviplataService.php 
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Services;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use App\Models\Order;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-class IsCustomer
+class DaviplataService
 {
-    public function handle(Request $request, Closure $next): Response
-    {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'customer', 'user'])) {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
-        }
+    protected string $phoneNumber;
+    protected string $accountName;
 
-        return $next($request);
+    public function __construct()
+    {
+        $this->phoneNumber = config('services.daviplata.phone', '##numero_telefonico##');
+        $this->accountName = config('services.daviplata.name', '##nombre_cliente##');
+    }
+
+    /**
+     * Generar QR de Daviplata para una orden
+     */
+    public function generateQRCode(Order $order): string
+    {
+        // Formato del QR para Daviplata
+        $qrData = $this->buildQRData($order);
+
+        // Generar QR como SVG (más ligero y escalable)
+        return QrCode::size(300)
+            ->margin(2)
+            ->errorCorrection('H')
+            ->generate($qrData);
+    }
+
+    /**
+     * Construir datos del QR
+     * Daviplata usa formato: daviplata://pago?phone={phone}&amount={amount}&ref={ref}
+     */
+    protected function buildQRData(Order $order): string
+    {
+        $params = http_build_query([
+            'phone' => $this->phoneNumber,
+            'amount' => number_format($order->total, 0, '', ''),
+            'reference' => $order->order_number,
+            'description' => 'Orden ' . $order->order_number,
+        ]);
+
+        return "daviplata://pago?" . $params;
+    }
+
+    /**
+     * Generar enlace de pago directo (alternativa al QR)
+     */
+    public function getPaymentLink(Order $order): string
+    {
+        return "https://api.whatsapp.com/send?phone=57{$this->phoneNumber}&text=" .
+               urlencode("Hola, quiero pagar la orden #{$order->order_number} por $" . number_format($order->total, 0, ',', '.'));
+    }
+
+    /**
+     * Obtener información de la cuenta
+     */
+    public function getAccountInfo(): array
+    {
+        return [
+            'phone' => $this->phoneNumber,
+            'name' => $this->accountName,
+            'formatted_phone' => '+57 ' . substr($this->phoneNumber, 0, 3) . ' ' .
+                                substr($this->phoneNumber, 3, 4) . ' ' .
+                                substr($this->phoneNumber, 7, 4),
+        ];
+    }
+
+    /**
+     * Validar referencia de pago (para verificación manual)
+     */
+    public function validatePaymentReference(string $reference): bool
+    {
+        // Aquí podrías implementar lógica adicional
+        // Por ahora solo verifica que no esté vacío
+        return !empty($reference) && strlen($reference) >= 6;
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsEditor.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Services\ImageUploadService.php 
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Services;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
-class IsEditor
+class ImageUploadService
 {
-    public function handle(Request $request, Closure $next): Response
+    protected array $config = [
+        'services' => ['max_width' => 800, 'max_height' => 600],
+        'projects' => ['max_width' => 1200, 'max_height' => 800],
+        'testimonials' => ['max_width' => 400, 'max_height' => 400],
+        'gallery' => ['max_width' => 1920, 'max_height' => 1080],
+        'hero' => ['max_width' => 1920, 'max_height' => 1080],
+        'settings' => ['max_width' => 500, 'max_height' => 500],
+    ];
+
+    public function upload(UploadedFile $file, string $directory): string
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'editor'])) {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
+        $this->validateFile($file);
+        $this->ensureDirectoryExists($directory);
+
+        $filename = $this->generateFilename($file);
+        $path = public_html_path("images/{$directory}");
+
+        try {
+            $file->move($path, $filename);
+            Log::info("✅ Imagen subida: images/{$directory}/{$filename}");
+            return "{$directory}/{$filename}";
+        } catch (\Exception $e) {
+            Log::error("❌ Error al subir imagen: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function uploadWithResize(UploadedFile $file, string $folder = 'projects'): string
+    {
+        $this->validateFile($file);
+        $config = $this->getConfig($folder) ?? ['max_width' => 1200, 'max_height' => 1200];
+
+        $filename = $this->generateFilename($file);
+        $path = public_html_path("images/{$folder}");
+        $this->ensureDirectoryExists($folder);
+
+        if (class_exists('\Intervention\Image\Facades\Image')) {
+            try {
+                $image = \Intervention\Image\Facades\Image::make($file);
+                $image->resize($config['max_width'], $config['max_height'], function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+                $image->save($path . '/' . $filename, 85);
+                Log::info("🖼️ Imagen redimensionada correctamente: {$folder}/{$filename}");
+            } catch (\Exception $e) {
+                Log::warning("⚠️ Error al redimensionar, se guarda original: " . $e->getMessage());
+                $file->move($path, $filename);
+            }
+        } else {
+            $file->move($path, $filename);
         }
 
-        return $next($request);
+        return "{$folder}/{$filename}";
+    }
+
+    public function uploadVideo(UploadedFile $file, string $directory): string
+    {
+        $this->ensureDirectoryExists($directory, 'videos');
+        $filename = $this->generateFilename($file);
+        $path = public_html_path("videos/{$directory}");
+
+        try {
+            $file->move($path, $filename);
+            Log::info("🎬 Video subido: videos/{$directory}/{$filename}");
+            return "{$directory}/{$filename}";
+        } catch (\Exception $e) {
+            Log::error("❌ Error al subir video: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function delete(?string $relativePath, string $type = 'images'): bool
+    {
+        if (!$relativePath) {
+            return false;
+        }
+
+        $possiblePaths = [
+            public_html_path("{$type}/{$relativePath}"),
+            public_html_path("images/{$relativePath}"),
+            public_html_path("videos/{$relativePath}"),
+            public_html_path($relativePath),
+        ];
+
+        foreach ($possiblePaths as $fullPath) {
+            if (File::exists($fullPath)) {
+                try {
+                    File::delete($fullPath);
+                    Log::info("🗑️ Archivo eliminado: {$fullPath}");
+                    return true;
+                } catch (\Exception $e) {
+                    Log::error("❌ Error al eliminar archivo: " . $e->getMessage());
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function uploadMultiple(array $files, string $folder = 'images'): array
+    {
+        $uploadedFiles = [];
+
+        foreach ($files as $file) {
+            if ($file instanceof UploadedFile) {
+                $uploadedFiles[] = $this->upload($file, $folder);
+            }
+        }
+
+        return $uploadedFiles;
+    }
+
+    protected function ensureDirectoryExists(string $directory, string $type = 'images'): void
+    {
+        $directory = trim($directory, '/');
+        $path = public_html_path("{$type}/{$directory}");
+
+        if (!File::exists($path)) {
+            File::makeDirectory($path, 0755, true);
+            Log::info("📁 Directorio creado: {$path}");
+        }
+    }
+
+    protected function generateFilename(UploadedFile $file): string
+    {
+        $extension = $file->getClientOriginalExtension();
+        return time() . '_' . Str::random(10) . '.' . strtolower($extension);
+    }
+
+    public function getConfig(string $directory): ?array
+    {
+        return $this->config[$directory] ?? null;
+    }
+
+    protected function validateFile(UploadedFile $file): void
+    {
+        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mov', 'avi'];
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        if (!in_array($ext, $allowed)) {
+            throw new \Exception("Tipo de archivo no permitido: {$ext}");
+        }
+
+        if ($file->getSize() > 5 * 1024 * 1024) {
+            throw new \Exception('El archivo excede el tamaño máximo permitido (5 MB).');
+        }
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsResearcher.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Services\OrderService.php 
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Services;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use App\Models\Order;
+use App\Models\Cart;
+use App\Models\ShippingAddress;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Notifications\ProductDownloadNotification;
+use Illuminate\Support\Facades\Notification;
 
-class IsResearcher
+class OrderService
 {
-    public function handle(Request $request, Closure $next): Response
+    /**
+     * Crear orden desde carrito
+     */
+    public function createFromCart(Cart $cart, array $shippingData, float $shippingCost = 0, float $taxRate = 0.19): Order
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'researcher'])) {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
+        if ($cart->isEmpty()) {
+            throw new \Exception('El carrito está vacío');
         }
 
-        return $next($request);
+        return DB::transaction(function () use ($cart, $shippingData, $shippingCost, $taxRate) {
+
+            $subtotal = $cart->getSubtotal();
+            $tax = $subtotal * $taxRate;
+            $total = $subtotal + $tax + $shippingCost;
+
+            // Crear orden
+            $order = Order::create([
+                'user_id' => Auth::id(),
+                'status' => 'pending',
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'shipping_cost' => $shippingCost,
+                'total' => $total,
+                'currency' => 'COP',
+            ]);
+
+            // Crear items de la orden
+            foreach ($cart->items as $cartItem) {
+                $product = $cartItem->product;
+
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'product_sku' => $product->sku,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $cartItem->price,
+                    'subtotal' => $cartItem->getSubtotal(),
+                ]);
+
+                // Reducir stock
+                $product->decreaseStock($cartItem->quantity);
+            }
+
+            /**
+             * Si es compra digital: NO crear dirección
+             */
+            $addressLine1 = $shippingData['address_line_1'] ?? null;
+            $city = $shippingData['city'] ?? null;
+            $postal = $shippingData['postal_code'] ?? null;
+
+            $isDigitalOrder = empty($addressLine1) && empty($city) && empty($postal);
+
+            if (!$isDigitalOrder) {
+                ShippingAddress::create([
+                    'order_id' => $order->id,
+                    'full_name' => $shippingData['full_name'] ?? null,
+                    'email' => $shippingData['email'] ?? null,
+                    'phone' => $shippingData['phone'] ?? null,
+                    'address_line_1' => $addressLine1,
+                    'address_line_2' => $shippingData['address_line_2'] ?? null,
+                    'city' => $city,
+                    'state' => $shippingData['state'] ?? null,
+                    'postal_code' => $postal,
+                    'country' => $shippingData['country'] ?? 'Colombia',
+                    'notes' => $shippingData['notes'] ?? null,
+                ]);
+            }
+
+            // ✅ NO VACIAR EL CARRITO AQUÍ
+            // Se vacía en CheckoutController después de crear el pago
+            // $cart->clear();
+
+            return $order;
+        });
+    }
+
+    /**
+     * Marcar orden como esperando pago por QR
+     */
+    public function markAsPendingQR(Order $order): void
+    {
+        DB::transaction(function () use ($order) {
+
+            // Cambia estado de la orden
+            $order->update([
+                'status' => 'pending_qr',
+            ]);
+
+            // Crear registro del pago pendiente
+            $order->payment()->create([
+                'method'    => 'qr_payment',
+                'reference' => 'QR-' . strtoupper(uniqid()),
+                'amount'    => $order->total,
+                'status'    => 'pending',
+                'receipt'   => null,
+            ]);
+        });
+    }
+
+    /**
+     * Cancelar orden
+     */
+    public function cancelOrder(Order $order): void
+    {
+        if (!$order->canBeCancelled()) {
+            throw new \Exception('Esta orden no puede ser cancelada');
+        }
+
+        DB::transaction(function () use ($order) {
+            $order->markAsCancelled();
+        });
+    }
+
+    /**
+     * Marcar orden como pagada
+     */
+    public function markAsPaid(Order $order, array $paymentData): void
+    {
+        DB::transaction(function () use ($order, $paymentData) {
+
+            $order->markAsPaid();
+
+            $order->payment()->create([
+                'transaction_id' => $paymentData['transaction_id'] ?? null,
+                'payment_method' => $paymentData['payment_method'],
+                'payment_gateway' => $paymentData['payment_gateway'] ?? null,
+                'amount' => $order->total,
+                'currency' => $order->currency,
+                'status' => 'completed',
+                'paid_at' => now(),
+                'metadata' => $paymentData['metadata'] ?? null,
+            ]);
+        });
+    }
+
+    /**
+     * Actualizar estado
+     */
+    public function updateStatus(Order $order, string $status): void
+    {
+        $validStatuses = [
+            'pending',
+            'pending_qr',
+            'paid',
+            'processing',
+            'shipped',
+            'delivered',
+            'cancelled',
+            'refunded'
+        ];
+
+        if (!in_array($status, $validStatuses)) {
+            throw new \Exception('Estado de orden inválido');
+        }
+
+        $order->update(['status' => $status]);
+
+        match($status) {
+            'shipped' => $order->markAsShipped(),
+            'delivered' => $order->markAsDelivered(),
+            'cancelled' => $order->markAsCancelled(),
+            default => null,
+        };
+    }
+
+    /**
+     * Productos digitales
+     */
+    public function processDigitalProducts(Order $order): void
+    {
+        $downloads = [];
+
+        foreach ($order->items as $item) {
+
+            $product = $item->product;
+
+            if ($product && $product->isBook() && $product->hasFile()) {
+                $download = $product->createDownloadToken(
+                    $order,
+                    $order->shippingAddress?->email ?? $order->user->email
+                );
+
+                $downloads[] = $download;
+            }
+        }
+
+        if (!empty($downloads)) {
+            Notification::route('mail', $order->shippingAddress->email ?? $order->user->email)
+                ->notify(new ProductDownloadNotification($order, $downloads));
+        }
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsSeller.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Services\PaymentService.php 
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Services;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use App\Models\Payment;
+use App\Models\Order;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
-class IsSeller
+class PaymentService
 {
-    public function handle(Request $request, Closure $next): Response
+    // Configuración de métodos de pago
+    protected array $paymentMethods = [
+        'manual_breb' => [
+            'name' => 'Bre-b (Llave)',
+            'key' => '0091257502',
+            'phone' => '3115765959',
+            'comercio' => 'SKUBOXIT',
+        ],
+        'manual_transfer' => [
+            'name' => 'Transferencia Bancaria',
+            'bank' => 'Bancolombia',
+            'account_type' => 'Ahorros',
+            'account_number' => '12345678901',
+            'holder' => 'SkuboxIT SAS',
+            'nit' => '900123456-7',
+        ],
+        'manual_qr' => [
+            'name' => 'Código QR',
+            'qr_image' => '/images/qr/qrbreb.jpg',
+            'instructions' => 'Escanea el código QR con tu app bancaria',
+        ],
+        'card' => [
+            'name' => 'Tarjeta Débito/Crédito',
+            'gateway' => 'pending', // Aquí iría PayU, Mercadopago, etc
+        ],
+        'cash_on_delivery' => [
+            'name' => 'Pago Contra Entrega',
+            'description' => 'Paga en efectivo al recibir tu pedido',
+        ],
+    ];
+
+    /**
+     * Procesar pago (dispatcher general)
+     */
+    public function processPayment(Order $order, string $method, array $payload = []): Payment
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'seller'])) {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
+        // Validar que el método sea soportado
+        if (!isset($this->paymentMethods[$method])) {
+            throw new \Exception("Método de pago no soportado: {$method}");
         }
 
-        return $next($request);
+        return $this->createPayment($order, $method);
+    }
+
+    /**
+     * Crear un pago
+     */
+    public function createPayment(Order $order, string $method): Payment
+    {
+        return DB::transaction(function () use ($order, $method) {
+            $reference = $this->generateReference($method);
+
+            // Determinar estado inicial
+            $status = ($method === 'cash_on_delivery') ? 'pending' : 'pending';
+
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'method' => $method,
+                'reference' => $reference,
+                'amount' => $order->total,
+                'currency' => 'COP',
+                'status' => $status,
+                'payment_gateway' => $this->paymentMethods[$method]['name'] ?? null,
+                'metadata' => json_encode($this->paymentMethods[$method] ?? []),
+            ]);
+
+            // Actualizar estado de orden según método
+            if ($method === 'cash_on_delivery') {
+                $order->update(['status' => 'processing']); // Contra entrega va directo a procesamiento
+            } else {
+                $order->update(['status' => 'pending']); // Otros métodos esperan pago
+            }
+
+            Log::info('Pago creado', [
+                'payment_id' => $payment->id,
+                'order_id' => $order->id,
+                'method' => $method,
+                'reference' => $reference,
+                'amount' => $order->total
+            ]);
+
+            return $payment;
+        });
+    }
+
+    /**
+     * Generar referencia única
+     */
+    protected function generateReference(string $method): string
+    {
+        $prefix = match($method) {
+            'manual_breb' => 'BREB',
+            'manual_transfer' => 'TRANS',
+            'manual_qr' => 'QR',
+            'card' => 'CARD',
+            'cash_on_delivery' => 'COD',
+            default => 'PAY',
+        };
+
+        return $prefix . '-' . strtoupper(uniqid());
+    }
+
+    /**
+     * Subir comprobante de pago - MEJORADO
+     */
+    public function uploadReceipt(Payment $payment, $file): bool
+    {
+        try {
+            // Log inicial
+            Log::info('📤 Iniciando subida de comprobante', [
+                'payment_id' => $payment->id,
+                'order_number' => $payment->order->order_number,
+                'file_original_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize(),
+                'file_extension' => $file->getClientOriginalExtension()
+            ]);
+
+            // Eliminar comprobante anterior si existe
+            if ($payment->receipt_path && Storage::disk('public')->exists($payment->receipt_path)) {
+                Storage::disk('public')->delete($payment->receipt_path);
+                Log::info('🗑️ Comprobante anterior eliminado', ['path' => $payment->receipt_path]);
+            }
+
+            // Generar nombre único para el archivo
+            $filename = 'receipt_' . $payment->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+            // Guardar en storage/app/public/receipts
+            $path = $file->storeAs('receipts', $filename, 'public');
+
+            // Log detallado
+            Log::info('💾 Archivo guardado', [
+                'payment_id' => $payment->id,
+                'path' => $path,
+                'full_path' => storage_path('app/public/' . $path),
+                'public_url' => Storage::disk('public')->url($path)
+            ]);
+
+            // Actualizar el registro en la base de datos
+            $payment->update([
+                'receipt_path' => $path,
+                'status' => 'pending_verification' // Cambiar estado cuando suben comprobante
+            ]);
+
+            // Verificar que se guardó correctamente
+            if (Storage::disk('public')->exists($path)) {
+                Log::info('✅ Comprobante verificado exitosamente', [
+                    'payment_id' => $payment->id,
+                    'file_exists' => true,
+                    'path' => $path
+                ]);
+                return true;
+            } else {
+                Log::error('❌ El archivo no existe después de guardarlo', [
+                    'payment_id' => $payment->id,
+                    'expected_path' => $path
+                ]);
+                return false;
+            }
+
+        } catch (\Exception $e) {
+            Log::error('❌ Error al subir comprobante', [
+                'payment_id' => $payment->id,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Actualizar comprobante (alias para compatibilidad)
+     */
+    public function updateReceipt(Payment $payment, string $receiptPath): void
+    {
+        $payment->update([
+            'receipt_path' => $receiptPath,
+            'status' => 'pending_verification'
+        ]);
+
+        Log::info('Comprobante de pago actualizado', [
+            'payment_id' => $payment->id,
+            'receipt' => $receiptPath
+        ]);
+    }
+
+    /**
+     * Aprobar pago
+     */
+    public function approvePayment(Payment $payment, ?int $adminId, ?string $notes = null, ?string $deliveryLink = null): void
+    {
+        DB::transaction(function () use ($payment, $adminId, $notes, $deliveryLink) {
+            $payment->update([
+                'status' => 'completed',
+                'admin_notes' => $notes,
+                'reviewed_by' => $adminId,
+                'reviewed_at' => now(),
+                'paid_at' => now(),
+            ]);
+
+            $updateData = [
+                'status' => 'paid',
+                'paid_at' => now(),
+            ];
+
+            if ($deliveryLink) {
+                $updateData['delivery_link'] = $deliveryLink;
+            }
+
+            $payment->order->update($updateData);
+
+            Log::info('✅ Pago aprobado', [
+                'payment_id' => $payment->id,
+                'order_id' => $payment->order->id,
+                'admin_id' => $adminId,
+                'delivery_link' => $deliveryLink
+            ]);
+
+            // TODO: Enviar email con el link de entrega
+        });
+    }
+
+    /**
+     * Verificar pago (alias para approvePayment)
+     */
+    public function verifyPayment(Payment $payment, string $verifiedBy): void
+    {
+        $this->approvePayment($payment, (int)$verifiedBy);
+    }
+
+    /**
+     * Rechazar pago
+     */
+    public function rejectPayment(Payment $payment, ?int $adminId, string $reason, ?string $rejectedBy = null): void
+    {
+        DB::transaction(function () use ($payment, $adminId, $reason, $rejectedBy) {
+            $payment->update([
+                'status' => 'failed',
+                'admin_notes' => $reason,
+                'reviewed_by' => $adminId,
+                'reviewed_at' => now(),
+                'metadata' => json_encode(array_merge(
+                    json_decode($payment->metadata ?? '{}', true),
+                    [
+                        'rejected_by' => $rejectedBy ?? $adminId,
+                        'rejected_at' => now(),
+                        'rejection_reason' => $reason
+                    ]
+                ))
+            ]);
+
+            $payment->order->update(['status' => 'payment_failed']);
+
+            Log::info('❌ Pago rechazado', [
+                'payment_id' => $payment->id,
+                'order_id' => $payment->order->id,
+                'admin_id' => $adminId,
+                'reason' => $reason
+            ]);
+        });
+    }
+
+    /**
+     * Obtener información del método de pago
+     */
+    public function getPaymentInfo(string $method): array
+    {
+        return $this->paymentMethods[$method] ?? [];
+    }
+
+    /**
+     * Obtener nombre del método de pago
+     */
+    public function getPaymentMethodName(string $method): string
+    {
+        return $this->paymentMethods[$method]['name'] ?? 'Método desconocido';
+    }
+
+    /**
+     * Obtener métodos de pago disponibles
+     */
+    public function getAvailablePaymentMethods(bool $isDigitalOnly = false): array
+    {
+        $methods = [
+            'manual_transfer' => [
+                'name' => 'Transferencia Bancaria',
+                'icon' => '🏦',
+                'description' => 'Pago por transferencia',
+                'available_for' => ['digital', 'physical']
+            ],
+            'card' => [
+                'name' => 'Tarjeta Débito/Crédito',
+                'icon' => '💳',
+                'description' => 'Pago con tarjeta',
+                'available_for' => ['digital', 'physical']
+            ],
+        ];
+
+        if ($isDigitalOnly) {
+            // Métodos solo para productos digitales
+            $methods['manual_breb'] = [
+                'name' => 'Bre-b (Llave)',
+                'icon' => '🔑',
+                'description' => 'Pago manual con llave Bre-b',
+                'available_for' => ['digital']
+            ];
+            $methods['manual_qr'] = [
+                'name' => 'Código QR',
+                'icon' => '📱',
+                'description' => 'Escanea y paga',
+                'available_for' => ['digital']
+            ];
+        } else {
+            // Método solo para productos físicos
+            $methods['cash_on_delivery'] = [
+                'name' => 'Pago Contra Entrega',
+                'icon' => '💵',
+                'description' => 'Paga en efectivo al recibir',
+                'available_for' => ['physical']
+            ];
+        }
+
+        return $methods;
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Middleware\IsUser.php 
------------------------ 
+[MODELOS] 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Cart.php 
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Models;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class IsUser
+class Cart extends Model
 {
-    public function handle(Request $request, Closure $next): Response
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'session_id',
+        'expires_at',
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+    ];
+
+    // Relaciones
+    public function user()
     {
-        if (!auth()->check()) {
-            abort(403, 'Debes iniciar sesión.');
+        return $this->belongsTo(User::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('expires_at', '>', now());
+    }
+
+    // Helpers
+    public function getTotalItems(): int
+    {
+        return $this->items->sum('quantity');
+    }
+
+    public function getSubtotal(): float
+    {
+        return $this->items->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+    }
+
+    public function getTotal(): float
+    {
+        return $this->getSubtotal() + $this->getTax();
+    }
+
+    public function isEmpty(): bool
+    {
+        return $this->items->count() === 0;
+    }
+
+    public function clear(): void
+    {
+        $this->items()->delete();
+    }
+
+    /**
+     * Calcula el IVA solo sobre productos gravables (excluye libros)
+     */
+    public function getTaxAmount(): float
+    {
+        $taxableAmount = 0;
+
+        foreach ($this->items as $item) {
+            // Solo suma al monto gravable si NO es un libro
+            if (!$item->product->isBook()) {
+                $taxableAmount += $item->getSubtotal();
+            }
         }
 
-        return $next($request);
+        return $taxableAmount * 0.19; // 19% IVA
     }
-}
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Requests\CheckoutRequest.php 
------------------------ 
-<?php
 
-namespace App\Http\Requests;
-
-use Illuminate\Foundation\Http\FormRequest;
-use App\Services\CartService;
-
-class CheckoutRequest extends FormRequest
-{
-    public function authorize(): bool
+    /**
+     * Alias para mantener compatibilidad con getTax()
+     */
+    public function getTax(): float
     {
+        return $this->getTaxAmount();
+    }
+
+    /**
+     * Verifica si el carrito tiene libros
+     */
+    public function hasBooks(): bool
+    {
+        foreach ($this->items as $item) {
+            if ($item->product->isBook()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si el carrito contiene SOLO productos digitales (ebooks)
+     */
+    public function hasOnlyDigitalProducts(): bool
+    {
+        if ($this->items->isEmpty()) {
+            return false;
+        }
+
+        foreach ($this->items as $item) {
+            if (!$item->product->isBook()) {
+                return false;
+            }
+        }
         return true;
     }
 
-    public function rules(): array
+    /**
+     * Verifica si el carrito tiene productos físicos
+     */
+    public function hasPhysicalProducts(): bool
     {
-        $cartService = app(CartService::class);
-        $cart = $cartService->getCart();
-        $cart->load('items.product.category');
-
-        $isDigitalOnly = $cart->hasOnlyDigitalProducts();
-
-        // 🔥 Métodos de pago actualizados: Bre-b, Transferencia, QR, Tarjeta, Contra Entrega
-        $rules = [
-            'full_name'        => ['required', 'string', 'max:255'],
-            'email'            => ['required', 'email', 'max:255'],
-            'phone'            => ['required', 'string', 'max:30'],
-
-            // ✅ Nuevos métodos de pago
-            'payment_method'   => ['required', 'in:manual_breb,manual_transfer,manual_qr,card,cash_on_delivery'],
-
-            'terms_accepted'   => ['required', 'accepted'],
-        ];
-
-        // 🟡 Dirección requerida SOLO para productos físicos
-        if (!$isDigitalOnly) {
-            $rules = array_merge($rules, [
-                'address_line_1' => ['required', 'string', 'max:255'],
-                'address_line_2' => ['nullable', 'string', 'max:255'],
-                'city'           => ['required', 'string', 'max:100'],
-                'state'          => ['nullable', 'string', 'max:100'],
-                'postal_code'    => ['required', 'string', 'max:20'],
-                'country'        => ['required', 'string', 'max:100'],
-                'notes'          => ['nullable', 'string', 'max:500'],
-            ]);
+        foreach ($this->items as $item) {
+            if (!$item->product->isBook()) {
+                return true;
+            }
         }
-        // 🟢 Digital only → permitir nulos
-        else {
-            $rules = array_merge($rules, [
-                'address_line_1' => ['nullable', 'string', 'max:255'],
-                'address_line_2' => ['nullable', 'string', 'max:255'],
-                'city'           => ['nullable', 'string', 'max:100'],
-                'state'          => ['nullable', 'string', 'max:100'],
-                'postal_code'    => ['nullable', 'string', 'max:20'],
-                'country'        => ['nullable', 'string', 'max:100'],
-                'notes'          => ['nullable', 'string', 'max:500'],
-            ]);
-        }
-
-        return $rules;
-    }
-
-    public function messages(): array
-    {
-        return [
-            // Campos generales
-            'full_name.required'      => 'El nombre completo es obligatorio.',
-            'email.required'          => 'El email es obligatorio.',
-            'email.email'             => 'El email debe ser válido.',
-            'phone.required'          => 'El teléfono es obligatorio.',
-
-            // Dirección
-            'address_line_1.required' => 'La dirección es obligatoria.',
-            'city.required'           => 'La ciudad es obligatoria.',
-            'postal_code.required'    => 'El código postal es obligatorio.',
-            'country.required'        => 'El país es obligatorio.',
-
-            // Método de pago
-            'payment_method.required' => 'Debes seleccionar un método de pago.',
-            'payment_method.in'       => 'El método de pago seleccionado no es válido. Los métodos disponibles son: Bre-b, Transferencia, QR, Tarjeta o Contra Entrega.',
-
-            // Términos
-            'terms_accepted.required' => 'Debes aceptar los términos y condiciones.',
-            'terms_accepted.accepted' => 'Debes aceptar los términos y condiciones.',
-        ];
+        return false;
     }
 
     /**
-     * Obtener nombres legibles de los métodos de pago (opcional)
+     * Obtiene el total con envío incluido
      */
-    public function attributes(): array
+    public function getTotalWithShipping(float $shippingCost = 0): float
     {
-        return [
-            'full_name'      => 'nombre completo',
-            'email'          => 'correo electrónico',
-            'phone'          => 'teléfono',
-            'address_line_1' => 'dirección',
-            'city'           => 'ciudad',
-            'postal_code'    => 'código postal',
-            'country'        => 'país',
-            'payment_method' => 'método de pago',
-            'terms_accepted' => 'términos y condiciones',
-        ];
+        // Si solo tiene productos digitales, no cobrar envío
+        if ($this->hasOnlyDigitalProducts()) {
+            return $this->getTotal();
+        }
+
+        return $this->getTotal() + $shippingCost;
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\CartItem.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class CartItem extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'cart_id',
+        'product_id',
+        'quantity',
+        'price',
+    ];
+
+    // Relaciones
+    public function cart()
+    {
+        return $this->belongsTo(Cart::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 
     /**
-     * Validación personalizada adicional (opcional)
+     * Subtotal = precio * cantidad
      */
-    public function withValidator($validator)
+    public function getSubtotal(): float
     {
-        $validator->after(function ($validator) {
-            $cartService = app(CartService::class);
-            $cart = $cartService->getCart();
+        return $this->price * $this->quantity;
+    }
 
-            // Validar que "cash_on_delivery" solo esté disponible para productos físicos
-            if ($this->payment_method === 'cash_on_delivery' && $cart->hasOnlyDigitalProducts()) {
-                $validator->errors()->add(
-                    'payment_method',
-                    'El pago contra entrega solo está disponible para productos físicos.'
-                );
-            }
+    /**
+     * Verifica si el producto es digital (ebook)
+     */
+    public function isDigital(): bool
+    {
+        return $this->product->isBook();
+    }
 
-            // Validar que métodos digitales estén disponibles para productos digitales
-            $digitalMethods = ['manual_breb', 'manual_qr', 'manual_transfer', 'card'];
-            if (in_array($this->payment_method, $digitalMethods) && !$cart->hasOnlyDigitalProducts() && $this->payment_method !== 'manual_transfer' && $this->payment_method !== 'card') {
-                // Permitir transferencia y tarjeta para ambos tipos
+    /**
+     * Verifica si el producto es físico
+     */
+    public function isPhysical(): bool
+    {
+        return !$this->product->isBook();
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\GalleryImage.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+
+class GalleryImage extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'title',
+        'description',
+        'image',
+        'type',
+        'category',
+        'is_active',
+        'order',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * Scopes
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order', 'asc')->orderBy('created_at', 'desc');
+    }
+
+    public function scopeByCategory($query, $category)
+    {
+        if ($category) {
+            return $query->where('category', $category);
+        }
+        return $query;
+    }
+
+    public function scopeImages($query)
+    {
+        return $query->where('type', 'image');
+    }
+
+    public function scopeVideos($query)
+    {
+        return $query->where('type', 'video');
+    }
+
+    /**
+     * Helper para verificar si es video
+     */
+    public function isVideo(): bool
+    {
+        return $this->type === 'video';
+    }
+
+    /**
+     * Helper para obtener URL de imagen/video
+     */
+    public function getImageUrl(): string
+    {
+        if (!$this->image) {
+            return asset('images/gallery/default.jpg');
+        }
+
+        $folder = $this->isVideo() ? 'videos' : 'gallery';
+
+        // Si el valor ya incluye la carpeta (gallery/archivo.jpg)
+        if (str_starts_with($this->image, $folder . '/') || str_starts_with($this->image, 'gallery/') || str_starts_with($this->image, 'videos/')) {
+            $filePath = public_html_path('images/' . $this->image);
+            if (file_exists($filePath)) {
+                return asset('images/' . $this->image);
             }
+        }
+
+        // Si solo es el nombre del archivo
+        $filePath = public_html_path("images/{$folder}/" . $this->image);
+        if (file_exists($filePath)) {
+            return asset("images/{$folder}/" . $this->image);
+        }
+
+        \Log::warning("File not found for gallery {$this->id}: {$this->image}");
+        return asset('images/gallery/default.jpg');
+    }
+
+    /**
+     * Helper para obtener thumbnail del video
+     */
+    public function getVideoThumbnail(): string
+    {
+        if (!$this->isVideo()) {
+            return $this->getImageUrl();
+        }
+
+        $thumbnailName = pathinfo($this->image, PATHINFO_FILENAME) . '.jpg';
+        $thumbnailPath = public_html_path('images/videos/thumbnails/' . $thumbnailName);
+
+        if (file_exists($thumbnailPath)) {
+            return asset('images/videos/thumbnails/' . $thumbnailName);
+        }
+
+        return asset('images/video-placeholder.jpg');
+    }
+
+    /**
+     * Helper para obtener categorías únicas
+     */
+    public static function getCategories()
+    {
+        return Cache::remember('gallery_categories', 3600, function() {
+            return self::active()
+                ->whereNotNull('category')
+                ->distinct()
+                ->pluck('category')
+                ->sort()
+                ->values();
+        });
+    }
+
+    /**
+     * Limpiar caché al actualizar
+     */
+    protected static function booted()
+    {
+        static::updated(function ($image) {
+            Cache::forget('gallery_categories');
+        });
+
+        static::deleted(function ($image) {
+            Cache::forget('gallery_categories');
+        });
+
+        static::created(function ($image) {
+            Cache::forget('gallery_categories');
         });
     }
 }
  
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Requests\GalleryRequest.php 
------------------------ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Lead.php 
 <?php
 
-namespace App\Http\Requests;
+namespace App\Models;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
-class GalleryRequest extends FormRequest
+class Lead extends Model
 {
-    public function authorize(): bool
-    {
-        return true;
-    }
+    use HasFactory, Notifiable;
 
-    public function rules(): array
-    {
-        $rules = [
-            'title' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'nullable|string|max:100',
-            'is_active' => 'boolean',
-            'order' => 'nullable|integer|min:0',
-            'type' => 'required|in:image,video',
-        ];
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'subject',
+        'message',
+        'ip_address',
+        'user_agent',
+        'status',
+        'admin_notes',
+        'read_at',
+        'contacted_at',
+    ];
 
-        // Obtener el tipo seleccionado
-        $type = $this->input('type', 'image');
+    protected $casts = [
+        'read_at' => 'datetime',
+        'contacted_at' => 'datetime',
+        'created_at' => 'datetime',
+    ];
 
-        if ($type === 'video') {
-            // Validación para videos
-            if ($this->isMethod('POST')) {
-                $rules['image'] = 'required|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,video/mpeg|max:102400'; // 100MB
-            } else {
-                $rules['image'] = 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,video/mpeg|max:102400';
-            }
-        } else {
-            // Validación para imágenes
-            if ($this->isMethod('POST')) {
-                $rules['image'] = 'required|image|mimes:jpeg,png,jpg,webp|max:5120';
-            } else {
-                $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120';
-            }
-        }
-
-        return $rules;
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'is_active' => $this->boolean('is_active'),
-        ]);
-    }
-
-    public function messages(): array
-    {
-        return [
-            'image.required' => 'Debes seleccionar una imagen o video.',
-            'image.image' => 'El archivo debe ser una imagen válida.',
-            'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, webp.',
-            'image.mimetypes' => 'El video debe ser de tipo: mp4, mov, avi, wmv.',
-            'image.max' => 'El archivo es demasiado grande. Máx: 5MB para imágenes, 100MB para videos.',
-            'image.file' => 'Debes seleccionar un archivo válido.',
-            'title.max' => 'El título no puede exceder 255 caracteres.',
-            'category.max' => 'La categoría no puede exceder 100 caracteres.',
-            'type.required' => 'Debes seleccionar el tipo de archivo.',
-            'type.in' => 'El tipo debe ser imagen o video.',
-        ];
-    }
-}
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Requests\LeadRequest.php 
------------------------ 
-<?php
-
-namespace App\Http\Requests;
-
-use Illuminate\Foundation\Http\FormRequest;
-
-class LeadRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'subject' => 'nullable|string|max:255',
-            'message' => 'required|string|min:10|max:2000',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'name.required' => 'El nombre es obligatorio.',
-            'name.max' => 'El nombre no puede exceder 255 caracteres.',
-
-            'email.required' => 'El email es obligatorio.',
-            'email.email' => 'Debes proporcionar un email válido.',
-            'email.max' => 'El email no puede exceder 255 caracteres.',
-
-            'phone.max' => 'El teléfono no puede exceder 20 caracteres.',
-
-            'subject.max' => 'El asunto no puede exceder 255 caracteres.',
-
-            'message.required' => 'El mensaje es obligatorio.',
-            'message.min' => 'El mensaje debe tener al menos 10 caracteres.',
-            'message.max' => 'El mensaje no puede exceder 2000 caracteres.',
-        ];
-    }
-}
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Requests\ProductCategoryRequest.php 
------------------------ 
-<?php
-
-namespace App\Http\Requests;
-
-use Illuminate\Foundation\Http\FormRequest;
-
-class ProductCategoryRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    public function rules(): array
-    {
-        $categoryId = $this->route('category') ? $this->route('category')->id : null;
-
-        return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => $this->isMethod('POST')
-                ? 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
-                : 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'is_active' => 'boolean',
-            'order' => 'nullable|integer|min:0',
-        ];
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'is_active' => $this->boolean('is_active', true),
-        ]);
-    }
-
-    public function messages(): array
-    {
-        return [
-            'name.required' => 'El nombre de la categoría es obligatorio.',
-            'name.max' => 'El nombre no puede exceder 255 caracteres.',
-            'image.image' => 'El archivo debe ser una imagen.',
-            'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, webp.',
-            'image.max' => 'La imagen no puede ser mayor a 2MB.',
-        ];
-    }
-}
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Requests\ProductRequest.php 
------------------------ 
-<?php
-
-namespace App\Http\Requests;
-
-use Illuminate\Foundation\Http\FormRequest;
-
-class ProductRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    public function rules(): array
-    {
-        $productId = $this->route('product') ? $this->route('product')->id : null;
-
-        $rules = [
-            'category_id' => 'nullable|exists:product_categories,id',
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'short_description' => 'nullable|string|max:500',
-
-            // Precios e inventario
-            'price' => 'required|numeric|min:0',
-            'compare_price' => 'nullable|numeric|min:0|gte:price',
-            'cost' => 'nullable|numeric|min:0',
-            'quantity' => 'required|integer|min:0',
-            'track_quantity' => 'boolean',
-
-            // Características
-            'weight' => 'nullable|numeric|min:0',
-
-            // Imágenes
-            'featured_image' => $this->isMethod('POST')
-                ? 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120'
-                : 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
-            'gallery_images' => 'nullable|array',
-            'gallery_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-
-            // Estado
-            'is_featured' => 'boolean',
-            'is_active' => 'boolean',
-            'order' => 'nullable|integer|min:0',
-
-            // SEO
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string',
-        ];
-
-        // SKU único (excluyendo el producto actual en edición)
-        if ($productId) {
-            $rules['sku'] = 'nullable|string|max:100|unique:products,sku,' . $productId;
-            $rules['barcode'] = 'nullable|string|max:100|unique:products,barcode,' . $productId;
-        } else {
-            $rules['sku'] = 'nullable|string|max:100|unique:products,sku';
-            $rules['barcode'] = 'nullable|string|max:100|unique:products,barcode';
-        }
-
-        return $rules;
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'track_quantity' => $this->boolean('track_quantity', true),
-            'is_featured' => $this->boolean('is_featured', false),
-            'is_active' => $this->boolean('is_active', true),
-        ]);
-    }
-
-    public function messages(): array
-    {
-        return [
-            'name.required' => 'El nombre del producto es obligatorio.',
-            'description.required' => 'La descripción es obligatoria.',
-            'price.required' => 'El precio es obligatorio.',
-            'price.numeric' => 'El precio debe ser un número.',
-            'price.min' => 'El precio debe ser mayor o igual a 0.',
-            'compare_price.gte' => 'El precio de comparación debe ser mayor o igual al precio de venta.',
-            'quantity.required' => 'La cantidad es obligatoria.',
-            'quantity.integer' => 'La cantidad debe ser un número entero.',
-            'category_id.exists' => 'La categoría seleccionada no existe.',
-            'sku.unique' => 'Este SKU ya está en uso.',
-            'barcode.unique' => 'Este código de barras ya está en uso.',
-            'featured_image.image' => 'La imagen destacada debe ser un archivo de imagen.',
-            'featured_image.max' => 'La imagen destacada no puede ser mayor a 5MB.',
-            'gallery_images.*.image' => 'Todos los archivos de galería deben ser imágenes.',
-            'gallery_images.*.max' => 'Las imágenes de galería no pueden ser mayores a 5MB.',
-        ];
-    }
-}
- 
-======================== 
-Archivo: D:\htdocs\skubox\landing\app\Http\Requests\ProfileUpdateRequest.php 
------------------------ 
-<?php
-
-namespace App\Http\Requests;
-
-use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-
-class ProfileUpdateRequest extends FormRequest
-{
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * Scopes
      */
-    public function rules(): array
+    public function scopeUnread($query)
     {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
-            ],
-        ];
+        return $query->whereNull('read_at');
+    }
+
+    public function scopeRead($query)
+    {
+        return $query->whereNotNull('read_at');
+    }
+
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    public function scopeRecent($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Marcar como leído
+     */
+    public function markAsRead()
+    {
+        if (!$this->read_at) {
+            $this->update(['read_at' => now()]);
+        }
+    }
+
+    /**
+     * Marcar como contactado
+     */
+    public function markAsContacted()
+    {
+        if (!$this->contacted_at) {
+            $this->update([
+                'contacted_at' => now(),
+                'status' => 'contactado'
+            ]);
+        }
+    }
+
+    /**
+     * Verificar si es nuevo
+     */
+    public function isNew(): bool
+    {
+        return $this->status === 'nuevo' && !$this->read_at;
+    }
+
+    /**
+     * Obtener badge de estado
+     */
+    public function getStatusBadge(): string
+    {
+        return match($this->status) {
+            'nuevo' => 'bg-blue-100 text-blue-800',
+            'contactado' => 'bg-yellow-100 text-yellow-800',
+            'calificado' => 'bg-purple-100 text-purple-800',
+            'convertido' => 'bg-green-100 text-green-800',
+            'descartado' => 'bg-gray-100 text-gray-800',
+            default => 'bg-gray-100 text-gray-800',
+        };
+    }
+
+    /**
+     * Obtener texto de estado
+     */
+    public function getStatusText(): string
+    {
+        return match($this->status) {
+            'nuevo' => 'Nuevo',
+            'contactado' => 'Contactado',
+            'calificado' => 'Calificado',
+            'convertido' => 'Convertido',
+            'descartado' => 'Descartado',
+            default => 'Desconocido',
+        };
+    }
+
+    /**
+     * Formatear fecha relativa
+     */
+    public function getTimeAgo(): string
+    {
+        return $this->created_at->diffForHumans();
     }
 }
  
-======================== 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Order.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Order extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'order_number',
+        'status',
+        'subtotal',
+        'tax',
+        'shipping_cost',
+        'total',
+        'currency',
+        'notes',
+        'paid_at',
+        'shipped_at',
+        'delivered_at',
+        'cancelled_at',
+    ];
+
+    protected $casts = [
+        'subtotal' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
+        'total' => 'decimal:2',
+        'paid_at' => 'datetime',
+        'shipped_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            if (empty($order->order_number)) {
+                $order->order_number = 'ORD-' . strtoupper(uniqid());
+            }
+        });
+    }
+
+    // Relaciones
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function shippingAddress()
+    {
+        return $this->hasOne(ShippingAddress::class);
+    }
+
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    // Scopes
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->where('status', 'paid');
+    }
+
+    public function scopeProcessing($query)
+    {
+        return $query->where('status', 'processing');
+    }
+
+    public function scopeShipped($query)
+    {
+        return $query->where('status', 'shipped');
+    }
+
+    public function scopeDelivered($query)
+    {
+        return $query->where('status', 'delivered');
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', 'cancelled');
+    }
+
+    public function scopeRecent($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    // Helpers
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status === 'paid' || $this->paid_at !== null;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return in_array($this->status, ['pending', 'paid']);
+    }
+
+    public function getStatusBadge(): string
+    {
+        return match($this->status) {
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'paid' => 'bg-green-100 text-green-800',
+            'processing' => 'bg-blue-100 text-blue-800',
+            'shipped' => 'bg-purple-100 text-purple-800',
+            'delivered' => 'bg-green-100 text-green-800',
+            'cancelled' => 'bg-red-100 text-red-800',
+            'refunded' => 'bg-gray-100 text-gray-800',
+            default => 'bg-gray-100 text-gray-800',
+        };
+    }
+
+    public function getStatusText(): string
+    {
+        return match($this->status) {
+            'pending' => 'Pendiente',
+            'paid' => 'Pagado',
+            'processing' => 'En Proceso',
+            'shipped' => 'Enviado',
+            'delivered' => 'Entregado',
+            'cancelled' => 'Cancelado',
+            'refunded' => 'Reembolsado',
+            default => 'Desconocido',
+        };
+    }
+
+    public function markAsPaid(): void
+    {
+        $this->update([
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+    }
+
+    public function markAsShipped(): void
+    {
+        $this->update([
+            'status' => 'shipped',
+            'shipped_at' => now(),
+        ]);
+    }
+
+    public function markAsDelivered(): void
+    {
+        $this->update([
+            'status' => 'delivered',
+            'delivered_at' => now(),
+        ]);
+    }
+
+    public function markAsCancelled(): void
+    {
+        $this->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+        ]);
+
+        // Restaurar inventario
+        foreach ($this->items as $item) {
+            $item->product->increaseStock($item->quantity);
+        }
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\OrderItem.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class OrderItem extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'product_name',
+        'product_sku',
+        'quantity',
+        'price',
+        'subtotal',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+    ];
+
+    // Relaciones
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Payment.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Payment extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'order_id',
+        'method',
+        'reference',
+        'amount',
+        'currency',
+        'status',
+        'payment_gateway',
+        'receipt_path',
+        'metadata',
+        'paid_at',
+        'admin_notes',
+        'reviewed_by',
+        'reviewed_at',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'paid_at' => 'datetime',
+        'reviewed_at' => 'datetime',
+        'metadata' => 'array',
+    ];
+
+    // Relaciones
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    // Scopes
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopePendingVerification($query)
+    {
+        return $query->where('status', 'pending_verification');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->whereIn('status', ['completed', 'approved']);
+    }
+
+    // Helpers
+    public function getReceiptUrl(): ?string
+    {
+        if (!$this->receipt_path) {
+            return null;
+        }
+
+        return asset('storage/' . $this->receipt_path);
+    }
+
+    public function getStatusText(): string
+    {
+        return match($this->status) {
+            'pending' => 'Pendiente',
+            'pending_verification' => 'En Revisión',
+            'completed', 'approved' => 'Aprobado',
+            'failed', 'rejected' => 'Rechazado',
+            'cancelled' => 'Cancelado',
+            default => 'Desconocido',
+        };
+    }
+
+    public function getStatusBadgeClass(): string
+    {
+        return match($this->status) {
+            'completed', 'approved' => 'bg-green-100 text-green-800',
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'pending_verification' => 'bg-blue-100 text-blue-800',
+            'failed', 'rejected' => 'bg-red-100 text-red-800',
+            'cancelled' => 'bg-gray-100 text-gray-800',
+            default => 'bg-gray-100 text-gray-600',
+        };
+    }
+
+    public function getMethodName(): string
+    {
+        return match($this->method) {
+            'manual_breb' => 'Bre-b (Llave)',
+            'manual_transfer' => 'Transferencia Bancaria',
+            'manual_qr' => 'Código QR',
+            'card' => 'Tarjeta de Crédito/Débito',
+            'cash_on_delivery' => 'Contra Entrega',
+            default => 'Método Desconocido',
+        };
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Product.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'category_id',
+        'name',
+        'slug',
+        'description',
+        'short_description',
+        'price',
+        'compare_price',
+        'cost',
+        'sku',
+        'barcode',
+        'quantity',
+        'track_quantity',
+        'weight',
+        'featured_image',
+        'gallery_images',
+        'is_featured',
+        'is_active',
+        'is_digital',
+        'order',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'file_path',
+        'file_size',
+        'download_limit',
+        'access_days',
+
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'compare_price' => 'decimal:2',
+        'cost' => 'decimal:2',
+        'quantity' => 'integer',
+        'track_quantity' => 'boolean',
+        'weight' => 'decimal:2',
+        'gallery_images' => 'array',
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean',
+        'is_digital' => 'boolean',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($product) {
+            if (empty($product->slug)) {
+                $product->slug = Str::slug($product->name);
+            }
+            if (empty($product->sku)) {
+                $product->sku = 'PRD-' . strtoupper(Str::random(8));
+            }
+        });
+
+        static::updating(function ($product) {
+            if ($product->isDirty('name') && empty($product->slug)) {
+                $product->slug = Str::slug($product->name);
+            }
+        });
+    }
+
+    // Relaciones
+    public function category()
+    {
+        return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    public function scopeInStock($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('track_quantity', false)
+              ->orWhere('quantity', '>', 0);
+        });
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order', 'asc')->orderBy('created_at', 'desc');
+    }
+
+    // Helpers
+    public function isInStock(): bool
+    {
+        if (!$this->track_quantity) {
+            return true;
+        }
+        return $this->quantity > 0;
+    }
+
+    public function hasDiscount(): bool
+    {
+        return $this->compare_price && $this->compare_price > $this->price;
+    }
+
+    public function getDiscountPercentage(): int
+    {
+        if (!$this->hasDiscount()) {
+            return 0;
+        }
+        return round((($this->compare_price - $this->price) / $this->compare_price) * 100);
+    }
+
+    public function getFeaturedImageUrl(): string
+    {
+        if (!$this->featured_image) {
+            // Si no hay imagen destacada, usar la primera de la galería
+            if ($this->gallery_images && count($this->gallery_images) > 0) {
+                $firstGallery = $this->gallery_images[0];
+                if (str_starts_with($firstGallery, 'products/')) {
+                    return asset('images/' . $firstGallery);
+                }
+                return asset('images/products/' . $firstGallery);
+            }
+            return asset('images/products/default.jpg');
+        }
+
+        // Si ya incluye "products/"
+        if (str_starts_with($this->featured_image, 'products/')) {
+            $path = public_html_path('images/' . $this->featured_image);
+            if (file_exists($path)) {
+                return asset('images/' . $this->featured_image);
+            }
+        }
+
+        // Si solo es el nombre del archivo (productos viejos)
+        $path = public_html_path('images/products/' . $this->featured_image);
+        if (file_exists($path)) {
+            return asset('images/products/' . $this->featured_image);
+        }
+
+        return asset('images/products/default.jpg');
+    }
+
+    public function getGalleryUrls(): array
+    {
+        if (!$this->gallery_images || !is_array($this->gallery_images)) {
+            return [];
+        }
+
+        return array_map(function ($image) {
+            if (str_starts_with($image, 'products/')) {
+                return asset('images/' . $image);
+            }
+            return asset('images/products/' . $image);
+        }, $this->gallery_images);
+    }
+
+    public function decreaseStock(int $quantity): void
+    {
+        if ($this->track_quantity) {
+            $this->decrement('quantity', $quantity);
+        }
+    }
+
+    public function increaseStock(int $quantity): void
+    {
+        if ($this->track_quantity) {
+            $this->increment('quantity', $quantity);
+        }
+    }
+
+    /**
+     * Verifica si el producto es un libro (exento de IVA)
+     * Busca en la categoría del producto
+     */
+    public function isBook()
+    {
+        if (!$this->category) {
+            return false;
+        }
+
+        $categoryName = strtolower($this->category->name);
+        $categorySlug = strtolower($this->category->slug);
+
+        // Verifica si la categoría es "Libros"
+        return $categoryName === 'libros' || $categorySlug === 'libros';
+    }
+    /**
+     * Relación con descargas
+     */
+    public function downloads()
+    {
+        return $this->hasMany(ProductDownload::class);
+    }
+
+    /**
+     * Verificar si el producto tiene archivo PDF
+     */
+    public function hasFile(): bool
+    {
+        return !empty($this->file_path) && \Storage::exists($this->file_path);
+    }
+
+    /**
+     * Obtener URL de descarga (NO usar directamente, usar token)
+     */
+    public function getFileUrl(): ?string
+    {
+        if (!$this->hasFile()) {
+            return null;
+        }
+
+        return \Storage::url($this->file_path);
+    }
+
+    /**
+     * Obtener tamaño del archivo formateado
+     */
+    public function getFileSizeFormatted(): ?string
+    {
+        if (!$this->file_size) {
+            return null;
+        }
+
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $size = $this->file_size;
+        $unit = 0;
+
+        while ($size >= 1024 && $unit < count($units) - 1) {
+            $size /= 1024;
+            $unit++;
+        }
+
+        return round($size, 2) . ' ' . $units[$unit];
+    }
+
+    /**
+     * Crear token de descarga para una orden
+     */
+    public function createDownloadToken(Order $order, string $email): ProductDownload
+    {
+        return ProductDownload::create([
+            'order_id' => $order->id,
+            'product_id' => $this->id,
+            'user_email' => $email,
+            'download_token' => ProductDownload::generateToken(),
+            'max_downloads' => $this->download_limit ?? 3,
+            'expires_at' => now()->addDays($this->access_days ?? 365),
+        ]);
+    }
+
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\ProductCategory.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+class ProductCategory extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'image',
+        'is_active',
+        'order',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($category) {
+            if (empty($category->slug)) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
+
+        static::updating(function ($category) {
+            if ($category->isDirty('name') && empty($category->slug)) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
+    }
+
+    // Relaciones
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'category_id');
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order', 'asc')->orderBy('name', 'asc');
+    }
+
+    // Helpers
+    public function getImageUrl(): string
+    {
+        if (!$this->image) {
+            return asset('images/categories/default.jpg');
+        }
+
+        $paths = [
+            public_html_path('images/categories/' . $this->image),
+            public_html_path($this->image)
+        ];
+
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return asset(str_replace(public_html_path(), '', $path));
+            }
+        }
+
+        return asset('images/categories/default.jpg');
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\ProductDownload.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+class ProductDownload extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'user_email',
+        'download_token',
+        'downloads_count',
+        'max_downloads',
+        'expires_at',
+        'last_downloaded_at',
+        'ip_address',
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'last_downloaded_at' => 'datetime',
+    ];
+
+    // Relaciones
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    // Generar token único
+    public static function generateToken(): string
+    {
+        do {
+            $token = Str::random(64);
+        } while (self::where('download_token', $token)->exists());
+
+        return $token;
+    }
+
+    // Verificar si puede descargar
+    public function canDownload(): bool
+    {
+        // Verificar si no ha expirado
+        if ($this->expires_at && $this->expires_at->isPast()) {
+            return false;
+        }
+
+        // Verificar límite de descargas
+        if ($this->downloads_count >= $this->max_downloads) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // Incrementar contador de descargas
+    public function incrementDownload(string $ipAddress = null): void
+    {
+        $this->increment('downloads_count');
+        $this->update([
+            'last_downloaded_at' => now(),
+            'ip_address' => $ipAddress,
+        ]);
+    }
+
+    // Obtener días restantes
+    public function getRemainingDays(): ?int
+    {
+        if (!$this->expires_at) {
+            return null;
+        }
+
+        return max(0, now()->diffInDays($this->expires_at, false));
+    }
+
+    // Obtener descargas restantes
+    public function getRemainingDownloads(): int
+    {
+        return max(0, $this->max_downloads - $this->downloads_count);
+    }
+
+    // Scope para tokens válidos
+    public function scopeValid($query)
+    {
+        return $query->where(function($q) {
+            $q->whereNull('expires_at')
+              ->orWhere('expires_at', '>', now());
+        })->whereRaw('downloads_count < max_downloads');
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Project.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+
+class Project extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'title',
+        'slug',
+        'description',
+        'featured_image',
+        'is_active',
+        'order',
+        // Campos legacy (opcionales - ya no se usan en formularios)
+        'category_id',
+        'short_description',
+        'client',
+        'project_date',
+        'url',
+        'is_featured',
+    ];
+
+    protected $casts = [
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean',
+        'project_date' => 'date',
+    ];
+
+    /**
+     * Boot del modelo
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($project) {
+            if (empty($project->slug)) {
+                $project->slug = Str::slug($project->title);
+            }
+
+            // Valores por defecto para campos legacy
+            if (is_null($project->is_featured)) {
+                $project->is_featured = false;
+            }
+        });
+
+        static::updating(function ($project) {
+            if ($project->isDirty('title') && empty($project->slug)) {
+                $project->slug = Str::slug($project->title);
+            }
+        });
+    }
+
+    /**
+     * Relaciones
+     */
+    public function category()
+    {
+        return $this->belongsTo(ProjectCategory::class, 'category_id');
+    }
+
+    /**
+     * Scopes
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order', 'asc')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Helper para obtener URL de imagen (con caché)
+     */
+public function getImageUrl(): string
+{
+    if (!$this->featured_image) {
+        return asset('images/projects/default.jpg');
+    }
+
+    $path = ltrim($this->featured_image, '/');
+    $fullPath = public_html_path('images/' . $path);
+
+    // DEBUG TEMPORAL - quitar después
+    \Log::info("Buscando imagen en: " . $fullPath);
+    \Log::info("Existe: " . (file_exists($fullPath) ? 'SI' : 'NO'));
+
+    if (file_exists($fullPath)) {
+        return asset('images/' . $path);
+    }
+
+    return asset('images/projects/default.jpg');
+}
+
+    /**
+     * Limpiar caché de imagen al actualizar
+     */
+    protected static function booted()
+    {
+        static::updated(function ($project) {
+            Cache::forget("project_image_{$project->id}");
+        });
+
+        static::deleted(function ($project) {
+            Cache::forget("project_image_{$project->id}");
+        });
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\ProjectCategory.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+class ProjectCategory extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'is_active',
+        'order',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    // Generar slug automáticamente
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($category) {
+            if (empty($category->slug)) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
+
+        static::updating(function ($category) {
+            if ($category->isDirty('name') && empty($category->slug)) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
+    }
+
+    // Relaciones
+    public function projects()
+    {
+        return $this->hasMany(Project::class, 'category_id');
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order', 'asc')->orderBy('name', 'asc');
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Service.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+
+class Service extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'title',
+        'slug',
+        'description',
+        'short_description',
+        'icon',
+        'image',
+        'is_active',
+        'order',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * Boot del modelo
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($service) {
+            if (empty($service->slug)) {
+                $service->slug = Str::slug($service->title);
+            }
+        });
+
+        static::updating(function ($service) {
+            if ($service->isDirty('title') && empty($service->slug)) {
+                $service->slug = Str::slug($service->title);
+            }
+        });
+    }
+
+    /**
+     * Scope para servicios activos
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope para ordenar
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order', 'asc')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Helper para obtener URL de imagen (MISMA LÓGICA QUE PROJECT)
+     */
+    public function getImageUrl(): string
+    {
+        if (!$this->image) {
+            return asset('images/services/default.jpg');
+        }
+
+        $path = ltrim($this->image, '/');
+
+        if (str_starts_with($path, 'services/')) {
+            $fullPath = public_html_path('images/' . $path);
+            if (file_exists($fullPath)) {
+                return asset('images/' . $path);
+            }
+        }
+
+        $fullPath = public_html_path('images/services/' . $path);
+        if (file_exists($fullPath)) {
+            return asset('images/services/' . $path);
+        }
+
+        \Log::warning("⚠️ Imagen no encontrada para service {$this->id}: {$this->image}");
+        return asset('images/services/default.jpg');
+    }
+
+    /**
+     * Limpiar caché de imagen al actualizar
+     */
+    protected static function booted()
+    {
+        static::updated(function ($service) {
+            Cache::forget("service_image_{$service->id}");
+        });
+
+        static::deleted(function ($service) {
+            Cache::forget("service_image_{$service->id}");
+        });
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Setting.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Setting extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        // Identidad
+        'site_name',
+        'site_slogan',
+        'logo',
+        'favicon',
+        'hero_logo_x',
+        'hero_logo_y',
+        'hero_logo_size',
+
+        // Colores
+        'primary_color',
+        'secondary_color',
+        'accent_color',
+
+        // Navbar
+        'navbar_bg_color',
+        'navbar_text_color',
+        'navbar_show_logo',
+        'navbar_show_title',
+        'navbar_show_slogan',
+        'navbar_show_shop', // ✅ AGREGADO
+        'navbar_menu_labels',
+
+        // Hero Background
+        'hero_background_type',
+        'hero_background_image',
+        'hero_background_video',
+        'hero_overlay_opacity',
+
+        // Hero — nuevas opciones de personalización
+        'hero_title_color',
+        'hero_title_font',
+        'hero_show_logo_instead',
+
+        // Redes sociales
+        'facebook_enabled',
+        'facebook_url',
+        'instagram_enabled',
+        'instagram_url',
+        'twitter_enabled',
+        'twitter_url',
+        'linkedin_enabled',
+        'linkedin_url',
+        'whatsapp_enabled',
+        'whatsapp_number',
+
+        // Contacto
+        'show_email',
+        'contact_email',
+        'show_phone',
+        'contact_phone',
+        'show_address',
+        'contact_address',
+        'show_map',
+        'google_maps_url',
+
+        // Secciones - Visibilidad
+        'hero_enabled',
+        'cta_enabled',
+        'about_enabled',
+        'features_enabled',
+        'stats_enabled',
+        'stats_bg_color',
+        'stats_number_color',
+        'services_enabled',
+        'products_enabled',
+        'shop_enabled', // ✅ Agregado para completitud
+        'testimonials_enabled',
+        'gallery_enabled',
+        'contact_enabled',
+
+        // Secciones - Contenido
+        'hero_title',
+        'hero_subtitle',
+        'hero_button_text',
+        'hero_button_url',
+        'about_title',
+        'about_description',
+        'about_image',
+
+        // Footer
+        'show_social_footer',
+        'footer_text',
+
+        // Otros
+        'show_whatsapp_button',
+        'whatsapp_button_message',
+
+        // SEO
+        'meta_description',
+        'meta_keywords',
+        'google_analytics_id',
+        'facebook_pixel_id',
+
+        // Email
+        'notification_email',
+
+        // Horarios
+        'business_hours',
+    ];
+
+    protected $casts = [
+        // Booleanos - Redes sociales
+        'facebook_enabled' => 'boolean',
+        'instagram_enabled' => 'boolean',
+        'twitter_enabled' => 'boolean',
+        'linkedin_enabled' => 'boolean',
+        'whatsapp_enabled' => 'boolean',
+
+        // Booleanos - Contacto
+        'show_email' => 'boolean',
+        'show_phone' => 'boolean',
+        'show_address' => 'boolean',
+        'show_map' => 'boolean',
+
+        // Booleanos - Secciones
+        'hero_enabled' => 'boolean',
+        'cta_enabled' => 'boolean',
+        'about_enabled' => 'boolean',
+        'features_enabled' => 'boolean',
+        'stats_enabled' => 'boolean',
+        'services_enabled' => 'boolean',
+        'products_enabled' => 'boolean',
+        'shop_enabled' => 'boolean', // ✅ Agregado
+        'testimonials_enabled' => 'boolean',
+        'gallery_enabled' => 'boolean',
+        'contact_enabled' => 'boolean',
+
+        // Booleanos - Footer y otros
+        'show_social_footer' => 'boolean',
+        'show_whatsapp_button' => 'boolean',
+
+        // Booleanos - Navbar
+        'navbar_show_logo' => 'boolean',
+        'navbar_show_title' => 'boolean',
+        'navbar_show_slogan' => 'boolean',
+        'navbar_show_shop' => 'boolean', // ✅ AGREGADO
+        'hero_show_logo_instead' => 'boolean',
+
+        // Otros tipos
+        'hero_overlay_opacity' => 'float',
+        'navbar_menu_labels' => 'array',
+        'hero_logo_x'    => 'integer',
+        'hero_logo_y'    => 'integer',
+        'hero_logo_size' => 'integer',
+    ];
+
+    /**
+     * Obtener la instancia única de configuración
+     * Siempre debe haber solo UN registro en esta tabla
+     */
+    public static function getSettings()
+    {
+        return self::firstOrCreate([
+            'id' => 1
+        ], [
+            'site_name' => config('app.name'),
+            'contact_email' => 'contacto@ejemplo.com',
+            'hero_title_color' => '#ffffff',
+            'hero_title_font' => 'default',
+            'hero_show_logo_instead' => false,
+            'cta_enabled' => true,
+            'about_enabled' => true,
+            'features_enabled' => true,
+            'stats_enabled' => true,
+            'navbar_show_shop' => true, // ✅ AGREGADO - Por defecto visible
+            'hero_logo_x'    => 50,
+            'hero_logo_y'    => 50,
+            'hero_logo_size' => 112,
+        ]);
+    }
+
+    /**
+     * Obtener URL de la imagen de fondo del Hero
+     */
+    public function getHeroBackgroundImageUrl()
+    {
+        if ($this->hero_background_image) {
+            // Busca como images/hero/1771479187_1HvNQPjSyd.jpg
+            $imagePath = public_html_path('images/' . $this->hero_background_image);
+            if (file_exists($imagePath)) {
+                return asset('images/' . $this->hero_background_image);
+            }
+
+            \Log::warning('Hero background image no encontrada: ' . $this->hero_background_image);
+        }
+
+        return null;
+    }
+    /**
+     * Obtener URL del video de fondo del Hero
+     */
+    public function getHeroBackgroundVideoUrl()
+    {
+        if ($this->hero_background_video) {
+            $videoPath = public_html_path('videos/' . $this->hero_background_video);
+            if (file_exists($videoPath)) {
+                return asset('videos/' . $this->hero_background_video);
+            }
+            \Log::warning('Hero background video no encontrado: ' . $this->hero_background_video);
+        }
+        return null;
+    }
+
+    /**
+     * Métodos helper para obtener valores específicos
+     */
+    public function getFaviconUrl()
+    {
+        if ($this->favicon) {
+            if (file_exists(public_html_path('images/settings/' . $this->favicon))) {
+                return asset('images/settings/' . $this->favicon);
+            }
+
+            if (file_exists(public_html_path('images/' . $this->favicon))) {
+                return asset('images/' . $this->favicon);
+            }
+
+            if (file_exists(public_html_path($this->favicon))) {
+                return asset($this->favicon);
+            }
+
+            \Log::warning('Favicon no encontrado: ' . $this->favicon);
+        }
+
+        return asset('favicon.ico');
+    }
+
+    public function getLogoUrl()
+    {
+        if ($this->logo) {
+            // 1️⃣ Ruta donde el servicio realmente guarda los logos
+            if (file_exists(public_html_path('images/settings/' . $this->logo))) {
+                return asset('images/settings/' . $this->logo);
+            }
+
+            // 2️⃣ Otras ubicaciones posibles (compatibilidad con versiones anteriores)
+            if (file_exists(public_html_path('images/' . $this->logo))) {
+                return asset('images/' . $this->logo);
+            }
+
+            if (file_exists(public_html_path($this->logo))) {
+                return asset($this->logo);
+            }
+
+            \Log::warning('Logo no encontrado: ' . $this->logo);
+        }
+
+        // 3️⃣ Logo por defecto
+        return asset('images/settings/logo.png');
+    }
+
+    public function getAboutImageUrl()
+    {
+        if ($this->about_image) {
+            // 1️⃣ Ruta principal: images/about/
+            if (file_exists(public_html_path('images/about/' . basename($this->about_image)))) {
+                return asset('images/about/' . basename($this->about_image));
+            }
+
+            // 2️⃣ Ruta con prefijo completo (about/archivo.jpg)
+            if (file_exists(public_html_path('images/' . $this->about_image))) {
+                return asset('images/' . $this->about_image);
+            }
+
+            // 3️⃣ Legacy: images/settings/
+            if (file_exists(public_html_path('images/settings/' . basename($this->about_image)))) {
+                return asset('images/settings/' . basename($this->about_image));
+            }
+
+            \Log::warning('Imagen About no encontrada: ' . $this->about_image);
+        }
+
+        // 4️⃣ Imagen por defecto
+        return asset('images/about/about-image.jpg');
+    }
+
+    /**
+     * Obtener redes sociales habilitadas
+     */
+    public function getEnabledSocialNetworks()
+    {
+        $networks = [];
+
+        if ($this->facebook_enabled && $this->facebook_url) {
+            $networks['facebook'] = $this->facebook_url;
+        }
+
+        if ($this->instagram_enabled && $this->instagram_url) {
+            $networks['instagram'] = $this->instagram_url;
+        }
+
+        if ($this->twitter_enabled && $this->twitter_url) {
+            $networks['twitter'] = $this->twitter_url;
+        }
+
+        if ($this->linkedin_enabled && $this->linkedin_url) {
+            $networks['linkedin'] = $this->linkedin_url;
+        }
+
+        return $networks;
+    }
+
+    /**
+     * Verificar si WhatsApp está habilitado
+     */
+    public function hasWhatsApp()
+    {
+        return $this->whatsapp_enabled && !empty($this->whatsapp_number);
+    }
+
+    /**
+     * Obtener link de WhatsApp formateado
+     */
+    public function getWhatsAppLink()
+    {
+        if (!$this->hasWhatsApp()) {
+            return null;
+        }
+
+        $number = preg_replace('/[^0-9]/', '', $this->whatsapp_number);
+        $message = urlencode($this->whatsapp_button_message ?? 'Hola, quiero más información');
+
+        return "https://wa.me/{$number}?text={$message}";
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\ShippingAddress.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class ShippingAddress extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'order_id',
+        'full_name',
+        'email',
+        'phone',
+        'address_line_1',
+        'address_line_2',
+        'city',
+        'state',
+        'postal_code',
+        'country',
+        'notes',
+    ];
+
+    // Relaciones
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    // Helpers
+    public function getFullAddress(): string
+    {
+        $parts = [
+            $this->address_line_1,
+            $this->address_line_2,
+            $this->city,
+            $this->state,
+            $this->postal_code,
+            $this->country,
+        ];
+
+        return implode(', ', array_filter($parts));
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Stat.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Stat extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'label',
+        'value',
+        'target',
+        'suffix',
+        'duration',
+        'step',
+        'order',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'target'    => 'integer',
+        'duration'  => 'integer',
+        'step'      => 'integer',
+        'order'     => 'integer',
+    ];
+
+    // ─── Scopes ───────────────────────────────────────────────
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order')->orderBy('id');
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\Testimonial.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+
+class Testimonial extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'client_name',
+        'client_position',
+        'client_company',
+        'testimonial',
+        'client_photo',
+        'rating',
+        'is_featured',
+        'is_active',
+        'order',
+    ];
+
+    protected $casts = [
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean',
+        'rating' => 'integer',
+    ];
+
+    /**
+     * Scopes
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order', 'asc')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Helper para obtener URL de foto (MISMA LÓGICA QUE PROJECT/SERVICE)
+     */
+    public function getPhotoUrl(): string
+    {
+        if (!$this->client_photo) {
+            return asset('images/testimonials/default.jpg');
+        }
+
+        $path = ltrim($this->client_photo, '/');
+
+        if (str_starts_with($path, 'testimonials/')) {
+            $fullPath = public_html_path('images/' . $path);
+            if (file_exists($fullPath)) {
+                return asset('images/' . $path);
+            }
+        }
+
+        $fullPath = public_html_path('images/testimonials/' . $path);
+        if (file_exists($fullPath)) {
+            return asset('images/testimonials/' . $path);
+        }
+
+        \Log::warning("⚠️ Imagen no encontrada para testimonial {$this->id}: {$this->client_photo}");
+        return asset('images/testimonials/default.jpg');
+    }
+
+    /**
+     * Helper para obtener iniciales
+     */
+    public function getInitials(): string
+    {
+        $words = explode(' ', $this->client_name);
+
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+
+        return strtoupper(substr($this->client_name, 0, 2));
+    }
+
+    /**
+     * Helper para obtener estrellas
+     */
+    public function getStarsArray(): array
+    {
+        return range(1, 5);
+    }
+
+    /**
+     * Limpiar caché de foto al actualizar
+     */
+    protected static function booted()
+    {
+        static::updated(function ($testimonial) {
+            Cache::forget("testimonial_photo_{$testimonial->id}");
+        });
+
+        static::deleted(function ($testimonial) {
+            Cache::forget("testimonial_photo_{$testimonial->id}");
+        });
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\app\Models\User.php 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password'          => 'hashed',
+        ];
+    }
+
+    // ── Helpers de rol ──────────────────────────────────────
+    public function isAdmin(): bool      { return $this->role === 'admin'; }
+    public function isEditor(): bool     { return $this->role === 'editor'; }
+    public function isResearcher(): bool { return $this->role === 'researcher'; }
+    public function isColumnist(): bool  { return $this->role === 'columnist'; }
+    public function isSeller(): bool     { return $this->role === 'seller'; }
+    public function isCustomer(): bool   { return $this->role === 'customer'; }
+    public function isUser(): bool       { return $this->role === 'user'; }
+
+    // ── Helpers de permisos combinados ──────────────────────
+    public function canEdit(): bool
+    {
+        return in_array($this->role, ['admin', 'editor']);
+    }
+
+    public function canPublishContent(): bool
+    {
+        return in_array($this->role, ['admin', 'editor', 'researcher', 'columnist']);
+    }
+
+    public function canSell(): bool
+    {
+        return in_array($this->role, ['admin', 'seller']);
+    }
+}
+ 

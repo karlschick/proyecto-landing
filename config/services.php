@@ -36,8 +36,8 @@ return [
     ],
 
         'daviplata' => [
-        'phone' => env('DAVIPLATA_PHONE', '3118939652'),
-        'name' => env('DAVIPLATA_NAME', 'Carlos Mauricio Gomez Salas'),
+        'phone' => env('DAVIPLATA_PHONE', '##telefono_cliente##'),
+        'name' => env('DAVIPLATA_NAME', '##nombre_cliente##'),
         'webhook_secret' => env('DAVIPLATA_WEBHOOK_SECRET'),
     ],
 

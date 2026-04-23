@@ -12,8 +12,8 @@ class DaviplataService
 
     public function __construct()
     {
-        $this->phoneNumber = config('services.daviplata.phone', '3118939652');
-        $this->accountName = config('services.daviplata.name', 'Carlos Mauricio Gomez Salas');
+        $this->phoneNumber = config('services.daviplata.phone', '##numero_telefonico##');
+        $this->accountName = config('services.daviplata.name', '##nombre_cliente##');
     }
 
     /**

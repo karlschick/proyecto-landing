@@ -1,0 +1,1075 @@
+[VISTA LANDING] 
+Archivo: resources\views\landing\sections\about.blade.php 
+<section id="nosotros" class="py-12 md:py-16 bg-[rgb(245,245,0)] min-h-[60vh] md:min-h-[55vh] flex items-center relative overflow-hidden">
+  {{-- Efecto de reflejo negro en el fondo --}}
+  <div class="about-shine absolute inset-0 pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+
+      <!-- Texto -->
+      <div>
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-6">
+          {{ $settings->about_title ?? 'Soluciones tecnológicas para tu negocio' }}
+        </h2>
+
+        @if($settings->about_description)
+          <div class="text-gray-900 mb-6 leading-relaxed space-y-4">
+            {!! nl2br(e($settings->about_description)) !!}
+          </div>
+        @else
+          <p class="text-gray-900 mb-4 leading-relaxed">
+            Somos una empresa especializada en tecnología y servicios IT, comprometida
+            con ofrecer soluciones innovadoras para empresas y personas que buscan
+            optimizar sus procesos digitales.
+          </p>
+          <p class="text-gray-900 mb-6 leading-relaxed">
+            Brindamos servicios de mantenimiento, instalación de redes, configuración
+            de servidores, diseño web y consultoría tecnológica, adaptándonos a las
+            necesidades específicas de cada cliente.
+          </p>
+        @endif
+
+      </div>
+
+      <!-- Imagen con marco neón naranja giratorio -->
+      <div class="flex justify-center">
+        <div class="image-neon-frame relative">
+          @if($settings->about_image)
+            <img src="{{ $settings->getAboutImageUrl() }}"
+                 alt="{{ $settings->about_title ?? 'Sobre Nosotros' }}"
+                 class="rounded-lg shadow-lg w-full max-w-[400px] h-auto object-contain relative z-10">
+          @else
+            <img src="{{ asset('images/about/about-image.jpg') }}"
+                 alt="Sobre Nosotros"
+                 class="rounded-lg shadow-lg w-full max-w-[400px] h-auto object-contain relative z-10">
+          @endif
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+@keyframes shine-sweep-black {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.about-shine::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 0, 0, 0.08),
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.08),
+    transparent
+  );
+  animation: shine-sweep-black 4s ease-in-out infinite;
+}
+
+@keyframes neon-travel {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
+.image-neon-frame {
+  position: relative;
+  padding: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent, transparent,
+    #ff6b00, #ff8c00, #ffa500,
+    transparent, transparent
+  );
+  background-size: 200% 200%;
+  border-radius: 12px;
+  animation: neon-travel 2s linear infinite;
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.5), inset 0 0 20px rgba(255, 107, 0, 0.3);
+}
+
+.image-neon-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 3px;
+  background: linear-gradient(
+    0deg,
+    transparent, transparent,
+    #ff6b00, #ff8c00, #ffa500,
+    transparent, transparent
+  );
+  background-size: 200% 200%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: neon-travel 2s linear infinite reverse;
+}
+
+.image-neon-frame img {
+  display: block;
+  border-radius: 8px;
+}
+</style>
+ 
+[VISTA ADMIN] 
+Archivo: resources\views\admin\about\index.blade.php 
+@extends('admin.layout')
+
+@section('title', 'Sección Nosotros')
+@section('page-title', 'Editor - Sección Nosotros')
+
+@section('content')
+<div class="max-w-3xl mx-auto">
+    <form action="{{ route('admin.about.update') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        @method('PUT')
+
+        <div class="bg-white rounded-xl shadow p-6 space-y-6">
+
+            {{-- Título --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                <input type="text" name="about_title"
+                       value="{{ old('about_title', $settings->about_title) }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+
+            {{-- Descripción --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                <textarea name="about_description" rows="6"
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('about_description', $settings->about_description) }}</textarea>
+                <p class="text-xs text-gray-400 mt-1">Cada salto de línea se muestra como párrafo separado.</p>
+            </div>
+
+            {{-- Imagen actual --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Imagen de la sección</label>
+
+                {{-- Preview imagen actual --}}
+                <div id="preview-container" class="mb-4 {{ $settings->about_image ? '' : 'hidden' }}">
+                    <p class="text-xs text-gray-500 mb-2">Imagen actual:</p>
+                    <img id="preview-img"
+                         src="{{ $settings->about_image ? $settings->getAboutImageUrl() : '' }}"
+                         alt="Imagen actual"
+                         class="h-48 object-cover rounded-lg shadow border border-gray-200">
+                </div>
+
+                {{-- Input oculto para imagen seleccionada de galería --}}
+                <input type="hidden" name="about_image_selected" id="about_image_selected"
+                       value="{{ $settings->about_image }}">
+
+                {{-- Subir nueva imagen --}}
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Subir nueva imagen</label>
+                    <input type="file" name="about_image" accept="image/jpeg,image/png,image/jpg,image/webp"
+                           id="file-upload"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-400 mt-1">Formatos: JPG, PNG, WEBP. Máx: 5MB.</p>
+                </div>
+
+                {{-- Galería de imágenes existentes en /images/about/ --}}
+                @if(count($galleryImages) > 0)
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">
+                        O elegir de las imágenes existentes en <code class="bg-gray-100 px-1 rounded">images/about/</code>
+                    </label>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-72 overflow-y-auto">
+                        @foreach($galleryImages as $img)
+                        <div class="gallery-item cursor-pointer group relative"
+                             data-value="{{ $img['value'] }}"
+                             data-url="{{ $img['url'] }}"
+                             onclick="selectGalleryImage(this)">
+                            <img src="{{ $img['url'] }}"
+                                 alt="{{ $img['filename'] }}"
+                                 class="w-full h-20 object-cover rounded-lg border-2 border-transparent group-hover:border-blue-400 transition">
+                            <div class="absolute inset-0 rounded-lg border-2 border-transparent pointer-events-none selected-border transition"></div>
+                            <p class="text-xs text-gray-400 mt-1 truncate text-center">{{ $img['filename'] }}</p>
+                        </div>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Haz clic en una imagen para seleccionarla. Si subes una imagen nueva, tiene prioridad.</p>
+                </div>
+                @else
+                <div class="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+                    <p class="text-sm text-gray-400">No hay imágenes en <code>public_html/images/about/</code></p>
+                    <p class="text-xs text-gray-400 mt-1">Sube una imagen usando el campo de arriba.</p>
+                </div>
+                @endif
+            </div>
+
+            {{-- Botón --}}
+            <div class="pt-2">
+                <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                    Guardar cambios
+                </button>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@push('scripts')
+<script>
+// Marcar imagen activa al cargar
+document.addEventListener('DOMContentLoaded', function () {
+    const currentValue = document.getElementById('about_image_selected').value;
+    if (currentValue) {
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            if (item.dataset.value === currentValue) {
+                markSelected(item);
+            }
+        });
+    }
+
+    // Preview al seleccionar archivo nuevo
+    document.getElementById('file-upload').addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('preview-img').src = e.target.result;
+                document.getElementById('preview-container').classList.remove('hidden');
+                // Deseleccionar galería
+                document.querySelectorAll('.gallery-item img').forEach(img => {
+                    img.classList.remove('border-blue-500');
+                    img.classList.add('border-transparent');
+                });
+                document.getElementById('about_image_selected').value = '';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+});
+
+function selectGalleryImage(el) {
+    // Limpiar selección anterior
+    document.querySelectorAll('.gallery-item img').forEach(img => {
+        img.classList.remove('border-blue-500');
+        img.classList.add('border-transparent');
+    });
+
+    // Marcar la seleccionada
+    markSelected(el);
+
+    // Actualizar hidden input y preview
+    document.getElementById('about_image_selected').value = el.dataset.value;
+    document.getElementById('preview-img').src = el.dataset.url;
+    document.getElementById('preview-container').classList.remove('hidden');
+
+    // Limpiar el file input para que no tenga prioridad
+    document.getElementById('file-upload').value = '';
+}
+
+function markSelected(el) {
+    const img = el.querySelector('img');
+    img.classList.remove('border-transparent');
+    img.classList.add('border-blue-500');
+}
+</script>
+@endpush
+
+@endsection
+ 
+[SEEDERS] 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\AdminUserSeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
+class AdminUserSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // Admin
+        User::updateOrCreate(
+            ['email' => 'skuboxit@gmail.com'],
+            [
+                'name'              => 'Administrador',
+                'password'          => Hash::make('9906Kael'),
+                'role'              => 'admin',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Editor
+        User::updateOrCreate(
+            ['email' => 'editor@tudominio.com'],
+            [
+                'name'              => 'Editor',
+                'password'          => Hash::make('editor2026'),
+                'role'              => 'editor',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Investigador
+        User::updateOrCreate(
+            ['email' => 'researcher@tudominio.com'],
+            [
+                'name'              => 'Investigador',
+                'password'          => Hash::make('researcher2026'),
+                'role'              => 'researcher',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Columnista
+        User::updateOrCreate(
+            ['email' => 'columnist@tudominio.com'],
+            [
+                'name'              => 'Columnista',
+                'password'          => Hash::make('columnist2026'),
+                'role'              => 'columnist',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Vendedor
+        User::updateOrCreate(
+            ['email' => 'seller@tudominio.com'],
+            [
+                'name'              => 'Vendedor',
+                'password'          => Hash::make('seller2026'),
+                'role'              => 'seller',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Cliente / Comprador
+        User::updateOrCreate(
+            ['email' => 'customer@tudominio.com'],
+            [
+                'name'              => 'Cliente',
+                'password'          => Hash::make('customer2026'),
+                'role'              => 'customer',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Usuario registrado
+        User::updateOrCreate(
+            ['email' => 'user@tudominio.com'],
+            [
+                'name'              => 'Usuario',
+                'password'          => Hash::make('user2026'),
+                'role'              => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\DatabaseSeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call([
+            AdminUserSeeder::class,
+            SettingSeeder::class,
+            ServiceSeeder::class,
+            ProjectCategorySeeder::class,
+            ProjectSeeder::class,
+            TestimonialSeeder::class,
+            GallerySeeder::class,
+            StatSeeder::class,
+
+            // E-commerce seeders
+            ProductCategorySeeder::class,
+            ProductSeeder::class,
+        ]);
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\GallerySeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\GalleryImage;
+
+class GallerySeeder extends Seeder
+{
+    public function run(): void
+    {
+        $images = [
+            [
+                'title' => 'Proyecto Web 1',
+                'description' => 'Captura de pantalla del proyecto web corporativo',
+                'image' => 'gallery/default-1.jpg', // ✅
+                'category' => 'Desarrollo Web',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 1,
+            ],
+            [
+                'title' => 'Proyecto Web 2',
+                'description' => 'Vista responsive del portal',
+                'image' => 'gallery/default-2.jpg', // ✅
+                'category' => 'Desarrollo Web',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 2,
+            ],
+            [
+                'title' => 'App Móvil 1',
+                'description' => 'Interfaz principal de la app',
+                'image' => 'gallery/default-3.jpg', // ✅
+                'category' => 'Apps Móviles',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 3,
+            ],
+            [
+                'title' => 'App Móvil 2',
+                'description' => 'Pantalla de checkout',
+                'image' => 'gallery/default-4.jpg', // ✅
+                'category' => 'Apps Móviles',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 4,
+            ],
+            [
+                'title' => 'Diseño UX 1',
+                'description' => 'Wireframes del proyecto',
+                'image' => 'gallery/default-5.jpg', // ✅
+                'category' => 'Diseño',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 5,
+            ],
+            [
+                'title' => 'Diseño UX 2',
+                'description' => 'Prototipos de alta fidelidad',
+                'image' => 'gallery/default-6.jpg', // ✅
+                'category' => 'Diseño',
+                'type' => 'image',
+                'is_active' => true,
+                'order' => 6,
+            ],
+        ];
+
+        foreach ($images as $imageData) {
+            GalleryImage::create($imageData);
+        }
+
+        $this->command->info('✓ ' . count($images) . ' imágenes de galería creadas correctamente');
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\ProductCategorySeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\ProductCategory;
+
+class ProductCategorySeeder extends Seeder
+{
+    public function run(): void
+    {
+        $categories = [
+            [
+                'name' => 'Electrónica',
+                'description' => 'Productos electrónicos y tecnología',
+                'is_active' => true,
+                'order' => 1,
+            ],
+            [
+                'name' => 'Ropa y Accesorios',
+                'description' => 'Moda, ropa y accesorios',
+                'is_active' => true,
+                'order' => 2,
+            ],
+            [
+                'name' => 'Hogar y Jardín',
+                'description' => 'Artículos para el hogar y jardín',
+                'is_active' => true,
+                'order' => 3,
+            ],
+            [
+                'name' => 'Deportes',
+                'description' => 'Artículos deportivos y fitness',
+                'is_active' => true,
+                'order' => 4,
+            ],
+            [
+                'name' => 'Libros',
+                'description' => 'Libros y revistas',
+                'is_active' => true,
+                'order' => 5,
+            ],
+            [
+                'name' => 'Servicios',
+                'description' => 'Servicios profesionales y técnicos ofrecidos por la empresa',
+                'is_active' => true,
+                'order' => 6,
+            ],
+            [
+                'name' => 'Instalaciones',
+                'description' => 'Instalaciones técnicas, eléctricas y de redes',
+                'is_active' => true,
+                'order' => 7,
+            ],
+        ];
+
+        foreach ($categories as $category) {
+            ProductCategory::updateOrCreate(
+                ['name' => $category['name']],
+                $category
+            );
+        }
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\ProductSeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use App\Models\Product;
+use App\Models\ProductCategory;
+
+class ProductSeeder extends Seeder
+{
+    public function run(): void
+    {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Product::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        $electronica = ProductCategory::where('name', 'Electrónica')->first();
+        $servicios = ProductCategory::where('name', 'Servicios')->first();
+        $instalaciones = ProductCategory::where('name', 'Instalaciones')->first();
+
+        $products = [
+            // Electrónica
+            [
+                'category_id' => $electronica?->id,
+                'name' => 'Laptop HP 15"',
+                'description' => 'Laptop HP con procesador Intel Core i5, 8GB RAM, 256GB SSD. Ideal para trabajo y estudio.',
+                'short_description' => 'Laptop potente para trabajo y estudio',
+                'price' => 1299000,
+                'compare_price' => 1499000,
+                'quantity' => 10,
+                'track_quantity' => true,
+                'is_featured' => true,
+                'is_active' => true,
+                'featured_image' => 'products/product1.png', // ← public_html/images/products/product1.png
+                'order' => 1,
+            ],
+            [
+                'category_id' => $electronica?->id,
+                'name' => 'Mouse Inalámbrico Logitech',
+                'description' => 'Mouse ergonómico inalámbrico con batería de larga duración.',
+                'short_description' => 'Mouse inalámbrico ergonómico',
+                'price' => 89000,
+                'quantity' => 50,
+                'track_quantity' => true,
+                'is_featured' => false,
+                'is_active' => true,
+                'featured_image' => 'products/product2.png',
+                'order' => 2,
+            ],
+
+            // Servicios
+            [
+                'category_id' => $servicios?->id,
+                'name' => 'Mantenimiento de Computadores',
+                'description' => 'Servicio técnico de mantenimiento preventivo y correctivo de equipos de cómputo.',
+                'short_description' => 'Mantenimiento técnico de PC y laptops',
+                'price' => 120000,
+                'compare_price' => 150000,
+                'quantity' => 1,
+                'track_quantity' => false,
+                'is_featured' => true,
+                'is_active' => true,
+                'featured_image' => 'products/product3.png',
+                'order' => 3,
+            ],
+            [
+                'category_id' => $servicios?->id,
+                'name' => 'Diseño Web Profesional',
+                'description' => 'Creación de sitios web modernos, responsivos y optimizados para SEO.',
+                'short_description' => 'Diseño de páginas web profesionales',
+                'price' => 950000,
+                'compare_price' => 1200000,
+                'quantity' => 1,
+                'track_quantity' => false,
+                'is_featured' => true,
+                'is_active' => true,
+                'featured_image' => 'products/product4.png',
+                'order' => 4,
+            ],
+            [
+                'category_id' => $servicios?->id,
+                'name' => 'Consultoría Tecnológica',
+                'description' => 'Asesoría especializada en transformación digital y automatización.',
+                'short_description' => 'Consultoría digital y tecnológica',
+                'price' => 350000,
+                'compare_price' => null,
+                'quantity' => 1,
+                'track_quantity' => false,
+                'is_featured' => false,
+                'is_active' => true,
+                'featured_image' => 'products/product5.png',
+                'order' => 5,
+            ],
+
+            // Instalaciones
+            [
+                'category_id' => $instalaciones?->id,
+                'name' => 'Instalación de Cámaras de Seguridad',
+                'description' => 'Instalación profesional de sistemas de videovigilancia IP y analógicos.',
+                'short_description' => 'Instalación de cámaras de seguridad',
+                'price' => 800000,
+                'compare_price' => 950000,
+                'quantity' => 1,
+                'track_quantity' => false,
+                'is_featured' => true,
+                'is_active' => true,
+                'featured_image' => 'products/product6.png',
+                'order' => 6,
+            ],
+            [
+                'category_id' => $instalaciones?->id,
+                'name' => 'Cableado Estructurado de Red',
+                'description' => 'Diseño e instalación de cableado de red para oficinas y hogares.',
+                'short_description' => 'Cableado estructurado y redes',
+                'price' => 550000,
+                'compare_price' => 700000,
+                'quantity' => 1,
+                'track_quantity' => false,
+                'is_featured' => false,
+                'is_active' => true,
+                'featured_image' => 'products/product7.png',
+                'order' => 7,
+            ],
+            [
+                'category_id' => $instalaciones?->id,
+                'name' => 'Configuración de Servidores',
+                'description' => 'Implementación, configuración y mantenimiento de servidores locales o en la nube.',
+                'short_description' => 'Configuración profesional de servidores',
+                'price' => 1200000,
+                'compare_price' => 1500000,
+                'quantity' => 1,
+                'track_quantity' => false,
+                'is_featured' => true,
+                'is_active' => true,
+                'featured_image' => 'products/product8.png',
+                'order' => 8,
+            ],
+        ];
+
+        foreach ($products as $product) {
+            Product::create($product);
+        }
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\ProjectCategorySeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\ProjectCategory;
+use App\Models\Project;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+
+class ProjectCategorySeeder extends Seeder
+{
+    public function run(): void
+    {
+        // Eliminar proyectos primero para evitar FK
+        Project::query()->delete();
+        ProjectCategory::query()->delete();
+
+        $categories = [
+            ['name' => 'Desarrollo Web', 'description' => 'Proyectos de desarrollo web', 'is_active' => true, 'order' => 1],
+            ['name' => 'Aplicaciones Móviles', 'description' => 'Apps móviles iOS y Android', 'is_active' => true, 'order' => 2],
+            ['name' => 'Diseño UX/UI', 'description' => 'Proyectos de diseño de interfaces', 'is_active' => true, 'order' => 3],
+            ['name' => 'E-commerce', 'description' => 'Tiendas online y plataformas de venta', 'is_active' => true, 'order' => 4],
+        ];
+
+        foreach ($categories as $category) {
+            ProjectCategory::create([
+                'name' => $category['name'],
+                'slug' => Str::slug($category['name']),
+                'description' => $category['description'],
+                'is_active' => $category['is_active'],
+                'order' => $category['order'],
+            ]);
+        }
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\ProjectSeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\ProjectCategory;
+use App\Models\Project;
+use Illuminate\Support\Str;
+
+class ProjectSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $categories = ProjectCategory::all()->keyBy('name');
+
+        $projects = [
+            [
+                'category' => 'Desarrollo Web',
+                'title' => 'Portal Corporativo ABC',
+                'short_description' => 'Desarrollo de portal web corporativo con panel de administración',
+                'description' => 'Desarrollamos un portal web corporativo completo con sistema de gestión de contenidos, integración con redes sociales y panel de administración personalizado.',
+                'client' => 'ABC Corporation',
+                'project_date' => '2024-06-15',
+                'url' => 'https://ejemplo.com',
+                'is_featured' => true,
+                'is_active' => true,
+                'order' => 1,
+                'image' => 'projects/default-project-1.png',
+            ],
+            [
+                'category' => 'Aplicaciones Móviles',
+                'title' => 'App de Delivery FoodNow',
+                'short_description' => 'Aplicación móvil para pedidos de comida a domicilio',
+                'description' => 'Creamos una aplicación móvil completa para iOS y Android que permite a los usuarios ordenar comida de restaurantes locales.',
+                'client' => 'FoodNow Inc.',
+                'project_date' => '2024-08-22',
+                'url' => null,
+                'is_featured' => true,
+                'is_active' => true,
+                'order' => 2,
+                'image' => 'projects/default-project-2.png',
+            ],
+            [
+                'category' => 'E-commerce',
+                'title' => 'Tienda Online Fashion Store',
+                'short_description' => 'E-commerce completo para tienda de moda',
+                'description' => 'Desarrollamos una tienda online completa con carrito de compras, sistema de pagos integrado, gestión de inventario y panel de administración.',
+                'client' => 'Fashion Store',
+                'project_date' => '2024-09-10',
+                'url' => null,
+                'is_featured' => false,
+                'is_active' => true,
+                'order' => 3,
+                'image' => 'projects/default-project-3.png',
+            ],
+            [
+                'category' => 'Diseño UX/UI',
+                'title' => 'Rediseño UX de Banking App',
+                'short_description' => 'Rediseño completo de interfaz para app bancaria',
+                'description' => 'Realizamos un rediseño completo de la experiencia de usuario y la interfaz de una aplicación bancaria.',
+                'client' => 'Banco Digital',
+                'project_date' => '2024-07-18',
+                'url' => null,
+                'is_featured' => false,
+                'is_active' => true,
+                'order' => 4,
+                'image' => 'projects/default-project-4.png',
+            ],
+        ];
+
+        foreach ($projects as $projectData) {
+            $category = $categories[$projectData['category']] ?? null;
+            if ($category) {
+                Project::create([
+                    'category_id'       => $category->id,
+                    'title'             => $projectData['title'],
+                    'slug'              => Str::slug($projectData['title']),
+                    'short_description' => $projectData['short_description'],
+                    'description'       => $projectData['description'],
+                    'client'            => $projectData['client'],
+                    'project_date'      => $projectData['project_date'],
+                    'url'               => $projectData['url'],
+                    'is_featured'       => $projectData['is_featured'],
+                    'is_active'         => $projectData['is_active'],
+                    'order'             => $projectData['order'],
+                    'featured_image'    => $projectData['image'],
+                ]);
+            }
+        }
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\ServiceSeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Service;
+
+class ServiceSeeder extends Seeder
+{
+    public function run(): void
+    {
+        Service::truncate();
+
+        $services = [
+            [
+                'title' => 'Desarrollo Web',
+                'short_description' => 'Creamos sitios web modernos y responsivos',
+                'description' => 'Desarrollamos sitios web profesionales, modernos y completamente responsivos. Utilizamos las últimas tecnologías para garantizar el mejor rendimiento y experiencia de usuario.',
+                'icon' => '💻',
+                'is_active' => true,
+                'order' => 1,
+            ],
+            [
+                'title' => 'Diseño Gráfico',
+                'short_description' => 'Diseños creativos que destacan tu marca',
+                'description' => 'Creamos diseños únicos y profesionales que reflejan la identidad de tu marca. Desde logos hasta material publicitario completo.',
+                'icon' => '🎨',
+                'is_active' => true,
+                'order' => 2,
+            ],
+            [
+                'title' => 'Marketing Digital',
+                'short_description' => 'Estrategias para hacer crecer tu negocio',
+                'description' => 'Desarrollamos estrategias de marketing digital efectivas para aumentar tu presencia online y generar más ventas.',
+                'icon' => '📱',
+                'is_active' => true,
+                'order' => 3,
+            ],
+            [
+                'title' => 'Consultoría IT',
+                'short_description' => 'Asesoramiento tecnológico experto',
+                'description' => 'Brindamos consultoría especializada en tecnología para optimizar tus procesos y tomar las mejores decisiones tecnológicas.',
+                'icon' => '🔧',
+                'is_active' => true,
+                'order' => 4,
+            ],
+        ];
+
+        foreach ($services as $service) {
+            Service::create($service);
+        }
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\SettingSeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Setting;
+
+class SettingSeeder extends Seeder
+{
+    public function run(): void
+    {
+        Setting::create([
+            'site_name'                => 'Mi Landing Page',
+            'site_slogan'              => 'Tu solución perfecta',
+            'primary_color'            => '#3B82F6',
+            'secondary_color'          => '#8B5CF6',
+            'accent_color'             => '#10B981',
+            'contact_email'            => 'contacto@ejemplo.com',
+            'favicon'                  => 'favicon.ico',
+
+            // Hero
+            'hero_enabled'             => true,
+            'hero_title'               => 'Bienvenido a Tu LandingPage',
+            'hero_subtitle'            => 'Ofrecemos las mejores soluciones para tu negocio',
+            'hero_button_text'         => 'Comenzar',
+            'hero_button_url'          => '#contacto',
+            'hero_background_type'     => 'color',
+            'hero_overlay_opacity'     => 0.5,
+            'hero_show_logo_instead'   => true,
+            'hero_logo_x'              => 50,
+            'hero_logo_y'              => 50,
+            'hero_logo_size'           => 112,
+
+            // About ← AGREGADO
+            'about_enabled'            => true,
+            'about_title'              => 'Soluciones tecnológicas para tu negocio',
+            'about_description'        => "Somos una empresa especializada en tecnología y servicios IT, comprometida con ofrecer soluciones innovadoras para empresas y personas que buscan optimizar sus procesos digitales.\n\nBrindamos servicios de mantenimiento, instalación de redes, configuración de servidores, diseño web y consultoría tecnológica, adaptándonos a las necesidades específicas de cada cliente.",
+
+            // Secciones
+            'services_enabled'         => true,
+            'products_enabled'         => true,
+            'testimonials_enabled'     => true,
+            'gallery_enabled'          => true,
+            'contact_enabled'          => true,
+
+            // Footer y otros
+            'show_social_footer'       => true,
+            'show_whatsapp_button'     => true,
+            'whatsapp_button_message'  => 'Hola, quiero más información',
+
+            // Navbar
+            'navbar_bg_color'          => '#000000',
+            'navbar_text_color'        => '#ffffff',
+        ]);
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\StatSeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Stat;
+
+class StatSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $stats = [
+            [
+                'label'    => 'Proyectos Completados',
+                'value'    => '150+',
+                'target'   => 150,
+                'suffix'   => '+',
+                'duration' => 20,
+                'step'     => 5,
+                'order'    => 1,
+                'is_active'=> true,
+            ],
+            [
+                'label'    => 'Satisfacción del Cliente',
+                'value'    => '95%',
+                'target'   => 95,
+                'suffix'   => '%',
+                'duration' => 30,
+                'step'     => 5,
+                'order'    => 2,
+                'is_active'=> true,
+            ],
+            [
+                'label'    => 'Años de Experiencia',
+                'value'    => '20+',
+                'target'   => 20,
+                'suffix'   => '+',
+                'duration' => 200,
+                'step'     => 1,
+                'order'    => 3,
+                'is_active'=> true,
+            ],
+            [
+                'label'    => 'Clientes Satisfechos',
+                'value'    => '2000+',
+                'target'   => 2000,
+                'suffix'   => '+',
+                'duration' => 10,
+                'step'     => 50,
+                'order'    => 4,
+                'is_active'=> true,
+            ],
+        ];
+
+        foreach ($stats as $stat) {
+            Stat::updateOrCreate(
+                ['label' => $stat['label']],
+                $stat
+            );
+        }
+    }
+}
+ 
+Archivo: D:\htdocs\ATORY\AtoryLanding\database\seeders\TestimonialSeeder.php 
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Testimonial;
+
+class TestimonialSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $testimonials = [
+            [
+                'client_name' => 'María González',
+                'client_position' => 'CEO',
+                'client_company' => 'Tech Solutions',
+                'testimonial' => 'Excelente trabajo, superaron nuestras expectativas. El equipo fue profesional y entregó el proyecto a tiempo. Definitivamente los recomendaría.',
+                'client_photo' => 'testimonials/default-testimonial-1.jpg',
+                'rating' => 5,
+                'is_featured' => true,
+                'is_active' => true,
+                'order' => 1,
+            ],
+            [
+                'client_name' => 'Carlos Rodríguez',
+                'client_position' => 'Director de Marketing',
+                'client_company' => 'Fashion Store',
+                'testimonial' => 'La tienda online que desarrollaron para nosotros ha incrementado nuestras ventas en un 300%. Altamente recomendados.',
+                'client_photo' => 'testimonials/default-testimonial-2.jpg',
+                'rating' => 5,
+                'is_featured' => true,
+                'is_active' => true,
+                'order' => 2,
+            ],
+            [
+                'client_name' => 'Ana Martínez',
+                'client_position' => 'Gerente General',
+                'client_company' => 'ABC Corporation',
+                'testimonial' => 'Profesionales, creativos y muy responsables. Nuestro nuevo portal web es exactamente lo que necesitábamos.',
+                'client_photo' => 'testimonials/default-testimonial-3.jpg',
+                'rating' => 5,
+                'is_featured' => true,
+                'is_active' => true,
+                'order' => 3,
+            ],
+            [
+                'client_name' => 'Roberto Silva',
+                'client_position' => 'Product Manager',
+                'client_company' => 'FoodNow Inc.',
+                'testimonial' => 'La app que desarrollaron funciona perfectamente. Los usuarios están muy satisfechos y hemos recibido excelentes comentarios.',
+                'client_photo' => 'testimonials/default-testimonial-4.jpg',
+                'rating' => 4,
+                'is_featured' => true,
+                'is_active' => true,
+                'order' => 4,
+            ],
+            [
+                'client_name' => 'Laura Pérez',
+                'client_position' => 'Directora de Innovación',
+                'client_company' => 'Banco Digital',
+                'testimonial' => 'El rediseño de nuestra app ha mejorado significativamente la experiencia de nuestros usuarios. Trabajo impecable.',
+                'client_photo' => 'testimonials/default-testimonial-5.jpg',
+                'rating' => 5,
+                'is_featured' => true,
+                'is_active' => true,
+                'order' => 5,
+            ],
+        ];
+
+        foreach ($testimonials as $testimonial) {
+            Testimonial::create($testimonial);
+        }
+    }
+}
+ 

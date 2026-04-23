@@ -1,38 +1,31 @@
 LANDING PAGE
 -----------------------------------------
-BD
-
-npm run dev
-
-php artisan serve
+BD    landing_db   -    u480925299_landing_db
 -----------------------------------------
+npm run dev
+php artisan serve
 
+-----------------------------------------
+LIMPIAR CONFIGURACIONES
+php artisan config:clear
+php artisan cache:clear
+php artisan config:cache
 -------------------------------------
 user admin:    skuboxit@gmail.com     	pass:  password
 user editor:   editor@landing.com	pass:  password
 -------------------------------------
-
------------------------------------------
 crea  los datos de base de datos con migrate de seeder
 
-php artisan db:seed --class=AdminUserSeeder
-
-php artisan tinker
-
-Objetivo									     Comando
-genera automáticamente una nueva APP_KEY		php artisan key:generate
-Ejecutar todos los seeders registrados			php artisan db:seed
-Ejecutar un seeder específico				    php artisan db:seed --class=NombreDelSeeder
-Resetear base y seeders					        php artisan migrate:fresh --seed
-Refrescar (rollback + migrate + seed)			php artisan migrate:refresh --seed
-Forzar seeders en producción				    php artisan db:seed --force
-para subir build                               npm run build
-
-php artisan config:clear
-php artisan cache:clear
-php artisan config:cache
-
-
+Objetivo							 Comando
+genera automáticamente una nueva APP_KEY..............	php artisan key:generate
+Ejecutar todos los seeders registrados	..............	php artisan db:seed
+Ejecutar un seeder específico		..............  php artisan db:seed --class=NombreDelSeeder
+Ejecutar un seeder a Admin y usuarios   ..............  php artisan db:seed --class=AdminUserSeeder
+Resetear base y seeders			..............  php artisan migrate:fresh --seed
+Refrescar (rollback + migrate + seed)	..............  php artisan migrate:refresh --seed
+Forzar seeders en producción		..............  php artisan db:seed --force
+inicializar consola para base de datos  ..............  php artisan tinker
+-----------------------------------------
 call READ\list_hero.bat
 call READ\list_stats.bat
 call READ\list_about.bat

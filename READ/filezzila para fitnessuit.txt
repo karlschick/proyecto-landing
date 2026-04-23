@@ -1,0 +1,6 @@
+filezilla
+
+IP de FTP (nombre de host)	ftp://185.173.111.204 
+Nombre de usuario FTP	u480925299.olive-hornet-487475.hostingersite.com
+Puerto FTP	21
+contraseña:    0699Kael*

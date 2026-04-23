@@ -34,8 +34,8 @@
 
             <p><strong>Información de contacto:</strong></p>
             <ul>
-                <li>Email: maurofit5asesorados@gmail.com</li>
-                <li>Teléfono: +57 311 893 9652</li>
+                <li>Email: skuboxit@gmail.com</li>
+                <li>Teléfono: +57 311 5765959</li>
             </ul>
 
             <p>¡Esperamos poder ayudarte pronto!</p>

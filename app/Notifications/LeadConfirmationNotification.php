@@ -26,7 +26,7 @@ class LeadConfirmationNotification extends Notification
     public function toMail($notifiable): MailMessage
     {
         // ✅ SIN consultar base de datos con imágenes, solo valores necesarios
-        $siteName = config('app.name', 'FitnessSuit');
+        $siteName = config('app.name', 'pagelanding');
 
         return (new MailMessage)
             ->subject('✅ Hemos recibido tu mensaje - ' . $siteName)
@@ -40,8 +40,8 @@ class LeadConfirmationNotification extends Notification
             ->line('Generalmente respondemos en menos de 24 horas hábiles.')
             ->line('')
             ->line('**Información de contacto:**')
-            ->line('• Email: maurofit5asesorados@gmail.com')
-            ->line('• Teléfono: +57 311 893 9652')
+            ->line('• Email: skuboxit@gmail.com')
+            ->line('• Teléfono: +57 3115765959')
             ->line('')
             ->line('¡Esperamos poder ayudarte pronto!')
             ->salutation('Atentamente, ' . $siteName);

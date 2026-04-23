@@ -1,0 +1,25 @@
+DEPLOY LOCAL A LOCAL
+copia los archivos cambiados sin preder la informacion vital
+robocopy "D:\htdocs\ATORY\AtoryLanding" "D:\htdocs\Fitness" /MIR /XD .git uploads media storage node_modules /XF .env
+
+
+----------------------------------------------------
+ENTRAR A SSH DE HOSTINGER POR "MSYS2"
+ssh -p 65002 u480925299@185.173.111.204
+cd ~/domains/olive-hornet-487475.hostingersite.com
+
+-----------------------------------------------------
+DEPLOY LOCAL A HOSTING
+ejecuta MSYS2  para hacer deploy
+rsync -avz -e "ssh -p 65002" \
+  --exclude '.git/' \
+  --exclude '.env' \
+  --exclude 'uploads/' \
+  --exclude 'media/' \
+  --exclude 'READ/' \
+  --exclude 'storage/' \
+  --exclude 'node_modules/' \
+  /d/htdocs/Fitness/ \
+  u480925299@185.173.111.204:~/domains/olive-hornet-487475.hostingersite.com/
+
+------------------------------------------------------
